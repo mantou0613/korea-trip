@@ -69,7 +69,26 @@
     .prep-add-btn { display:flex; align-items:center; justify-content:center; gap:6px; margin:4px 14px 12px; padding:7px 12px; background:#f5f5f3; border:1px dashed #ccc; border-radius:8px; font-size:12px; color:#888; cursor:pointer; width:calc(100% - 28px); font-family:inherit; }
     .prep-add-btn:hover { background:#eee; }
 
-    [contenteditable="true"] { outline:1.5px dashed #4285F4 !important; background:rgba(66,133,244,.05) !important; border-radius:4px; min-height:1.2em; cursor:text; }
+    [contenteditable="true"] { 
+    outline: 1.5px dashed #4285F4 !important; 
+    background: rgba(66, 133, 244, 0.05) !important; 
+    border-radius: 4px; 
+    min-height: 1.2em; 
+    cursor: text; 
+    padding: 2px 4px; /* 增加一點邊距讓虛線不會貼死文字 */
+      
+}
+    /* 讓提醒事項的輸入欄位在非編輯模式下看起來像普通文字 */
+.prep-text {
+    flex: 1;
+    outline: none;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: #333;
+    padding: 2px 4px;
+}
 
     #admin-controls { position:fixed; bottom:0; left:0; right:0; display:flex; gap:10px; padding:12px 16px; background:rgba(255,255,255,.95); backdrop-filter:blur(10px); border-top:.5px solid #E4E2DC; z-index:200; }
     #admin-controls button { flex:1; border:none; padding:13px 0; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; font-family:inherit; }
@@ -394,11 +413,24 @@ function editRate() {
 }
 
 function toggleEditMode() {
-  isEditMode = !isEditMode; isSyncLocked = isEditMode;
-  document.querySelectorAll('.editable-content').forEach(el => el.contentEditable = isEditMode);
-  const eb = document.getElementById('edit-btn'), sb = document.getElementById('save-btn');
-  if (isEditMode) { eb.innerText = "🚫 取消"; sb.style.display = "block"; }
-  else { eb.innerText = "✏️ 編輯模式"; sb.style.display = "none"; isSyncLocked = false; }
+    isEditMode = !isEditMode;
+    isSyncLocked = isEditMode;
+    
+    // 1. 修改原本標註為 .editable-content 的元素
+    document.querySelectorAll('.editable-content').forEach(el => el.contentEditable = isEditMode);
+    
+    // 2. 特別針對「代購提醒」的文字區域切換編輯狀態
+    document.querySelectorAll('.prep-text').forEach(el => el.contentEditable = isEditMode);
+    
+    const eb = document.getElementById('edit-btn'), sb = document.getElementById('save-btn');
+    if (isEditMode) { 
+        eb.innerText = "🚫 取消"; 
+        sb.style.display = "block"; 
+    } else { 
+        eb.innerText = "✏️ 編輯模式"; 
+        sb.style.display = "none"; 
+        isSyncLocked = false; 
+    }
 }
 
 function saveToFirebase() {
@@ -486,7 +518,13 @@ function addPrepItem() {
 }
 
 function makePrepItem(tag, text, bg, color) {
-  return `<div class="prep-item"><span class="prep-tag" style="background:${bg};color:${color};" onclick="cyclePrepTag(this)">${tag}</span><span class="prep-text" contenteditable="true">${text}</span><button class="prep-del" onclick="delPrepItem(this)">×</button></div>`;
+    // 根據當前是否為編輯模式，決定 contenteditable 是 true 還是 false
+    const editable = isEditMode ? 'true' : 'false';
+    return `<div class="prep-item">
+        <span class="prep-tag" style="background:${bg};color:${color};" onclick="cyclePrepTag(this)">${tag}</span>
+        <span class="prep-text" contenteditable="${editable}">${text}</span>
+        <button class="prep-del" onclick="delPrepItem(this)">×</button>
+    </div>`;
 }
 
 function delPrepItem(btn) { btn.closest('.prep-item').remove(); }
