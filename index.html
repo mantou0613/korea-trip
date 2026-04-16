@@ -11,7 +11,42 @@
     :root { --primary:#FFD60A; --dark:#1A1A18; --bg:#F0EEE9; --accent:#E6430A; }
     * { box-sizing:border-box; margin:0; padding:0; }
     body { font-family:'Noto Sans TC',sans-serif; background:var(--bg); padding-bottom:120px; -webkit-font-smoothing:antialiased; }
+    /* 跳轉按鈕列 */
+.jump-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 14px;
+  background: var(--bg);
+  position: sticky;
+  top: 45px; /* 這裡要避開上方匯率工具的高度，請根據實際情況調整 */
+  z-index: 90;
+  -webkit-overflow-scrolling: touch;
+}
+.jump-tabs::-webkit-scrollbar { display: none; }
 
+.jump-btn {
+  flex: 0 0 auto;
+  padding: 8px 15px;
+  border-radius: 12px;
+  border: 1px solid #D8D6D0;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1A1A18;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.jump-btn:active {
+  background: var(--primary);
+  transform: scale(0.95);
+}
+
+/* 讓捲動變平滑 */
+html {
+  scroll-behavior: smooth;
+}
     .currency-tool { background:#fff; border-bottom:1px solid #E8E6E0; padding:10px 16px; display:flex; align-items:center; justify-content:center; gap:10px; font-size:13px; position:sticky; top:0; z-index:99; box-shadow:0 1px 8px rgba(0,0,0,.06); }
     .currency-tool input { width:88px; padding:6px 10px; border-radius:8px; border:1px solid #D8D6D0; font-weight:700; text-align:center; font-size:13px; }
     #twdResult { font-weight:900; color:var(--accent); font-size:14px; }
@@ -137,6 +172,13 @@
   </div>
 
   <main class="wrap" id="main-wrap">
+    <div class="jump-tabs">
+  <button class="jump-btn" onclick="scrollToDay('day1-card')">5/27 (D1)</button>
+  <button class="jump-btn" onclick="scrollToDay('day2-card')">5/28 (D2)</button>
+  <button class="jump-btn" onclick="scrollToDay('day3-card')">5/29 (D3)</button>
+  <button class="jump-btn" onclick="scrollToDay('day4-card')">5/30 (D4)</button>
+  <button class="jump-btn" onclick="scrollToDay('day5-card')">5/31 (D5)</button>
+</div>
 
     <section class="card" id="day1-card">
       <div class="day-header"><span class="badge">Day 1</span><span class="editable-content" id="d1-header" contenteditable="false">5/27 週三 ｜ 抵達 → 明洞 Look Home Check-in</span></div>
@@ -415,6 +457,23 @@ async function fetchCurrentRate() {
   } catch(e) {}
 }
 fetchCurrentRate();
+
+  function scrollToDay(id) {
+  const element = document.getElementById(id);
+  if (element) {
+    // 取得元素位置並減去上方固定選單的高度 (約 100px)，避免標題被遮住
+    const offset = 100; 
+    const bodyRect = document.body.getBoundingClientRect().top;
+    const elementRect = element.getBoundingClientRect().top;
+    const elementPosition = elementRect - bodyRect;
+    const offsetPosition = elementPosition - offset;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
+    });
+  }
+}
 
 function convertCurrency() {
   const krw = document.getElementById('krwInput').value;
