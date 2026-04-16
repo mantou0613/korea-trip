@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YBO 代購採買總清單</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        :root { --primary:#FFD60A; --dark:#1A1A18; --bg:#F0EEE9; --accent:#E6430A; }
+        body { font-family:'Noto Sans TC',sans-serif; background:var(--bg); margin:0; padding:20px 12px 100px; }
+        
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .back-btn { padding: 8px 12px; background: #fff; border: 1px solid #ccc; border-radius: 8px; text-decoration: none; color: #333; font-size: 13px; font-weight: 700; }
+        
+        .location-card { background: #fff; border-radius: 18px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .location-title { font-size: 16px; font-weight: 900; color: var(--dark); border-left: 4px solid var(--primary); padding-left: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; }
+        
+        .item-row { border-bottom: 1px solid #eee; padding: 12px 0; }
+        .item-row:last-child { border-bottom: none; }
+        .item-name { font-weight: 700; font-size: 14px; margin-bottom: 8px; color: #1a1a1a; display: block; }
+        
+        /* 三個小欄位容器 */
+        .item-fields { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 8px; }
+        .sub-field { display: flex; flex-direction: column; gap: 4px; }
+        .sub-field label { font-size: 10px; color: #aaa; font-weight: 500; }
+        .sub-field input { border: 1px solid #EAE8E2; background: #FAFAF8; border-radius: 6px; padding: 6px; font-size: 12px; font-family: inherit; }
+
+        /* 底部控制欄 */
+        .footer-tools { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 15px; border-top: 1px solid #ddd; display: flex; gap: 10px; }
+        .btn-add { flex: 1; background: var(--dark); color: var(--primary); border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="back-btn">← 返回行程</a>
+    <h2 style="margin:0; font-size: 18px;">採買清單</h2>
+    <div style="width: 50px;"></div>
+</div>
+
+<div class="location-card">
+    <div class="location-title">
+        <span>📍 Olive Young 旗艦店</span>
+        <span style="font-size: 12px; color: var(--accent);">待採買</span>
+    </div>
+    
+    <div class="item-list">
+        <div class="item-row">
+            <span class="item-name">補水玻尿酸精華液</span>
+            <div class="item-fields">
+                <div class="sub-field">
+                    <label>具體地點</label>
+                    <input type="text" placeholder="2F 保養區">
+                </div>
+                <div class="sub-field">
+                    <label>金額 (₩)</label>
+                    <input type="number" placeholder="25000">
+                </div>
+                <div class="sub-field">
+                    <label>數量</label>
+                    <input type="number" placeholder="5">
+                </div>
+            </div>
+        </div>
+        
+        <div class="item-row">
+            <span class="item-name">GD 同款香水 (Hetras)</span>
+            <div class="item-fields">
+                <div class="sub-field"><label>具體地點</label><input type="text" placeholder="1F 香氛區"></div>
+                <div class="sub-field"><label>金額 (₩)</label><input type="number" placeholder="38000"></div>
+                <div class="sub-field"><label>數量</label><input type="number" placeholder="2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="location-card">
+    <div class="location-title">
+        <span>📍 東大門 APM Place</span>
+    </div>
+    <div class="item-list">
+        <div class="item-row">
+            <span class="item-name">新款蝴蝶結髮夾</span>
+            <div class="item-fields">
+                <div class="sub-field"><label>檔口號碼</label><input type="text" placeholder="B1-12號"></div>
+                <div class="sub-field"><label>金額 (₩)</label><input type="number" placeholder="5000"></div>
+                <div class="sub-field"><label>數量</label><input type="number" placeholder="10"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="footer-tools">
+    <button class="btn-add">＋ 新增分區</button>
+    <button class="btn-add" style="background: #4CAF50; color: white;">💾 儲存清單</button>
+</div>
+
+</body>
+</html>
