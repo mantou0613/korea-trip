@@ -508,7 +508,34 @@ const db = firebase.database();
 let currentRate = 0.025;
 let isEditMode = false;
 let isSyncLocked = false;
+  
+// 自動從網路抓取韓幣即時匯率
+async function fetchCurrentRate() {
+    try {
+        const response = await fetch('https://open.er-api.com/v6/latest/KRW');
+        const data = await response.json();
+        if (data && data.rates && data.rates.TWD) {
+            // 抓到的匯率通常是 0.023xxx，我們四捨五入到小數點四位
+            currentRate = parseFloat(data.rates.TWD.toFixed(4));
+            
+            // 更新畫面上的顯示文字
+            const rateDisplay = document.getElementById('current-rate-text');
+            if (rateDisplay) {
+                rateDisplay.innerText = `(${currentRate})`;
+            }
+            console.log("匯率已自動更新為:", currentRate);
+            
+            // 更新完匯率後，立刻重新計算一次目前的數字
+            convertCurrency();
+        }
+    } catch (error) {
+        console.error("無法取得即時匯率，使用預設值:", error);
+    }
+}
 
+// 網頁一打開就執行抓取
+fetchCurrentRate();
+  
 function convertCurrency() {
   const krw = document.getElementById('krwInput').value;
   const res = document.getElementById('twdResult');
