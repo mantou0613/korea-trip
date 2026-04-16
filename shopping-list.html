@@ -206,51 +206,37 @@
     <button class="btn-new-loc" onclick="addLocation()">＋ 新增分區</button>
     <button class="btn-save" onclick="saveData()">💾 儲存清單</button>
 </div>
-
 <script>
-// --- Firebase 設定 (沿用 index.html 的) ---
-const firebaseConfig = {
-    apiKey: "AIzaSyCSMV8JAc-VmnhncS15KK737rAL6kK-QDw",
-    authDomain: "test-korea-e4f86.firebaseapp.com",
-    databaseURL: "https://test-korea-e4f86-default-rtdb.firebaseio.com",
-    projectId: "test-korea-e4f86",
-    storageBucket: "test-korea-e4f86.firebasestorage.app",
-    messagingSenderId: "423552522367",
-    appId: "1:423552522367:web:03e57d440af0b5a118474a"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-// --- 功能邏輯 ---
-
 // 1. 讀取資料
 function loadData() {
     db.ref('ybo_shopping_list').on('value', (snapshot) => {
         const data = snapshot.val();
         const container = document.getElementById('list-container');
         container.innerHTML = '';
-        if (data) {
+        if (data && data.length > 0) {
             data.forEach((loc, locIdx) => renderLocation(loc, locIdx));
         } else {
-            // 如果沒資料，預設給一個空的
-            addLocation();
+            addLocation(); // 若無資料則自動新增一個空分區
         }
     });
 }
 
-// 2. 畫出地點區塊
+// 2. 畫出地點區塊 (加入商品刪除按鈕)
 function renderLocation(loc, locIdx) {
     const container = document.getElementById('list-container');
     const html = `
         <div class="location-card" data-idx="${locIdx}">
             <div class="location-title">
                 <input type="text" class="loc-name" value="${loc.name || ''}" placeholder="輸入地點名稱 (如: 東大門)">
-                <button class="del-btn" onclick="removeLocation(${locIdx})">×</button>
+                <button class="del-btn" onclick="removeLocation(${locIdx})" title="刪除整個分區">×</button>
             </div>
             <div class="item-list">
                 ${(loc.items || []).map((item, itemIdx) => `
                     <div class="item-row">
-                        <input type="text" class="item-name-input" value="${item.name || ''}" placeholder="商品名稱">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <input type="text" class="item-name-input" value="${item.name || ''}" placeholder="商品名稱" style="margin-bottom:0;">
+                            <button class="del-btn" onclick="this.parentElement.parentElement.remove()" style="width:22px; height:22px; font-size:12px;">×</button>
+                        </div>
                         <div class="item-fields">
                             <div class="sub-field"><label>詳細位置</label><input type="text" class="item-pos" value="${item.pos || ''}"></div>
                             <div class="sub-field"><label>金額(₩)</label><input type="number" class="item-price" value="${item.price || ''}"></div>
@@ -269,19 +255,20 @@ function renderLocation(loc, locIdx) {
 function saveData() {
     const data = [];
     document.querySelectorAll('.location-card').forEach(card => {
-        const loc = {
-            name: card.querySelector('.loc-name').value,
-            items: []
-        };
+        const locName = card.querySelector('.loc-name').value;
+        const items = [];
         card.querySelectorAll('.item-row').forEach(row => {
-            loc.items.push({
+            items.push({
                 name: row.querySelector('.item-name-input').value,
                 pos: row.querySelector('.item-pos').value,
                 price: row.querySelector('.item-price').value,
                 qty: row.querySelector('.item-qty').value
             });
         });
-        data.push(loc);
+        // 只有當地點名稱或商品列表不為空時才儲存
+        if (locName || items.length > 0) {
+            data.push({ name: locName, items: items });
+        }
     });
     db.ref('ybo_shopping_list').set(data).then(() => {
         alert("✅ 儲存成功！");
@@ -290,17 +277,22 @@ function saveData() {
 
 // 4. 操作功能
 function addLocation() {
-    const container = document.getElementById('list-container');
-    const newIdx = document.querySelectorAll('.location-card').length;
-    renderLocation({ name: '', items: [{ name: '', pos: '', price: '', qty: '' }] }, newIdx);
+    // 取得當前最大的 index
+    const locIdx = document.querySelectorAll('.location-card').length;
+    renderLocation({ name: '', items: [{ name: '', pos: '', price: '', qty: '' }] }, locIdx);
+    // 自動滾動到底部
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
 
 function addItem(locIdx) {
-    const locCard = document.querySelectorAll('.location-card')[locIdx];
-    const itemList = locCard.querySelector('.item-list');
+    const locCards = document.querySelectorAll('.location-card');
+    const itemList = locCards[locIdx].querySelector('.item-list');
     const html = `
         <div class="item-row">
-            <input type="text" class="item-name-input" placeholder="商品名稱">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <input type="text" class="item-name-input" placeholder="商品名稱" style="margin-bottom:0;">
+                <button class="del-btn" onclick="this.parentElement.parentElement.remove()" style="width:22px; height:22px; font-size:12px;">×</button>
+            </div>
             <div class="item-fields">
                 <div class="sub-field"><label>詳細位置</label><input type="text" class="item-pos"></div>
                 <div class="sub-field"><label>金額(₩)</label><input type="number" class="item-price"></div>
@@ -312,15 +304,15 @@ function addItem(locIdx) {
 }
 
 function removeLocation(idx) {
-    if(confirm('確定要刪除整個分區嗎？')) {
+    if(confirm('確定要刪除整個分區（包含裡面所有商品）嗎？')) {
         const cards = document.querySelectorAll('.location-card');
         cards[idx].remove();
+        // 刪除後建議按一次儲存，或是讓程式自動存
     }
 }
 
 // 初始化
 loadData();
 </script>
-
 </body>
 </html>
