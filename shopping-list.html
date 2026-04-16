@@ -207,6 +207,19 @@
     <button class="btn-save" onclick="saveData()">💾 儲存清單</button>
 </div>
 <script>
+// --- 這裡是你漏掉的 Firebase 初始化設定 ---
+const firebaseConfig = {
+    apiKey: "AIzaSyCSMV8JAc-VmnhncS15KK737rAL6kK-QDw",
+    authDomain: "test-korea-e4f86.firebaseapp.com",
+    databaseURL: "https://test-korea-e4f86-default-rtdb.firebaseio.com",
+    projectId: "test-korea-e4f86",
+    storageBucket: "test-korea-e4f86.firebasestorage.app",
+    messagingSenderId: "423552522367",
+    appId: "1:423552522367:web:03e57d440af0b5a118474a"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 // 1. 讀取資料
 function loadData() {
     db.ref('ybo_shopping_list').on('value', (snapshot) => {
@@ -221,17 +234,17 @@ function loadData() {
     });
 }
 
-// 2. 畫出地點區塊 (加入商品刪除按鈕)
+// 2. 畫出地點區塊
 function renderLocation(loc, locIdx) {
     const container = document.getElementById('list-container');
     const html = `
-        <div class="location-card" data-idx="${locIdx}">
+        <div class="location-card">
             <div class="location-title">
                 <input type="text" class="loc-name" value="${loc.name || ''}" placeholder="輸入地點名稱 (如: 東大門)">
-                <button class="del-btn" onclick="removeLocation(${locIdx})" title="刪除整個分區">×</button>
+                <button class="del-btn" onclick="removeLocation(this)" title="刪除整個分區">×</button>
             </div>
             <div class="item-list">
-                ${(loc.items || []).map((item, itemIdx) => `
+                ${(loc.items || []).map((item) => `
                     <div class="item-row">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                             <input type="text" class="item-name-input" value="${item.name || ''}" placeholder="商品名稱" style="margin-bottom:0;">
@@ -245,7 +258,7 @@ function renderLocation(loc, locIdx) {
                     </div>
                 `).join('')}
             </div>
-            <button class="btn-add-item" onclick="addItem(${locIdx})">＋ 新增商品</button>
+            <button class="btn-add-item" onclick="addItem(this)">＋ 新增商品</button>
         </div>
     `;
     container.insertAdjacentHTML('beforeend', html);
@@ -258,14 +271,16 @@ function saveData() {
         const locName = card.querySelector('.loc-name').value;
         const items = [];
         card.querySelectorAll('.item-row').forEach(row => {
-            items.push({
-                name: row.querySelector('.item-name-input').value,
-                pos: row.querySelector('.item-pos').value,
-                price: row.querySelector('.item-price').value,
-                qty: row.querySelector('.item-qty').value
-            });
+            const name = row.querySelector('.item-name-input').value;
+            if (name) { // 至少要有商品名稱才儲存
+                items.push({
+                    name: name,
+                    pos: row.querySelector('.item-pos').value,
+                    price: row.querySelector('.item-price').value,
+                    qty: row.querySelector('.item-qty').value
+                });
+            }
         });
-        // 只有當地點名稱或商品列表不為空時才儲存
         if (locName || items.length > 0) {
             data.push({ name: locName, items: items });
         }
@@ -277,16 +292,12 @@ function saveData() {
 
 // 4. 操作功能
 function addLocation() {
-    // 取得當前最大的 index
-    const locIdx = document.querySelectorAll('.location-card').length;
-    renderLocation({ name: '', items: [{ name: '', pos: '', price: '', qty: '' }] }, locIdx);
-    // 自動滾動到底部
+    renderLocation({ name: '', items: [{ name: '', pos: '', price: '', qty: '' }] });
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
 
-function addItem(locIdx) {
-    const locCards = document.querySelectorAll('.location-card');
-    const itemList = locCards[locIdx].querySelector('.item-list');
+function addItem(btn) {
+    const itemList = btn.parentElement.querySelector('.item-list');
     const html = `
         <div class="item-row">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -303,11 +314,9 @@ function addItem(locIdx) {
     itemList.insertAdjacentHTML('beforeend', html);
 }
 
-function removeLocation(idx) {
-    if(confirm('確定要刪除整個分區（包含裡面所有商品）嗎？')) {
-        const cards = document.querySelectorAll('.location-card');
-        cards[idx].remove();
-        // 刪除後建議按一次儲存，或是讓程式自動存
+function removeLocation(btn) {
+    if(confirm('確定要刪除整個分區嗎？')) {
+        btn.closest('.location-card').remove();
     }
 }
 
