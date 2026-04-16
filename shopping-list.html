@@ -4,30 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YBO 代購採買總清單</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         :root { --primary:#FFD60A; --dark:#1A1A18; --bg:#F0EEE9; --accent:#E6430A; }
-        body { font-family:'Noto Sans TC',sans-serif; background:var(--bg); margin:0; padding:20px 12px 100px; }
+        body { font-family:'Noto Sans TC',sans-serif; background:var(--bg); margin:0; padding:20px 12px 120px; }
         
         .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
         .back-btn { padding: 8px 12px; background: #fff; border: 1px solid #ccc; border-radius: 8px; text-decoration: none; color: #333; font-size: 13px; font-weight: 700; }
         
-        .location-card { background: #fff; border-radius: 18px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .location-title { font-size: 16px; font-weight: 900; color: var(--dark); border-left: 4px solid var(--primary); padding-left: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; }
+        .location-card { background: #fff; border-radius: 18px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: relative; }
+        .location-title { font-size: 16px; font-weight: 900; color: var(--dark); border-left: 4px solid var(--primary); padding-left: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .location-title input { border: none; font-size: 16px; font-weight: 900; font-family: inherit; outline: none; flex: 1; }
         
-        .item-row { border-bottom: 1px solid #eee; padding: 12px 0; }
+        .item-row { border-bottom: 1px solid #eee; padding: 12px 0; position: relative; }
         .item-row:last-child { border-bottom: none; }
-        .item-name { font-weight: 700; font-size: 14px; margin-bottom: 8px; color: #1a1a1a; display: block; }
+        .item-name-input { font-weight: 700; font-size: 14px; margin-bottom: 8px; border: none; width: 100%; outline: none; background: transparent; }
         
-        /* 三個小欄位容器 */
         .item-fields { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 8px; }
         .sub-field { display: flex; flex-direction: column; gap: 4px; }
         .sub-field label { font-size: 10px; color: #aaa; font-weight: 500; }
-        .sub-field input { border: 1px solid #EAE8E2; background: #FAFAF8; border-radius: 6px; padding: 6px; font-size: 12px; font-family: inherit; }
+        .sub-field input { border: 1px solid #EAE8E2; background: #FAFAF8; border-radius: 6px; padding: 6px; font-size: 12px; font-family: inherit; width: 100%; box-sizing: border-box; }
 
-        /* 底部控制欄 */
-        .footer-tools { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 15px; border-top: 1px solid #ddd; display: flex; gap: 10px; }
-        .btn-add { flex: 1; background: var(--dark); color: var(--primary); border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .btn-add-item { margin-top: 10px; background: none; border: 1px dashed #ccc; padding: 8px; width: 100%; border-radius: 8px; color: #888; cursor: pointer; font-size: 12px; }
+        .del-btn { color: #ccc; cursor: pointer; border: none; background: none; font-size: 18px; }
+
+        .footer-tools { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 15px; border-top: 1px solid #ddd; display: flex; gap: 10px; z-index: 100; }
+        .footer-tools button { flex: 1; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .btn-new-loc { background: var(--dark); color: var(--primary); }
+        .btn-save { background: #4CAF50; color: white; }
     </style>
 </head>
 <body>
@@ -38,62 +44,128 @@
     <div style="width: 50px;"></div>
 </div>
 
-<div class="location-card">
-    <div class="location-title">
-        <span>📍 Olive Young 旗艦店</span>
-        <span style="font-size: 12px; color: var(--accent);">待採買</span>
+<div id="list-container">
     </div>
-    
-    <div class="item-list">
-        <div class="item-row">
-            <span class="item-name">補水玻尿酸精華液</span>
-            <div class="item-fields">
-                <div class="sub-field">
-                    <label>具體地點</label>
-                    <input type="text" placeholder="2F 保養區">
-                </div>
-                <div class="sub-field">
-                    <label>金額 (₩)</label>
-                    <input type="number" placeholder="25000">
-                </div>
-                <div class="sub-field">
-                    <label>數量</label>
-                    <input type="number" placeholder="5">
-                </div>
-            </div>
-        </div>
-        
-        <div class="item-row">
-            <span class="item-name">GD 同款香水 (Hetras)</span>
-            <div class="item-fields">
-                <div class="sub-field"><label>具體地點</label><input type="text" placeholder="1F 香氛區"></div>
-                <div class="sub-field"><label>金額 (₩)</label><input type="number" placeholder="38000"></div>
-                <div class="sub-field"><label>數量</label><input type="number" placeholder="2"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="location-card">
-    <div class="location-title">
-        <span>📍 東大門 APM Place</span>
-    </div>
-    <div class="item-list">
-        <div class="item-row">
-            <span class="item-name">新款蝴蝶結髮夾</span>
-            <div class="item-fields">
-                <div class="sub-field"><label>檔口號碼</label><input type="text" placeholder="B1-12號"></div>
-                <div class="sub-field"><label>金額 (₩)</label><input type="number" placeholder="5000"></div>
-                <div class="sub-field"><label>數量</label><input type="number" placeholder="10"></div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <div class="footer-tools">
-    <button class="btn-add">＋ 新增分區</button>
-    <button class="btn-add" style="background: #4CAF50; color: white;">💾 儲存清單</button>
+    <button class="btn-new-loc" onclick="addLocation()">＋ 新增分區</button>
+    <button class="btn-save" onclick="saveData()">💾 儲存清單</button>
 </div>
+
+<script>
+// --- Firebase 設定 (沿用 index.html 的) ---
+const firebaseConfig = {
+    apiKey: "AIzaSyCSMV8JAc-VmnhncS15KK737rAL6kK-QDw",
+    authDomain: "test-korea-e4f86.firebaseapp.com",
+    databaseURL: "https://test-korea-e4f86-default-rtdb.firebaseio.com",
+    projectId: "test-korea-e4f86",
+    storageBucket: "test-korea-e4f86.firebasestorage.app",
+    messagingSenderId: "423552522367",
+    appId: "1:423552522367:web:03e57d440af0b5a118474a"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// --- 功能邏輯 ---
+
+// 1. 讀取資料
+function loadData() {
+    db.ref('ybo_shopping_list').on('value', (snapshot) => {
+        const data = snapshot.val();
+        const container = document.getElementById('list-container');
+        container.innerHTML = '';
+        if (data) {
+            data.forEach((loc, locIdx) => renderLocation(loc, locIdx));
+        } else {
+            // 如果沒資料，預設給一個空的
+            addLocation();
+        }
+    });
+}
+
+// 2. 畫出地點區塊
+function renderLocation(loc, locIdx) {
+    const container = document.getElementById('list-container');
+    const html = `
+        <div class="location-card" data-idx="${locIdx}">
+            <div class="location-title">
+                <input type="text" class="loc-name" value="${loc.name || ''}" placeholder="輸入地點名稱 (如: 東大門)">
+                <button class="del-btn" onclick="removeLocation(${locIdx})">×</button>
+            </div>
+            <div class="item-list">
+                ${(loc.items || []).map((item, itemIdx) => `
+                    <div class="item-row">
+                        <input type="text" class="item-name-input" value="${item.name || ''}" placeholder="商品名稱">
+                        <div class="item-fields">
+                            <div class="sub-field"><label>詳細位置</label><input type="text" class="item-pos" value="${item.pos || ''}"></div>
+                            <div class="sub-field"><label>金額(₩)</label><input type="number" class="item-price" value="${item.price || ''}"></div>
+                            <div class="sub-field"><label>數量</label><input type="number" class="item-qty" value="${item.qty || ''}"></div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            <button class="btn-add-item" onclick="addItem(${locIdx})">＋ 新增商品</button>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+}
+
+// 3. 儲存資料
+function saveData() {
+    const data = [];
+    document.querySelectorAll('.location-card').forEach(card => {
+        const loc = {
+            name: card.querySelector('.loc-name').value,
+            items: []
+        };
+        card.querySelectorAll('.item-row').forEach(row => {
+            loc.items.push({
+                name: row.querySelector('.item-name-input').value,
+                pos: row.querySelector('.item-pos').value,
+                price: row.querySelector('.item-price').value,
+                qty: row.querySelector('.item-qty').value
+            });
+        });
+        data.push(loc);
+    });
+    db.ref('ybo_shopping_list').set(data).then(() => {
+        alert("✅ 儲存成功！");
+    });
+}
+
+// 4. 操作功能
+function addLocation() {
+    const container = document.getElementById('list-container');
+    const newIdx = document.querySelectorAll('.location-card').length;
+    renderLocation({ name: '', items: [{ name: '', pos: '', price: '', qty: '' }] }, newIdx);
+}
+
+function addItem(locIdx) {
+    const locCard = document.querySelectorAll('.location-card')[locIdx];
+    const itemList = locCard.querySelector('.item-list');
+    const html = `
+        <div class="item-row">
+            <input type="text" class="item-name-input" placeholder="商品名稱">
+            <div class="item-fields">
+                <div class="sub-field"><label>詳細位置</label><input type="text" class="item-pos"></div>
+                <div class="sub-field"><label>金額(₩)</label><input type="number" class="item-price"></div>
+                <div class="sub-field"><label>數量</label><input type="number" class="item-qty"></div>
+            </div>
+        </div>
+    `;
+    itemList.insertAdjacentHTML('beforeend', html);
+}
+
+function removeLocation(idx) {
+    if(confirm('確定要刪除整個分區嗎？')) {
+        const cards = document.querySelectorAll('.location-card');
+        cards[idx].remove();
+    }
+}
+
+// 初始化
+loadData();
+</script>
 
 </body>
 </html>
