@@ -12,6 +12,7 @@
     * { box-sizing:border-box; margin:0; padding:0; }
     body { font-family:'Noto Sans TC',sans-serif; background:var(--bg); padding-bottom:120px; -webkit-font-smoothing:antialiased; }
     /* 跳轉按鈕列 */
+/* 修改後的跳轉按鈕列 */
 .jump-tabs {
   display: flex;
   gap: 8px;
@@ -19,10 +20,22 @@
   padding: 12px 14px;
   background: var(--bg);
   position: sticky;
-  top: 45px; /* 這裡要避開上方匯率工具的高度，請根據實際情況調整 */
+  top: 45px; 
   z-index: 90;
   -webkit-overflow-scrolling: touch;
+  
+  /* --- 新增以下這兩行來達成置中 --- */
+  justify-content: center; /* 讓內容在容器內置中 */
+  flex-wrap: nowrap;      /* 確保按鈕不換行，維持橫向排列 */
 }
+
+/* 針對手機版做小優化：如果按鈕太多超出螢幕，改回靠左讓使用者可以滑 */
+@media (max-width: 480px) {
+  .jump-tabs {
+    justify-content: flex-start;
+  }
+}
+
 .jump-tabs::-webkit-scrollbar { display: none; }
 
 .jump-btn {
