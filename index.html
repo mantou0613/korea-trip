@@ -516,7 +516,8 @@ async function fetchCurrentRate() {
         const data = await response.json();
         if (data && data.rates && data.rates.TWD) {
             // 抓到的匯率通常是 0.023xxx，我們四捨五入到小數點四位
-            currentRate = parseFloat(data.rates.TWD.toFixed(4));
+            // 抓到匯率後乘以 1.01 (代表加 1%)，避免匯差損失
+            currentRate = parseFloat((data.rates.TWD * 1.01).toFixed(4));
             
             // 更新畫面上的顯示文字
             const rateDisplay = document.getElementById('current-rate-text');
