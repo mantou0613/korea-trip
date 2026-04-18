@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>行前準備清單</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+  :root {
+    --bg: #F0EEE9;
+    --dark: #1A1A18;
+    --accent: #E6430A;
+    --primary: #FFD60A;
+    --card: #fff;
+    --border: #ECEAE4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    padding-bottom: 110px;
+    color: var(--dark);
+  }
+
+  /* ── 頂部 ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(240,238,233,0.92);
+    backdrop-filter: blur(12px);
+    padding: 14px 16px 10px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .back-btn {
+    padding: 8px 14px; background: #fff;
+    border: none; border-radius: 10px;
+    text-decoration: none; color: var(--dark);
+    font-size: 12px; font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    white-space: nowrap;
+  }
+  .topbar-title { font-size: 17px; font-weight: 900; flex: 1; }
+
+  /* 進度條 */
+  .progress-wrap { padding: 0 16px 14px; }
+  .progress-bar-bg { background: #E4E2DC; border-radius: 99px; height: 6px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--primary)); border-radius: 99px; transition: width .4s ease; }
+  .progress-label { font-size: 11px; color: #888; margin-top: 5px; font-weight: 600; }
+
+  /* ── 分頁切換 ── */
+  .tab-bar {
+    display: flex; gap: 0; margin: 0 16px 18px;
+    background: #fff; border-radius: 14px;
+    padding: 4px; box-shadow: 0 2px 10px rgba(0,0,0,.05);
+  }
+  .tab-btn {
+    flex: 1; padding: 9px 0; border: none; border-radius: 10px;
+    font-family: inherit; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all .2s; background: transparent; color: #aaa;
+  }
+  .tab-btn.active { background: var(--dark); color: var(--primary); }
+
+  /* ── 分類卡片 ── */
+  .wrap { padding: 0 12px; }
+
+  .cat-card {
+    background: var(--card); border-radius: 22px;
+    margin-bottom: 16px; overflow: hidden;
+    box-shadow: 0 3px 16px rgba(0,0,0,.05);
+    border: 1px solid var(--border);
+    animation: cardIn .3s ease both;
+  }
+  @keyframes cardIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  .cat-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cat-icon { font-size: 22px; line-height: 1; }
+  .cat-name-display { font-size: 16px; font-weight: 900; flex: 1; }
+  .cat-name-input {
+    font-size: 16px; font-weight: 900; flex: 1;
+    border: none; outline: none; background: transparent;
+    font-family: inherit; color: var(--dark);
+  }
+  .cat-count { font-size: 11px; color: #aaa; font-weight: 600; white-space: nowrap; }
+
+  /* 圖示選擇器 */
+  .icon-picker {
+    display: none; flex-wrap: wrap; gap: 6px;
+    padding: 10px 18px; background: #FAFAF8; border-bottom: 1px solid var(--border);
+  }
+  .icon-picker.open { display: flex; }
+  .icon-opt {
+    font-size: 20px; padding: 6px 8px; border-radius: 8px;
+    cursor: pointer; transition: background .15s; line-height: 1;
+  }
+  .icon-opt:hover { background: #F0EEE9; }
+  .icon-opt.selected { background: var(--primary); }
+
+  /* 勾選項目 */
+  .items-list { padding: 8px 0; }
+
+  .check-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 18px;
+    transition: background .15s;
+  }
+  .check-item:hover { background: #FAFAF8; }
+
+  /* 自訂 checkbox */
+  .check-item input[type=checkbox] { display: none; }
+  .check-box {
+    width: 20px; height: 20px; border-radius: 6px;
+    border: 2px solid #D0CEC8; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; cursor: pointer; transition: all .15s;
+  }
+  .check-item input:checked ~ .check-box {
+    background: var(--accent); border-color: var(--accent);
+  }
+  .check-item input:checked ~ .check-box::after {
+    content: '✓'; color: #fff; font-size: 12px; font-weight: 900;
+  }
+  .check-item input:checked ~ .item-label {
+    text-decoration: line-through; color: #bbb;
+  }
+
+  .item-label {
+    flex: 1; font-size: 14px; font-weight: 500; cursor: pointer;
+    transition: color .15s;
+  }
+  .item-label-input {
+    flex: 1; font-size: 14px; font-weight: 500; border: none;
+    outline: none; background: transparent; font-family: inherit; color: var(--dark);
+  }
+  .item-del {
+    opacity: 0; background: none; border: none;
+    color: #ccc; font-size: 16px; cursor: pointer;
+    padding: 0 2px; transition: all .15s; line-height: 1;
+  }
+  .check-item:hover .item-del { opacity: 1; }
+  .item-del:hover { color: var(--accent); }
+
+  /* 新增項目按鈕（編輯模式） */
+  .add-item-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 18px 14px;
+  }
+  .add-item-input {
+    flex: 1; border: 1px dashed #D0CEC8; border-radius: 8px;
+    padding: 8px 12px; font-size: 13px; font-family: inherit;
+    background: #FAFAF8; outline: none; color: var(--dark);
+  }
+  .add-item-input:focus { border-color: var(--accent); background: #fff; }
+  .add-item-btn {
+    background: var(--dark); color: var(--primary);
+    border: none; border-radius: 8px; padding: 8px 14px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    font-family: inherit; white-space: nowrap;
+  }
+
+  /* 刪除分類按鈕 */
+  .del-cat-btn {
+    background: none; border: none; color: #D0CEC8;
+    font-size: 18px; cursor: pointer; padding: 0 2px;
+    transition: color .15s; line-height: 1;
+  }
+  .del-cat-btn:hover { color: var(--accent); }
+
+  /* 新增分類按鈕 */
+  .add-cat-card {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: transparent; border: 2px dashed #D0CEC8;
+    border-radius: 22px; padding: 18px;
+    margin-bottom: 16px; cursor: pointer;
+    color: #aaa; font-size: 14px; font-weight: 700;
+    transition: all .2s; font-family: inherit; width: 100%;
+  }
+  .add-cat-card:hover { border-color: var(--accent); color: var(--accent); background: #fff8f5; }
+
+  /* 底部按鈕 */
+  .footer-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(255,255,255,.92); backdrop-filter: blur(15px);
+    border-top: 1px solid rgba(0,0,0,.05);
+    padding: 14px 16px 30px; display: flex; gap: 10px; z-index: 100;
+  }
+  .footer-bar button {
+    flex: 1; border: none; padding: 14px 0; border-radius: 14px;
+    font-weight: 900; font-size: 13px; cursor: pointer;
+    font-family: inherit; transition: transform .1s;
+  }
+  .footer-bar button:active { transform: scale(.97); }
+  .btn-edit  { background: #FF9800; color: #fff; }
+  .btn-save  { background: #4CAF50; color: #fff; }
+  .btn-reset { background: #f5f5f3; color: #888; border: 1px solid #E0DED8; }
+
+  /* 空狀態 */
+  .empty-hint { text-align: center; padding: 40px 20px; color: #bbb; font-size: 14px; }
+
+  /* 檢視模式隱藏編輯元素 */
+  body:not(.edit-mode) .add-item-row,
+  body:not(.edit-mode) .item-del,
+  body:not(.edit-mode) .del-cat-btn,
+  body:not(.edit-mode) .add-cat-btn-wrap,
+  body:not(.edit-mode) .icon-picker,
+  body:not(.edit-mode) .item-label-input,
+  body:not(.edit-mode) .cat-name-input { display: none !important; }
+
+  body:not(.edit-mode) .item-label { display: block !important; }
+  body:not(.edit-mode) .cat-name-display { display: block !important; }
+
+  body.edit-mode .item-label { display: none !important; }
+  body.edit-mode .cat-name-display { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="back-btn">← 返回行程</a>
+  <span class="topbar-title">✈️ 行前準備</span>
+  <span id="top-count" style="font-size:12px;color:#aaa;font-weight:700;"></span>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
+  <div class="progress-label" id="prog-label">0 / 0 已完成</div>
+</div>
+
+<div class="tab-bar" style="display:none;" id="tab-bar">
+  <!-- 動態產生分類 tab -->
+</div>
+
+<div class="wrap" id="main-wrap"></div>
+
+<div class="footer-bar">
+  <button class="btn-edit" id="edit-btn" onclick="toggleEdit()">✏️ 編輯</button>
+  <button class="btn-save" id="save-btn" onclick="saveData()" style="display:none;">💾 儲存</button>
+  <button class="btn-reset" onclick="resetChecks()">🔄 重置勾選</button>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCSMV8JAc-VmnhncS15KK737rAL6kK-QDw",
+  authDomain: "test-korea-e4f86.firebaseapp.com",
+  databaseURL: "https://test-korea-e4f86-default-rtdb.firebaseio.com",
+  projectId: "test-korea-e4f86",
+  storageBucket: "test-korea-e4f86.firebasestorage.app",
+  messagingSenderId: "423552522367",
+  appId: "1:423552522367:web:03e57d440af0b5a118474a"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const ICONS = ['👔','👗','👟','🧥','🩱','👜','🧦','🧣',
+               '💊','💉','🩹','🧴','🧼','💆','🪥','🌡️',
+               '💻','📱','🔌','🔋','📷','🎧','💡','🖥️',
+               '💴','💳','🏧','🧾','💰','🪙','📋','✈️',
+               '📄','🛂','🗺️','📍','🎫','🏨','🔑','📦',
+               '🍜','🥢','🛍️','🎁','🧴','🪞','💄','🛁'];
+
+const DEFAULT_DATA = [
+  { id:'cat-1', icon:'💻', name:'電器', items:[
+    { id:'i-1', text:'手機充電線', checked:false },
+    { id:'i-2', text:'變壓器/轉接頭', checked:false },
+    { id:'i-3', text:'行動電源', checked:false },
+    { id:'i-4', text:'相機 + 記憶卡', checked:false },
+  ]},
+  { id:'cat-2', icon:'👗', name:'衣物', items:[
+    { id:'i-5', text:'外套（早晚較涼）', checked:false },
+    { id:'i-6', text:'替換衣物 x 天數', checked:false },
+    { id:'i-7', text:'舒適好走的鞋', checked:false },
+    { id:'i-8', text:'雨傘 / 雨衣', checked:false },
+  ]},
+  { id:'cat-3', icon:'💰', name:'金錢', items:[
+    { id:'i-9', text:'兌換韓幣現金', checked:false },
+    { id:'i-10', text:'信用卡（海外免手續費）', checked:false },
+    { id:'i-11', text:'備用零錢', checked:false },
+  ]},
+  { id:'cat-4', icon:'📄', name:'證件', items:[
+    { id:'i-12', text:'護照（有效期 6 個月以上）', checked:false },
+    { id:'i-13', text:'機票電子票據截圖', checked:false },
+    { id:'i-14', text:'旅遊保險證明', checked:false },
+    { id:'i-15', text:'住宿訂房確認單', checked:false },
+  ]},
+  { id:'cat-5', icon:'💊', name:'藥品', items:[
+    { id:'i-16', text:'腸胃藥', checked:false },
+    { id:'i-17', text:'感冒藥', checked:false },
+    { id:'i-18', text:'OK繃 / 防水貼', checked:false },
+    { id:'i-19', text:'個人常備藥', checked:false },
+  ]},
+  { id:'cat-6', icon:'🛍️', name:'代購準備', items:[
+    { id:'i-20', text:'代購訂單截圖存好', checked:false },
+    { id:'i-21', text:'備用購物袋 x2', checked:false },
+    { id:'i-22', text:'退稅單夾好', checked:false },
+    { id:'i-23', text:'Olive Young APP 下載並登入', checked:false },
+  ]},
+];
+
+let editMode = false;
+let data = [];
+
+// ── 讀取 ──
+function loadData() {
+  db.ref('ybo_checklist').once('value', snap => {
+    const val = snap.val();
+    data = (val && val.length) ? val : JSON.parse(JSON.stringify(DEFAULT_DATA));
+    renderAll();
+    updateProgress();
+  });
+}
+
+// ── 儲存 ──
+function saveData() {
+  collectFromDOM();
+  db.ref('ybo_checklist').set(data).then(() => {
+    alert('✅ 儲存成功！');
+    toggleEdit();
+  });
+}
+
+// ── 從 DOM 收集資料 ──
+function collectFromDOM() {
+  data = [];
+  document.querySelectorAll('.cat-card').forEach(card => {
+    const id = card.dataset.catId;
+    const icon = card.querySelector('.cat-icon').textContent;
+    const name = card.querySelector('.cat-name-input').value;
+    const items = [];
+    card.querySelectorAll('.check-item').forEach(row => {
+      const iid = row.dataset.itemId;
+      const text = row.querySelector('.item-label-input').value;
+      const checked = row.querySelector('input[type=checkbox]').checked;
+      if (text.trim()) items.push({ id: iid, text, checked });
+    });
+    if (name.trim() || items.length) data.push({ id, icon, name, items });
+  });
+}
+
+// ── 渲染全部 ──
+function renderAll() {
+  const wrap = document.getElementById('main-wrap');
+  wrap.innerHTML = '';
+  data.forEach((cat, ci) => wrap.appendChild(makeCatCard(cat, ci)));
+  wrap.insertAdjacentHTML('beforeend', `
+    <div class="add-cat-btn-wrap">
+      <button class="add-cat-card" onclick="addCategory()">＋ 新增分類</button>
+    </div>`);
+  updateProgress();
+}
+
+// ── 建立分類卡片 ──
+function makeCatCard(cat, ci) {
+  const div = document.createElement('div');
+  div.className = 'cat-card';
+  div.dataset.catId = cat.id;
+  div.style.animationDelay = (ci * 0.05) + 's';
+
+  // 圖示選項 HTML
+  const iconOpts = ICONS.map(ic =>
+    `<span class="icon-opt${ic===cat.icon?' selected':''}" onclick="pickIcon(this,'${ic}')">${ic}</span>`
+  ).join('');
+
+  div.innerHTML = `
+    <div class="cat-header">
+      <span class="cat-icon" style="cursor:pointer;" onclick="toggleIconPicker(this)">${cat.icon}</span>
+      <span class="cat-name-display">${cat.name}</span>
+      <input class="cat-name-input" value="${cat.name}" placeholder="分類名稱">
+      <span class="cat-count" id="count-${cat.id}"></span>
+      <button class="del-cat-btn" onclick="deleteCategory(this)" title="刪除分類">×</button>
+    </div>
+    <div class="icon-picker">${iconOpts}</div>
+    <div class="items-list"></div>
+    <div class="add-item-row">
+      <input class="add-item-input" placeholder="新增項目…" onkeydown="if(event.key==='Enter')addItemFromInput(this)">
+      <button class="add-item-btn" onclick="addItemFromInput(this.previousElementSibling)">新增</button>
+    </div>
+  `;
+
+  const itemsList = div.querySelector('.items-list');
+  (cat.items || []).forEach(item => itemsList.appendChild(makeItemRow(item)));
+
+  updateCatCount(div, cat.id);
+  return div;
+}
+
+// ── 建立勾選項目 ──
+function makeItemRow(item) {
+  const div = document.createElement('div');
+  div.className = 'check-item';
+  div.dataset.itemId = item.id || ('i-' + Date.now() + Math.random());
+  div.innerHTML = `
+    <label style="display:flex;align-items:center;gap:12px;flex:1;cursor:pointer;">
+      <input type="checkbox" ${item.checked?'checked':''} onchange="onCheck(this)">
+      <span class="check-box"></span>
+      <span class="item-label">${item.text}</span>
+      <input class="item-label-input" value="${item.text}" placeholder="項目內容">
+    </label>
+    <button class="item-del" onclick="this.closest('.check-item').remove(); updateProgress();" title="刪除">×</button>
+  `;
+  return div;
+}
+
+// ── 勾選變化 ──
+function onCheck(cb) {
+  updateProgress();
+  const card = cb.closest('.cat-card');
+  updateCatCount(card, card.dataset.catId);
+  // 即時同步勾選到 Firebase（不需要儲存按鈕）
+  collectFromDOM();
+  db.ref('ybo_checklist').set(data);
+}
+
+// ── 更新進度 ──
+function updateProgress() {
+  const all = document.querySelectorAll('.check-item input[type=checkbox]');
+  const done = document.querySelectorAll('.check-item input[type=checkbox]:checked');
+  const pct = all.length ? Math.round(done.length / all.length * 100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = `${done.length} / ${all.length} 已完成 (${pct}%)`;
+  document.getElementById('top-count').textContent = pct + '%';
+
+  // 更新每個分類的計數
+  document.querySelectorAll('.cat-card').forEach(card => {
+    updateCatCount(card, card.dataset.catId);
+  });
+}
+
+function updateCatCount(card, catId) {
+  const all  = card.querySelectorAll('.check-item input[type=checkbox]');
+  const done = card.querySelectorAll('.check-item input[type=checkbox]:checked');
+  const el = document.getElementById('count-' + catId);
+  if (el) el.textContent = `${done.length}/${all.length}`;
+}
+
+// ── 編輯模式 ──
+function toggleEdit() {
+  editMode = !editMode;
+  document.body.classList.toggle('edit-mode', editMode);
+  const eb = document.getElementById('edit-btn');
+  const sb = document.getElementById('save-btn');
+  if (editMode) { eb.textContent = '🚫 取消'; sb.style.display = 'block'; }
+  else { eb.textContent = '✏️ 編輯'; sb.style.display = 'none'; }
+}
+
+// ── 圖示選擇器 ──
+function toggleIconPicker(iconEl) {
+  if (!editMode) return;
+  const picker = iconEl.closest('.cat-header').nextElementSibling;
+  picker.classList.toggle('open');
+}
+function pickIcon(el, icon) {
+  el.closest('.cat-card').querySelector('.cat-icon').textContent = icon;
+  el.closest('.icon-picker').querySelectorAll('.icon-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  el.closest('.icon-picker').classList.remove('open');
+}
+
+// ── 新增項目 ──
+function addItemFromInput(input) {
+  const text = input.value.trim();
+  if (!text) return;
+  const itemsList = input.closest('.cat-card').querySelector('.items-list');
+  itemsList.appendChild(makeItemRow({ id: 'i-' + Date.now(), text, checked: false }));
+  input.value = '';
+  updateProgress();
+}
+
+// ── 新增分類 ──
+function addCategory() {
+  const newCat = { id: 'cat-' + Date.now(), icon: '📦', name: '新分類', items: [] };
+  const wrap = document.getElementById('main-wrap');
+  const addBtn = wrap.querySelector('.add-cat-btn-wrap');
+  const card = makeCatCard(newCat, data.length);
+  wrap.insertBefore(card, addBtn);
+  if (!editMode) toggleEdit();
+  card.querySelector('.cat-name-input').focus();
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ── 刪除分類 ──
+function deleteCategory(btn) {
+  if (confirm('確定要刪除這個分類嗎？')) {
+    btn.closest('.cat-card').remove();
+    updateProgress();
+  }
+}
+
+// ── 重置所有勾選 ──
+function resetChecks() {
+  if (!confirm('確定要清除所有勾選嗎？')) return;
+  document.querySelectorAll('.check-item input[type=checkbox]').forEach(cb => cb.checked = false);
+  updateProgress();
+  collectFromDOM();
+  db.ref('ybo_checklist').set(data);
+}
+
+// 即時監聽勾選同步（其他人勾選時更新）
+db.ref('ybo_checklist').on('value', snap => {
+  if (editMode) return; // 編輯中不覆蓋
+  const val = snap.val();
+  if (!val) return;
+  // 只更新勾選狀態，不重新渲染
+  val.forEach(cat => {
+    (cat.items || []).forEach(item => {
+      const row = document.querySelector(`[data-item-id="${item.id}"]`);
+      if (row) {
+        const cb = row.querySelector('input[type=checkbox]');
+        if (cb && cb.checked !== item.checked) {
+          cb.checked = item.checked;
+        }
+      }
+    });
+  });
+  updateProgress();
+});
+
+loadData();
+</script>
+</body>
+</html>
