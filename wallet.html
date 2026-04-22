@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>💳 帳本</title>
+<title>💳 私人帳本</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -633,7 +633,7 @@ const PASSWORD   = '2oxiuuil';
 const SHEET_ID   = '1VjfzTkD73H4AXVh7eYPG9jJ66hOxS8H6w6yqIedBu0c';
 const SHEET_NAME = 'Sheet1'; // ← 改成你 Sheet 的分頁名稱
 // Google Sheet Append API endpoint (POST to add row)
-const GAS_URL    = ''; // 留空 = 只顯示，不能寫入 Sheet（見說明）
+const GAS_URL    = 'https://script.google.com/macros/s/AKfycby2uoCy3chAq4YoL5LzekBvDh0ZBofbdMB9APAxVNMV7GwTu0FvlthgHw0VIv41H-qP0g/exec';
 
 // ── LOCAL RECORDS (新增的記錄先存本地，並顯示）──────
 let localRecords = JSON.parse(localStorage.getItem('wallet_local') || '[]');
@@ -706,16 +706,34 @@ function addRecord() {
   }
 
   const rec = { '日期': date, '項目': item, '總費用': amount, '借款方': lender, '代付方': payer, '附註': note, _local: true };
+
+  // 先顯示（樂觀更新）
   localRecords.unshift(rec);
   localStorage.setItem('wallet_local', JSON.stringify(localRecords));
+  renderTable();
+  updateCards();
 
-  // clear form
+  // 清空表單
   ['f-item','f-amount','f-lender','f-payer','f-note'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-date').valueAsDate = new Date();
 
-  renderTable();
-  updateCards();
-  showToast('✅ 已新增記錄（本地儲存）');
+  showToast('⏳ 正在寫入 Google Sheet…');
+
+  // 寫入 Google Sheet via Apps Script
+  fetch(GAS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ '日期': date, '項目': item, '總費用': amount, '借款方': lender, '代付方': payer, '附註': note })
+  }).then(() => {
+    // 移除本地暫存，重新從 Sheet 讀取
+    localRecords = localRecords.filter(r => !(r['日期']===date && r['項目']===item && r._local));
+    localStorage.setItem('wallet_local', JSON.stringify(localRecords));
+    showToast('✅ 已成功寫入 Google Sheet！');
+    setTimeout(() => loadSheet(), 1500);
+  }).catch(() => {
+    showToast('⚠️ 寫入失敗，記錄保留在本地');
+  });
 }
 
 // ── RENDER ───────────────────────────────────────────
