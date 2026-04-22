@@ -441,6 +441,11 @@ body.edit-active .drag-handle { display:inline; }
       <div class="sheet-row"><label>時間</label><input type="text" id="inp-time" placeholder="14:30"></div>
       <div class="sheet-row"><label>標題</label><input type="text" id="inp-title" placeholder="例：弘大 Olive Young"></div>
       <div class="sheet-row"><label>內容</label><textarea id="inp-content" placeholder="例：Amuse 唇釉"></textarea></div>
+      <div class="sheet-row">
+        <label>📍 Naver Maps 地址（選填）</label>
+        <input type="text" id="inp-nav" placeholder="例：서울 성동구 성수동 탬버린즈 성수점">
+        <small style="color:#aaa;font-size:11px;margin-top:4px;display:block;">填入韓文地址，會自動產生導航按鈕</small>
+      </div>
       <div class="sheet-row"><label>類型</label>
         <select id="inp-type">
           <option value="buy">🟡 採購（黃）</option>
@@ -639,11 +644,32 @@ function addEntry() {
   const title = document.getElementById('inp-title').value;
   const content = document.getElementById('inp-content').value;
   const type = document.getElementById('inp-type').value;
-  if (!time || !title) return alert("請填寫時間和標題");
-  const id = "custom-"+Date.now();
-  document.getElementById(day+'-entries').insertAdjacentHTML('beforeend',
-    `<div class="entry new-entry"><span class="drag-handle">⠿</span><div class="time editable-content" id="${id}-time">${time}</div><div class="content"><div class="entry-card"><div class="title editable-content" id="${id}-title">${title}</div><div class="box ${type} editable-content" id="${id}-box">${content}</div></div></div></div>`);
+  const nav = document.getElementById('inp-nav').value.trim(); // 新增
 
+  if (!time || !title) return alert("請填寫時間和標題");
+
+  const id = "custom-" + Date.now();
+
+  // 如果有填地址，就產生導航按鈕的 HTML
+  const navBtn = nav
+    ? `<button class="nav-btn" onclick="openNaverMaps('${nav.replace(/'/g, "\\'")}')" style="background:#03C75A;">📍 Naver Maps 導航</button>`
+    : '';
+
+  document.getElementById(day + '-entries').insertAdjacentHTML('beforeend',
+    `<div class="entry new-entry">
+      <span class="drag-handle">⠿</span>
+      <div class="time editable-content" id="${id}-time">${time}</div>
+      <div class="content">
+        <div class="entry-card">
+          <div class="title editable-content" id="${id}-title">${title}</div>
+          <div class="box ${type} editable-content" id="${id}-box">${content}</div>
+          ${navBtn}
+        </div>
+      </div>
+    </div>`);
+
+  // 清空地址欄
+  document.getElementById('inp-nav').value = '';
   closeSheet();
   alert("已新增，請記得按「儲存」同步到雲端");
 }
