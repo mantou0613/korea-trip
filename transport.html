@@ -3,12 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>韓國交通表</title>
+    <title>首爾交通導航</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: sans-serif; background: #F0EEE9; padding-bottom: 40px; }
 
-/* 抽屜 */
+:root {
+    --bg: #F0EEE9;
+    --dark: #1A1A18;
+    --yellow: #FFD60A;
+    --yellow-light: rgba(255,214,10,0.12);
+    --card: #fff;
+    --border: #E4E2DC;
+    --muted: #888;
+    --radius: 16px;
+}
+
+body {
+    font-family: 'Noto Sans TC', 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--dark);
+    min-height: 100vh;
+    padding-bottom: 60px;
+}
+
+/* ── Topbar ── */
+.topbar {
+    position: sticky; top: 0; z-index: 150;
+    background: rgba(240,238,233,0.95);
+    backdrop-filter: blur(12px);
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+}
+.menu-btn {
+    width: 38px; height: 38px;
+    background: var(--dark); border: none;
+    border-radius: 11px; cursor: pointer;
+    font-size: 18px; color: var(--yellow); flex-shrink: 0;
+}
+.topbar-title { font-size: 16px; font-weight: 900; color: var(--dark); }
+
+/* ── Drawer ── */
 .drawer-overlay { position:fixed;inset:0;z-index:200;background:rgba(26,26,24,0.5);opacity:0;pointer-events:none;transition:opacity .28s; }
 body.drawer-open .drawer-overlay { opacity:1;pointer-events:auto; }
 .drawer { position:fixed;top:0;left:0;bottom:0;z-index:210;width:272px;background:#1A1A18;transform:translateX(-100%);transition:transform .3s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column; }
@@ -23,25 +59,269 @@ body.drawer-open .drawer { transform:translateX(0); }
 .nav-item.active { background:rgba(255,214,10,0.1);color:#FFD60A; }
 .nav-icon { width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;background:rgba(255,255,255,0.05); }
 
-/* Topbar */
-.topbar { position:sticky;top:0;z-index:150;background:rgba(240,238,233,0.95);backdrop-filter:blur(12px);padding:10px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(0,0,0,0.05); }
-.menu-btn { width:38px;height:38px;background:#1A1A18;border:none;border-radius:11px;cursor:pointer;font-size:18px;color:#FFD60A;flex-shrink:0; }
-.topbar-title { font-size:16px;font-weight:900;color:#1A1A18; }
+/* ── Hero Header ── */
+.hero {
+    background: var(--dark);
+    padding: 28px 20px 32px;
+    position: relative;
+    overflow: hidden;
+}
+.hero::before {
+    content: '🚇';
+    position: absolute; right: -10px; top: -10px;
+    font-size: 110px; opacity: 0.07;
+    pointer-events: none;
+}
+.hero-label {
+    font-size: 9px; letter-spacing: 3px; font-weight: 900;
+    color: var(--yellow); opacity: .8; text-transform: uppercase;
+}
+.hero-title {
+    font-size: 26px; font-weight: 900; color: #fff;
+    margin-top: 6px; line-height: 1.2;
+}
+.hero-sub {
+    font-size: 12px; color: #555; margin-top: 6px;
+    font-weight: 700;
+}
 
-/* 跳轉列 */
-.jump-bar { position:sticky;top:58px;z-index:140;background:rgba(240,238,233,0.95);backdrop-filter:blur(10px);display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid #E8E6E0;overflow-x:auto; }
-.jump-bar::-webkit-scrollbar { display:none; }
-.jump-chip { flex:0 0 auto;padding:8px 16px;border-radius:12px;border:1px solid #D8D6D0;background:#fff;font-size:12px;font-weight:700;color:#1A1A18;cursor:pointer;white-space:nowrap; }
-.jump-chip:active { background:#FFD60A; }
+/* ── Finder Card ── */
+.finder-wrap { padding: 20px 16px 0; }
+.finder-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 22px 18px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
 
-/* 內容 */
-#section-subway, #section-station { padding: 20px 16px; }
-h3 { font-size: 15px; font-weight: 900; margin-bottom: 12px; color: #1A1A18; }
-img { max-width:100%;height:auto;border-radius:12px;border:1px solid #E4E2DC;box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+.stations-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.station-block { flex: 1; }
+.station-label {
+    font-size: 10px; font-weight: 900; color: var(--muted);
+    letter-spacing: 1.5px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 5px;
+}
+.station-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+}
+.dot-from { background: #4CAF50; }
+.dot-to   { background: #E53935; }
+
+select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: #FAFAF8;
+    font-family: inherit;
+    font-size: 14px; font-weight: 700;
+    color: var(--dark);
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    outline: none;
+    transition: border-color .2s;
+}
+select:focus { border-color: var(--yellow); }
+
+.swap-btn {
+    width: 40px; height: 40px; flex-shrink: 0;
+    background: var(--yellow-light);
+    border: 1.5px solid rgba(255,214,10,0.3);
+    border-radius: 12px; cursor: pointer;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .18s, transform .2s;
+    margin-top: 18px;
+}
+.swap-btn:active { transform: rotate(180deg); background: var(--yellow); }
+
+.go-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--dark);
+    color: var(--yellow);
+    border: none; border-radius: 13px;
+    font-family: inherit;
+    font-size: 15px; font-weight: 900;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: transform .15s, background .15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.go-btn:active { transform: scale(0.97); background: #333; }
+.go-btn:disabled { opacity: .4; cursor: default; }
+
+/* ── Result ── */
+.result-wrap {
+    padding: 16px 16px 0;
+    animation: fadeUp .35s ease;
+}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.result-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+}
+.result-route-text {
+    font-size: 14px; font-weight: 900; color: var(--dark);
+}
+.result-route-kr {
+    font-size: 11px; color: var(--muted); font-weight: 700;
+    margin-top: 2px;
+}
+
+/* Summary pills */
+.summary-pills {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.pill {
+    padding: 6px 13px;
+    border-radius: 20px;
+    font-size: 12px; font-weight: 900;
+    display: flex; align-items: center; gap: 5px;
+}
+.pill-time { background: var(--dark); color: var(--yellow); }
+.pill-cost { background: #FFF3E0; color: #E65100; border: 1px solid #FFCC80; }
+.pill-transfer { background: #E3F2FD; color: #1565C0; border: 1px solid #90CAF9; }
+
+/* Steps */
+.steps-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+
+.step {
+    display: flex; gap: 0;
+    position: relative;
+}
+.step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 52px; top: 56px;
+    width: 2px; height: calc(100% - 56px + 4px);
+    background: var(--border);
+    z-index: 0;
+}
+
+.step-left {
+    width: 56px; flex-shrink: 0;
+    padding: 18px 0 18px 16px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0;
+}
+.step-icon {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 900;
+    z-index: 1; flex-shrink: 0;
+    border: 2px solid var(--bg);
+}
+
+.step-right {
+    flex: 1;
+    padding: 16px 16px 16px 10px;
+    border-bottom: 1px solid var(--border);
+}
+.step:last-child .step-right { border-bottom: none; }
+
+.step-action {
+    font-size: 13px; font-weight: 900; color: var(--dark);
+    line-height: 1.3;
+}
+.step-action-kr {
+    font-size: 11px; color: var(--muted); font-weight: 700;
+    margin-top: 3px;
+}
+.step-detail {
+    margin-top: 7px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+}
+.step-tag {
+    font-size: 11px; font-weight: 700;
+    padding: 3px 9px; border-radius: 8px;
+    display: flex; align-items: center; gap: 3px;
+}
+
+.step-note {
+    font-size: 11px; color: var(--muted);
+    margin-top: 5px; line-height: 1.5;
+}
+
+/* Loading */
+.loading-state {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 40px 20px; gap: 12px;
+}
+.spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--dark);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Empty / tip */
+.tip-card {
+    background: var(--yellow-light);
+    border: 1.5px solid rgba(255,214,10,0.3);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin: 16px 16px 0;
+    display: flex; gap: 10px; align-items: flex-start;
+}
+.tip-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+.tip-text { font-size: 12px; font-weight: 700; color: var(--dark); line-height: 1.7; }
+
+/* Map image */
+.map-section { padding: 20px 16px 0; }
+.map-section h3 { font-size: 14px; font-weight: 900; margin-bottom: 10px; color: var(--dark); }
+.map-section img { width: 100%; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+
+/* Line color badges */
+.line-1  { background: #263B96; color: #fff; }
+.line-2  { background: #3C8C3F; color: #fff; }
+.line-3  { background: #FE5A12; color: #fff; }
+.line-4  { background: #1580C8; color: #fff; }
+.line-5  { background: #8B50A4; color: #fff; }
+.line-6  { background: #C55C1D; color: #fff; }
+.line-7  { background: #687218; color: #fff; }
+.line-8  { background: #E5197B; color: #fff; }
+.line-9  { background: #BDB092; color: #fff; }
+.line-airport { background: #0065B3; color: #fff; }
+.line-sinbundang { background: #D4003B; color: #fff; }
+.line-gyeongui { background: #73C8A9; color: var(--dark); }
+.line-walk { background: #F0EEE9; color: var(--dark); border: 1px solid var(--border); }
+.line-bus  { background: #1A1A18; color: var(--yellow); }
+
+/* error */
+.error-card {
+    background: #FFF3F3;
+    border: 1.5px solid #FFCDD2;
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin: 16px 16px 0;
+    font-size: 13px; font-weight: 700; color: #C62828;
+    display: flex; gap: 10px; align-items: center;
+}
     </style>
 </head>
 <body>
-    <div class="drawer-overlay" onclick="closeDrawer()"></div>
+
+<div class="drawer-overlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-header">
     <div class="drawer-trip-label">TRIP GUIDE</div>
@@ -50,45 +330,459 @@ img { max-width:100%;height:auto;border-radius:12px;border:1px solid #E4E2DC;box
   </div>
   <nav class="drawer-nav">
     <div class="nav-section-label">主要功能</div>
-    <a href="index.html" class="nav-item">
-      <div class="nav-icon">🗓️</div><span>行程秘笈</span>
-    </a>
-    <a href="checklist.html" class="nav-item">
-      <div class="nav-icon">✈️</div><span>行前準備</span>
-    </a>
-    <a href="shopping-list.html" class="nav-item">
-      <div class="nav-icon">🛒</div><span>採買清單</span>
-    </a>
+    <a href="index.html" class="nav-item"><div class="nav-icon">🗓️</div><span>行程秘笈</span></a>
+    <a href="checklist.html" class="nav-item"><div class="nav-icon">✈️</div><span>行前準備</span></a>
+    <a href="shopping-list.html" class="nav-item"><div class="nav-icon">🛒</div><span>採買清單</span></a>
     <div class="nav-section-label">即將推出</div>
     <a href="money.html" class="nav-item"><div class="nav-icon">💰</div><span>代購利潤計算</span></a>
     <a href="food.html" class="nav-item"><div class="nav-icon">🍜</div><span>美食清單</span></a>
-    <a href="transport.html" class="nav-item"><div class="nav-icon">🚇</div><span>交通地圖</span></a>
+    <a href="transport.html" class="nav-item active"><div class="nav-icon">🚇</div><span>交通地圖</span></a>
   </nav>
 </div>
+
 <div class="topbar">
   <button onclick="toggleDrawer()" class="menu-btn">☰</button>
-  <span class="topbar-title">🚇 交通地圖</span>
+  <span class="topbar-title">🚇 交通導航</span>
 </div>
-    
-<div id="section-subway">
+
+<div class="hero">
+  <div class="hero-label">SEOUL TRANSIT · 首爾地鐵</div>
+  <div class="hero-title">去哪裡？<br>我幫你查路線</div>
+  <div class="hero-sub">中韓對照 · 站站說清楚</div>
+</div>
+
+<div class="finder-wrap">
+  <div class="finder-card">
+    <div class="stations-row">
+      <div class="station-block">
+        <div class="station-label">
+          <span class="station-dot dot-from"></span>
+          出發站 · 출발역
+        </div>
+        <select id="sel-from">
+          <option value="">選擇出發站…</option>
+        </select>
+      </div>
+      <button class="swap-btn" onclick="swapStations()" title="互換">⇄</button>
+      <div class="station-block">
+        <div class="station-label">
+          <span class="station-dot dot-to"></span>
+          目的站 · 도착역
+        </div>
+        <select id="sel-to">
+          <option value="">選擇目的站…</option>
+        </select>
+      </div>
+    </div>
+    <button class="go-btn" id="go-btn" onclick="findRoute()" disabled>
+      <span>🔍</span> 查路線
+    </button>
+  </div>
+</div>
+
+<div id="result-area"></div>
+
+<div class="tip-card" id="tip-area">
+  <div class="tip-icon">💡</div>
+  <div class="tip-text">
+    選好出發站和目的站，就能看到詳細搭乘步驟、所需時間、費用，還有每站的韓文名稱！<br><br>
+    🪙 T-Money 卡搭乘可享折扣<br>
+    🚇 首爾地鐵全天 05:30 – 00:00 運行
+  </div>
+</div>
+
+<div class="map-section">
   <h3>首爾地鐵路線圖</h3>
   <img src="https://meee.com.tw/9pzggaV" alt="韓國地鐵圖">
-  <img src="https://meee.com.tw/7g8vYJC" alt="捷運站點圖">
 </div>
+
 <script>
+// ── Station Data ──
+const STATIONS = [
+  { id: 'myeongdong',    zh: '明洞',   kr: '명동',   line: 4,  lineKr: '4號線' },
+  { id: 'hongdae',       zh: '弘大入口', kr: '홍대입구', line: 2, lineKr: '2號線' },
+  { id: 'seongsu',       zh: '聖水',   kr: '성수',   line: 2,  lineKr: '2號線' },
+  { id: 'gangnam',       zh: '江南',   kr: '강남',   line: 2,  lineKr: '2號線' },
+  { id: 'itaewon',       zh: '梨泰院',  kr: '이태원',  line: 6, lineKr: '6號線' },
+  { id: 'sinchon',       zh: '新村',   kr: '신촌',   line: 2,  lineKr: '2號線' },
+  { id: 'insadong',      zh: '仁寺洞(安國)', kr: '안국', line: 3, lineKr: '3號線' },
+  { id: 'dongdaemun',    zh: '東大門歷史文化公園', kr: '동대문역사문화공원', line: 2, lineKr: '2/4/5號線' },
+  { id: 'gyeongbokgung', zh: '景福宮',  kr: '경복궁',  line: 3, lineKr: '3號線' },
+  { id: 'coex',          zh: 'COEX (三成)', kr: '삼성',  line: 2, lineKr: '2號線' },
+  { id: 'lotte',         zh: '蠶室（樂天世界）', kr: '잠실', line: 2, lineKr: '2號線' },
+  { id: 'bukchon',       zh: '北村（安國）', kr: '안국', line: 3, lineKr: '3號線' },
+  { id: 'sindorim',      zh: '新道林',  kr: '신도림', line: 1,  lineKr: '1/2號線' },
+  { id: 'yeouido',       zh: '汝矣島',  kr: '여의도',  line: 5, lineKr: '5/9號線' },
+  { id: 'noryangjin',    zh: '鷺梁津',  kr: '노량진', line: 1,  lineKr: '1/9號線' },
+  { id: 'euljiro',       zh: '乙支路3街', kr: '을지로3가', line: 2, lineKr: '2/3號線' },
+  { id: 'hapjeong',      zh: '合井',   kr: '합정',   line: 2,  lineKr: '2/6號線' },
+  { id: 'apgujeong',     zh: '狎鷗亭',  kr: '압구정', line: 3,  lineKr: '3號線' },
+  { id: 'sinsa',         zh: '新沙（林蔭大道）', kr: '신사', line: 3, lineKr: '3號線' },
+  { id: 'airport',       zh: '仁川機場', kr: '인천공항', line: 'airport', lineKr: '機場鐵路' },
+];
+
+// ── Route Database ──
+// Each route: { time, cost, transfers, steps }
+// step: { type: 'take'|'transfer'|'arrive'|'walk', ... }
+const ROUTES = {};
+
+function makeKey(a, b) { return a + '→' + b; }
+
+function addRoute(from, to, data) {
+  ROUTES[makeKey(from, to)] = data;
+  // Auto-create reverse if not defined
+  if (!ROUTES[makeKey(to, from)]) {
+    const rev = { ...data, steps: [...data.steps].reverse().map(s => {
+      if (s.type === 'take') return { ...s, from: s.to, to: s.from, fromKr: s.toKr, toKr: s.fromKr };
+      return s;
+    }) };
+    ROUTES[makeKey(to, from)] = rev;
+  }
+}
+
+// ── Define all common routes ──
+addRoute('myeongdong', 'hongdae', {
+  time: 30, cost: '1,450', transfers: 1,
+  steps: [
+    { type: 'take', line: 4, lineKr: '4號線', from: '明洞', fromKr: '명동', to: '忠武路', toKr: '충무로', stops: 1, dir: '往당고개方向', color: 'line-4' },
+    { type: 'transfer', station: '忠武路', stationKr: '충무로', from: '4號線', to: '3號線', note: '換乘3號線' },
+    { type: 'take', line: 3, lineKr: '3號線', from: '忠武路', fromKr: '충무로', to: '忠正路', toKr: '충정로', stops: 3, dir: '往대화方向', color: 'line-3' },
+    { type: 'transfer', station: '忠正路', stationKr: '충정로', from: '3號線', to: '2號線', note: '換乘2號線' },
+    { type: 'take', line: 2, lineKr: '2號線', from: '忠正路', fromKr: '충정로', to: '弘大入口', toKr: '홍대입구', stops: 2, dir: '往성수方向', color: 'line-2' },
+    { type: 'arrive', station: '弘大入口', stationKr: '홍대입구', exit: '9號出口', note: '出口往合井路方向即是弘大商圈' },
+  ]
+});
+
+addRoute('myeongdong', 'gangnam', {
+  time: 35, cost: '1,450', transfers: 1,
+  steps: [
+    { type: 'take', line: 4, lineKr: '4號線', from: '明洞', fromKr: '명동', to: '東大門歷史文化公園', toKr: '동대문역사문화공원', stops: 4, dir: '往당고개方向', color: 'line-4' },
+    { type: 'transfer', station: '東大門歷史文化公園', stationKr: '동대문역사문화공원', from: '4號線', to: '2號線', note: '換乘2號線（外環）' },
+    { type: 'take', line: 2, lineKr: '2號線', from: '東大門歷史文化公園', fromKr: '동대문역사문화공원', to: '江南', toKr: '강남', stops: 9, dir: '往성수方向（外環順時針）', color: 'line-2' },
+    { type: 'arrive', station: '江南', stationKr: '강남', exit: '11號出口', note: '江南大路商圈在出口右側' },
+  ]
+});
+
+addRoute('myeongdong', 'itaewon', {
+  time: 15, cost: '1,250', transfers: 1,
+  steps: [
+    { type: 'take', line: 4, lineKr: '4號線', from: '明洞', fromKr: '명동', to: '忠武路', toKr: '충무로', stops: 1, dir: '往오이도方向', color: 'line-4' },
+    { type: 'transfer', station: '忠武路', stationKr: '충무로', from: '4號線', to: '3號線', note: '換乘3號線' },
+    { type: 'take', line: 3, lineKr: '3號線', from: '忠武路', fromKr: '충무로', to: '梨泰院', toKr: '이태원', stops: 2, dir: '往양재方向', color: 'line-3' },
+    { type: 'arrive', station: '梨泰院', stationKr: '이태원', exit: '3號出口', note: '正對梨泰院路美食街' },
+  ]
+});
+
+addRoute('hongdae', 'gangnam', {
+  time: 30, cost: '1,450', transfers: 0,
+  steps: [
+    { type: 'take', line: 2, lineKr: '2號線', from: '弘大入口', fromKr: '홍대입구', to: '江南', toKr: '강남', stops: 14, dir: '往성수方向（外環順時針）', color: 'line-2' },
+    { type: 'arrive', station: '江南', stationKr: '강남', exit: '11號出口', note: '搭2號線直達，不需換乘' },
+  ]
+});
+
+addRoute('hongdae', 'sinchon', {
+  time: 5, cost: '1,250', transfers: 0,
+  steps: [
+    { type: 'take', line: 2, lineKr: '2號線', from: '弘大入口', fromKr: '홍대입구', to: '新村', toKr: '신촌', stops: 1, dir: '往성수方向', color: 'line-2' },
+    { type: 'arrive', station: '新村', stationKr: '신촌', exit: '3號出口', note: '新村大學路步行約2分鐘' },
+  ]
+});
+
+addRoute('hongdae', 'itaewon', {
+  time: 20, cost: '1,350', transfers: 1,
+  steps: [
+    { type: 'take', line: 2, lineKr: '2號線', from: '弘大入口', fromKr: '홍대입구', to: '合井', toKr: '합정', stops: 1, dir: '往시청方向', color: 'line-2' },
+    { type: 'transfer', station: '合井', stationKr: '합정', from: '2號線', to: '6號線', note: '換乘6號線' },
+    { type: 'take', line: 6, lineKr: '6號線', from: '合井', fromKr: '합정', to: '梨泰院', toKr: '이태원', stops: 5, dir: '往봉화산方向', color: 'line-6' },
+    { type: 'arrive', station: '梨泰院', stationKr: '이태원', exit: '3號出口', note: '出口即是梨泰院路' },
+  ]
+});
+
+addRoute('gangnam', 'itaewon', {
+  time: 20, cost: '1,350', transfers: 1,
+  steps: [
+    { type: 'take', line: 3, lineKr: '3號線', from: '江南', fromKr: '강남', to: '梨泰院', toKr: '이태원', stops: 4, dir: '往구파발方向', color: 'line-3' },
+    { type: 'arrive', station: '梨泰院', stationKr: '이태원', exit: '3號出口', note: '3號線直達，無需換乘' },
+  ]
+});
+
+addRoute('gangnam', 'coex', {
+  time: 8, cost: '1,250', transfers: 0,
+  steps: [
+    { type: 'take', line: 2, lineKr: '2號線', from: '江南', fromKr: '강남', to: '三成', toKr: '삼성', stops: 2, dir: '往성수方向', color: 'line-2' },
+    { type: 'arrive', station: '三成（COEX）', stationKr: '삼성（COEX）', exit: '5/6號出口', note: '出口有地下通道直通COEX Mall' },
+  ]
+});
+
+addRoute('gangnam', 'lotte', {
+  time: 15, cost: '1,250', transfers: 0,
+  steps: [
+    { type: 'take', line: 2, lineKr: '2號線', from: '江南', fromKr: '강남', to: '蠶室', toKr: '잠실', stops: 4, dir: '往성수方向', color: 'line-2' },
+    { type: 'arrive', station: '蠶室', stationKr: '잠실', exit: '1號出口', note: '樂天世界在出口旁，步行1分鐘' },
+  ]
+});
+
+addRoute('myeongdong', 'gyeongbokgung', {
+  time: 20, cost: '1,350', transfers: 1,
+  steps: [
+    { type: 'take', line: 4, lineKr: '4號線', from: '明洞', fromKr: '명동', to: '明洞', toKr: '명동', stops: 0, dir: '', color: 'line-4', skipDraw: true },
+    { type: 'transfer', station: '忠武路', stationKr: '충무로', from: '4號線', to: '3號線', note: '搭4號線一站到忠武路，換3號線' },
+    { type: 'take', line: 3, lineKr: '3號線', from: '忠武路', fromKr: '충무로', to: '景福宮', toKr: '경복궁', stops: 4, dir: '往구파발方向', color: 'line-3' },
+    { type: 'arrive', station: '景福宮', stationKr: '경복궁', exit: '5號出口', note: '景福宮正門在5號出口，步行約3分鐘' },
+  ]
+});
+
+// Simplified: myeongdong→gyeongbokgung rebuild correctly
+ROUTES[makeKey('myeongdong','gyeongbokgung')] = {
+  time: 22, cost: '1,350', transfers: 1,
+  steps: [
+    { type: 'take', line: 4, lineKr: '4號線', from: '明洞', fromKr: '명동', to: '忠武路', toKr: '충무로', stops: 1, dir: '往당고개方向', color: 'line-4' },
+    { type: 'transfer', station: '忠武路', stationKr: '충무로', from: '4號線', to: '3號線', note: '換乘3號線（구파발方向）' },
+    { type: 'take', line: 3, lineKr: '3號線', from: '忠武路', fromKr: '충무로', to: '景福宮', toKr: '경복궁', stops: 4, dir: '往구파발方向', color: 'line-3' },
+    { type: 'arrive', station: '景福宮', stationKr: '경복궁', exit: '5號出口', note: '步行約3分鐘到景福宮正門' },
+  ]
+};
+
+addRoute('myeongdong', 'dongdaemun', {
+  time: 12, cost: '1,250', transfers: 0,
+  steps: [
+    { type: 'take', line: 4, lineKr: '4號線', from: '明洞', fromKr: '명동', to: '東大門歷史文化公園', toKr: '동대문역사문화공원', stops: 4, dir: '往당고개方向', color: 'line-4' },
+    { type: 'arrive', station: '東大門歷史文化公園', stationKr: '동대문역사문화공원', exit: '14號出口', note: 'DDP設計廣場在出口旁，東大門市場步行5分鐘' },
+  ]
+});
+
+addRoute('hongdae', 'gyeongbokgung', {
+  time: 25, cost: '1,350', transfers: 1,
+  steps: [
+    { type: 'take', line: 2, lineKr: '2號線', from: '弘大入口', fromKr: '홍대입구', to: '合井', toKr: '합정', stops: 1, dir: '往시청方向', color: 'line-2' },
+    { type: 'transfer', station: '合井', stationKr: '합정', from: '2號線', to: '6號線', note: '換乘6號線' },
+    { type: 'take', line: 6, lineKr: '6號線', from: '合井', fromKr: '합정', to: '孔德', toKr: '공덕', stops: 2, dir: '往봉화산方向', color: 'line-6' },
+    { type: 'transfer', station: '孔德', stationKr: '공덕', from: '6號線', to: '5號線', note: '換乘5號線' },
+    { type: 'take', line: 5, lineKr: '5號線', from: '孔德', fromKr: '공덕', to: '光化門', toKr: '광화문', stops: 3, dir: '往마천方向', color: 'line-5' },
+    { type: 'arrive', station: '光化門（近景福宮）', stationKr: '광화문', exit: '2號出口', note: '步行約10分鐘到景福宮，或搭計程車' },
+  ]
+});
+
+addRoute('airport', 'myeongdong', {
+  time: 65, cost: '4,150', transfers: 1,
+  steps: [
+    { type: 'take', line: 'airport', lineKr: '機場快線(AREX)', from: '仁川機場T1', fromKr: '인천공항1터미널', to: '弘大入口', toKr: '홍대입구', stops: 3, dir: '往서울역方向（一般列車）', color: 'line-airport' },
+    { type: 'transfer', station: '弘大入口', stationKr: '홍대입구', from: '機場快線', to: '2號線', note: '換乘地鐵2號線' },
+    { type: 'take', line: 2, lineKr: '2號線', from: '弘大入口', fromKr: '홍대입구', to: '東大門歷史文化公園', toKr: '동대문역사문화공원', stops: 11, dir: '往성수方向', color: 'line-2' },
+    { type: 'transfer', station: '東大門歷史文化公園', stationKr: '동대문역사문화공원', from: '2號線', to: '4號線', note: '換乘4號線' },
+    { type: 'take', line: 4, lineKr: '4號線', from: '東大門歷史文化公園', fromKr: '동대문역사문화공원', to: '明洞', toKr: '명동', stops: 4, dir: '往오이도方向', color: 'line-4' },
+    { type: 'arrive', station: '明洞', stationKr: '명동', exit: '6號出口', note: '明洞購物街出口即到' },
+  ]
+});
+
+addRoute('airport', 'hongdae', {
+  time: 43, cost: '2,150', transfers: 0,
+  steps: [
+    { type: 'take', line: 'airport', lineKr: '機場快線(AREX)', from: '仁川機場T1', fromKr: '인천공항1터미널', to: '弘大入口', toKr: '홍대입구', stops: 3, dir: '往서울역方向（一般列車）', color: 'line-airport' },
+    { type: 'arrive', station: '弘大入口', stationKr: '홍대입구', exit: '6號出口', note: '機場直達，不需換乘！弘大商圈步行5分鐘' },
+  ]
+});
+
+addRoute('itaewon', 'seongsu', {
+  time: 30, cost: '1,450', transfers: 1,
+  steps: [
+    { type: 'take', line: 6, lineKr: '6號線', from: '梨泰院', fromKr: '이태원', to: '合井', toKr: '합정', stops: 5, dir: '往응암方向', color: 'line-6' },
+    { type: 'transfer', station: '合井', stationKr: '합정', from: '6號線', to: '2號線', note: '換乘2號線（성수方向）' },
+    { type: 'take', line: 2, lineKr: '2號線', from: '合井', fromKr: '합정', to: '聖水', toKr: '성수', stops: 7, dir: '往성수方向', color: 'line-2' },
+    { type: 'arrive', station: '聖水', stationKr: '성수', exit: '3號出口', note: '聖水洞咖啡街往出口左側走' },
+  ]
+});
+
+addRoute('myeongdong', 'insadong', {
+  time: 18, cost: '1,350', transfers: 1,
+  steps: [
+    { type: 'take', line: 4, lineKr: '4號線', from: '明洞', fromKr: '명동', to: '忠武路', toKr: '충무로', stops: 1, dir: '往당고개方向', color: 'line-4' },
+    { type: 'transfer', station: '忠武路', stationKr: '충무로', from: '4號線', to: '3號線', note: '換乘3號線' },
+    { type: 'take', line: 3, lineKr: '3號線', from: '忠武路', fromKr: '충무로', to: '安國', toKr: '안국', stops: 3, dir: '往구파발方向', color: 'line-3' },
+    { type: 'arrive', station: '安國（仁寺洞）', stationKr: '안국（인사동）', exit: '6號出口', note: '仁寺洞步行約2分鐘' },
+  ]
+});
+
+addRoute('seongsu', 'gangnam', {
+  time: 20, cost: '1,350', transfers: 0,
+  steps: [
+    { type: 'take', line: 2, lineKr: '2號線', from: '聖水', fromKr: '성수', to: '江南', toKr: '강남', stops: 8, dir: '往까치산方向（外環逆時針）', color: 'line-2' },
+    { type: 'arrive', station: '江南', stationKr: '강남', exit: '11號出口', note: '2號線直達' },
+  ]
+});
+
+addRoute('hongdae', 'seongsu', {
+  time: 25, cost: '1,450', transfers: 0,
+  steps: [
+    { type: 'take', line: 2, lineKr: '2號線', from: '弘大入口', fromKr: '홍대입구', to: '聖水', toKr: '성수', stops: 9, dir: '往성수方向', color: 'line-2' },
+    { type: 'arrive', station: '聖水', stationKr: '성수', exit: '3號出口', note: '聖水洞咖啡街往出口左側走' },
+  ]
+});
+
+// ── Populate Selects ──
+function populateSelects() {
+  const selFrom = document.getElementById('sel-from');
+  const selTo   = document.getElementById('sel-to');
+  STATIONS.forEach(s => {
+    const opt1 = new Option(`${s.zh}  ${s.kr}`, s.id);
+    const opt2 = new Option(`${s.zh}  ${s.kr}`, s.id);
+    selFrom.appendChild(opt1);
+    selTo.appendChild(opt2);
+  });
+}
+
+function updateGoBtn() {
+  const from = document.getElementById('sel-from').value;
+  const to   = document.getElementById('sel-to').value;
+  document.getElementById('go-btn').disabled = !(from && to && from !== to);
+}
+document.getElementById('sel-from').addEventListener('change', updateGoBtn);
+document.getElementById('sel-to').addEventListener('change', updateGoBtn);
+
+function swapStations() {
+  const sf = document.getElementById('sel-from');
+  const st = document.getElementById('sel-to');
+  [sf.value, st.value] = [st.value, sf.value];
+  updateGoBtn();
+}
+
+function getStation(id) { return STATIONS.find(s => s.id === id); }
+
+function lineColorClass(line) {
+  const map = { 1:'line-1',2:'line-2',3:'line-3',4:'line-4',5:'line-5',
+                6:'line-6',7:'line-7',8:'line-8',9:'line-9',
+                airport:'line-airport',sinbundang:'line-sinbundang',
+                gyeongui:'line-gyeongui' };
+  return map[line] || 'line-1';
+}
+
+function stepIconHTML(step) {
+  const cls = lineColorClass(step.line || 0);
+  if (step.type === 'take') {
+    return `<div class="step-icon ${cls}">${step.line === 'airport' ? '✈' : step.line}</div>`;
+  } else if (step.type === 'transfer') {
+    return `<div class="step-icon" style="background:#FFF8DC;border:2px solid #FFD60A;font-size:12px;">換</div>`;
+  } else if (step.type === 'arrive') {
+    return `<div class="step-icon" style="background:#E8F5E9;border:2px solid #4CAF50;">📍</div>`;
+  }
+  return `<div class="step-icon" style="background:#eee;">🚶</div>`;
+}
+
+function renderStep(step, idx) {
+  if (step.skipDraw) return '';
+  let content = '';
+  if (step.type === 'take') {
+    content = `
+      <div class="step-action">
+        搭乘 <span style="font-weight:900;color:#000">${step.lineKr}</span>
+        　${step.from} → ${step.to}
+      </div>
+      <div class="step-action-kr">${step.fromKr} → ${step.toKr}</div>
+      <div class="step-detail">
+        <span class="step-tag ${lineColorClass(step.line)}">${step.lineKr}</span>
+        <span class="step-tag" style="background:#F5F5F5;color:#333;border:1px solid #E0E0E0;">共 ${step.stops} 站</span>
+        <span class="step-tag" style="background:#F5F5F5;color:#555;border:1px solid #E0E0E0;font-size:10px;">${step.dir}</span>
+      </div>
+    `;
+  } else if (step.type === 'transfer') {
+    content = `
+      <div class="step-action">換乘　${step.from} → ${step.to}</div>
+      <div class="step-action-kr">환승　${step.station} · ${step.stationKr}</div>
+      <div class="step-note">📋 ${step.note}</div>
+    `;
+  } else if (step.type === 'arrive') {
+    content = `
+      <div class="step-action" style="color:#1B5E20;">🎯 抵達　${step.station}</div>
+      <div class="step-action-kr" style="color:#388E3C;">${step.stationKr}</div>
+      <div class="step-detail">
+        <span class="step-tag" style="background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7;">出口：${step.exit}</span>
+      </div>
+      <div class="step-note">💡 ${step.note}</div>
+    `;
+  }
+  return `
+    <div class="step">
+      <div class="step-left">${stepIconHTML(step)}</div>
+      <div class="step-right">${content}</div>
+    </div>
+  `;
+}
+
+function findRoute() {
+  const fromId = document.getElementById('sel-from').value;
+  const toId   = document.getElementById('sel-to').value;
+  if (!fromId || !toId || fromId === toId) return;
+
+  const fromS = getStation(fromId);
+  const toS   = getStation(toId);
+  const resultArea = document.getElementById('result-area');
+  const tipArea = document.getElementById('tip-area');
+
+  tipArea.style.display = 'none';
+
+  // Loading
+  resultArea.innerHTML = `
+    <div class="result-wrap">
+      <div class="steps-card">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <div style="font-size:13px;font-weight:700;color:#888;">查詢路線中…</div>
+        </div>
+      </div>
+    </div>`;
+
+  setTimeout(() => {
+    const key = makeKey(fromId, toId);
+    const route = ROUTES[key];
+
+    if (!route) {
+      resultArea.innerHTML = `
+        <div class="error-card">
+          ⚠️ 目前尚未收錄這段路線，建議改用 Naver Map（네이버 지도）查詢～
+        </div>
+        <div class="tip-card" style="margin-top:12px;">
+          <div class="tip-icon">📱</div>
+          <div class="tip-text">
+            <b>推薦 App：Naver Map（네이버 지도）</b><br>
+            韓國最準確的導航 App，支援中文介面，地鐵換乘一目了然！
+          </div>
+        </div>`;
+      return;
+    }
+
+    const transferBadge = route.transfers === 0 ? '直達，不換車 🎉' : `換乘 ${route.transfers} 次`;
+    const stepsHTML = route.steps.map((s, i) => renderStep(s, i)).join('');
+
+    resultArea.innerHTML = `
+      <div class="result-wrap">
+        <div class="result-header">
+          <div>
+            <div class="result-route-text">${fromS.zh} → ${toS.zh}</div>
+            <div class="result-route-kr">${fromS.kr} → ${toS.kr}</div>
+          </div>
+        </div>
+        <div class="summary-pills">
+          <span class="pill pill-time">⏱ 約 ${route.time} 分鐘</span>
+          <span class="pill pill-cost">🪙 ₩${route.cost}</span>
+          <span class="pill pill-transfer">🔄 ${transferBadge}</span>
+        </div>
+        <div class="steps-card">${stepsHTML}</div>
+        <div style="margin-top:10px;font-size:11px;color:#aaa;font-weight:700;text-align:center;padding-bottom:4px;">
+          費用以 T-Money 卡為準 · 實際時間因班距略有差異
+        </div>
+      </div>`;
+  }, 600);
+}
+
+// ── Drawer ──
 function toggleDrawer() { document.body.classList.toggle('drawer-open'); }
-function closeDrawer() { document.body.classList.remove('drawer-open'); }
+function closeDrawer()  { document.body.classList.remove('drawer-open'); }
 document.getElementById('drawer').addEventListener('touchend', e => {
   if (e.changedTouches[0].clientX < 50) closeDrawer();
 }, { passive: true });
 
-function scrollToSection(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const offset = 110;
-  const top = el.getBoundingClientRect().top + window.scrollY - offset;
-  window.scrollTo({ top, behavior: 'smooth' });
-}
+populateSelects();
 </script>
 </body>
 </html>
