@@ -337,15 +337,27 @@ function updateCards() {
   let total = 0, hui = 0, fat = 0;
   
   all.forEach(r => {
-    const cleanAmt = String(r['金額'] || '0').replace(/[^0-9.]/g, '');
-    const amt = parseFloat(cleanAmt) || 0;
+    // 1. 取得原始字串
+    const rawStr = String(r['金額'] || '0');
     
+    // 2. 判斷是否為負數：如果字串包含 '-' 號
+    const isNegative = rawStr.includes('-');
+    
+    // 3. 清除非數字字元 (只保留數字和小數點)
+    const cleanAmt = rawStr.replace(/[^0-9.]/g, '');
+    let amt = parseFloat(cleanAmt) || 0;
+    
+    // 4. 如果是負數，將數值轉為負值
+    if (isNegative) amt = -amt;
+    
+    // 5. 加總計算
     total += amt;
     const lender = r['借款方'] || '';
     if (lender.includes('惠')) hui += amt;
     if (lender.includes('胖')) fat += amt;
   });
   
+  // 更新介面，加上千分位，若為負數也會正常顯示
   document.getElementById('sum-expense').textContent = `NT$ ${total.toLocaleString()}`;
   document.getElementById('sum-hui').textContent = `NT$ ${hui.toLocaleString()}`;
   document.getElementById('sum-fat').textContent = `NT$ ${fat.toLocaleString()}`;
