@@ -256,13 +256,7 @@ body.edit-active .drag-handle { display:inline; }
 
     <section class="card" id="day1-card">
       <div class="day-header"><span class="badge">Day 1</span><span class="editable-content" id="d1-header" contenteditable="false">5/27 週三 ｜ 抵達 → 明洞 Look Home Check-in</span></div>
-      <div class="transport-visual">
-        <div class="transport-title">✈️ 機場交通實時看板</div>
-        <div class="transport-grid">
-          <div class="info-row"><span class="label">巴士 6001/6015</span><span class="freq">10-20分/班</span><span class="times">首05:30-末22:50</span></div>
-          <div class="info-row"><span class="label">AREX 直達車</span><span class="freq">40-50分/班</span><span class="times">首05:23-末22:48</span></div>
-        </div>
-      </div>
+
       <div class="itinerary" id="day1-entries">
        <div class="entry"><span class="drag-handle">⠿</span><div class="time">FIRST</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e1-title" contenteditable="false">入境相關事項</div>
@@ -275,17 +269,17 @@ body.edit-active .drag-handle { display:inline; }
         <div class="entry"><span class="drag-handle">⠿</span><div class="time">13:00</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e3-title" contenteditable="false">入住 Look Home</div>
           <div class="box warn editable-content" id="e3-box" contenteditable="false">地址：서울시 중구 퇴계로20길 32-10 루克홈 게스트하우스<br>電話：+82-10-7117-0267<br>入住時間：13:00 | 退房時間：11:00</div>
-          <a class="nav-btn" href="https://www.google.com/maps/search/?api=1&query=Look+Home+Guesthouse" target="_blank">📍 開始導航</a>
+          <button class="nav-btn" onclick="openNaverMaps('서울시 중구 퇴계로20길 32-10 루크홈 게스트하우스')" style="background:#03C75A;">📍 Naver Maps 導航</button>
         </div></div></div>
         <div class="entry"><span class="drag-handle">⠿</span><div class="time">CASH</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e4-title" contenteditable="false">MONEYPLANET 換錢(出示畫面)</div>
           <div class="box tip editable-content" id="e4-box" contenteditable="false">🏢 明洞站 5號出口 (CU 對面)<br>每天 9:00 - 20:30</div>
-          <a class="nav-btn" href="https://www.google.com/maps/search/?api=1&query=MONEYPLANET+Myeongdong" target="_blank">📍 開始導航</a>
+<button class="nav-btn" onclick="openNaverMaps('서울 중구 명동 MONEYPLANET')" style="background:#03C75A;">📍 Naver Maps 導航</button>
         </div></div></div>
         <div class="entry"><span class="drag-handle">⠿</span><div class="time">15:00</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e5-title" contenteditable="false">採買行程</div>
           <div class="box buy editable-content" id="e5-box" contenteditable="false">1. Olive Young 旗艦店：全區掃一遍，記下特價標籤<br>2. COSRX 低分子玻尿酸精華、Advanced Snail 蝸牛精華<br>3. Beauty of Joseon 防曬乳（Relief Sun SPF50+）<br>4. Some By Mi AHA BHA PHA 30 Days 奇蹟面霜<br>5. Dr. Jart+ Cicapair 虎皮蘭修復霜</div>
-          <a class="nav-btn" href="https://maps.app.goo.gl/EcthsCY7FXrUGeRW6" target="_blank">📍 導航至 Olive Young 旗艦店</a>
+<button class="nav-btn" onclick="openNaverMaps('서울 중구 명동 올리브영 명동타운점')" style="background:#03C75A;">📍 Naver Maps 導航</button>
         </div></div></div>
 
         <div class="entry"><span class="drag-handle">⠿</span><div class="time">LIST</div><div class="content"><div class="entry-card">
@@ -309,13 +303,7 @@ body.edit-active .drag-handle { display:inline; }
 
     <section class="card" id="day2-card">
       <div class="day-header"><span class="badge">Day 2</span><span class="editable-content" id="d2-header" contenteditable="false">5/28 週四 ｜ 梨大 + 弘大 飾品主攻</span></div>
-      <div class="transport-visual">
-        <div class="transport-title">🚇 地鐵 2/4 號線班次</div>
-        <div class="transport-grid">
-          <div class="info-row"><span class="label">2號線 (綠)</span><span class="freq">3-6分/班</span><span class="times">首05:30-末24:00</span></div>
-          <div class="info-row"><span class="label">4號線 (藍)</span><span class="freq">4-10分/班</span><span class="times">首05:30-末24:00</span></div>
-        </div>
-      </div>
+
       <div class="itinerary" id="day2-entries">
         <div class="entry"><span class="drag-handle">⠿</span><div class="time">10:00</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e7-title" contenteditable="false">梨大飾品批發街 (重點採購)</div>
@@ -336,7 +324,7 @@ body.edit-active .drag-handle { display:inline; }
           <div class="title editable-content" id="e9-title" contenteditable="false">東大門 APM Place / Doota</div>
           <div class="box buy editable-content" id="e9-box" contenteditable="false">• 帽子、皮帶、包包批量議價<br>• 現金採購議價效率更高</div>
           <div class="box warn editable-content" id="e9-warn" contenteditable="false">建議帶大型購物袋或拉桿行李。</div>
-          <a class="nav-btn" href="https://www.google.com/maps/search/?api=1&query=Hyundai+City+Outlets+Dongdaemun" target="_blank">📍 導航至現代 Outlet</a>
+<button class="nav-btn" onclick="openNaverMaps('서울 중구 을지로 6가 현대시티아울렛 동대문점')" style="background:#03C75A;">📍 Naver Maps 導航</button>
         </div></div></div>
         <div class="entry"><span class="drag-handle">⠿</span><div class="time">18:00</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e10-title" contenteditable="false">💊 明洞 / 乙支路藥局 (代購強項)</div>
@@ -352,7 +340,7 @@ body.edit-active .drag-handle { display:inline; }
           <div class="title editable-content" id="e11-title" contenteditable="false">Tamburins 旗艦店</div>
           <div class="box buy editable-content" id="e11-box" contenteditable="false">• PUMKINI 蛋形香水、護手霜 (Fey9/Vein)</div>
           <div class="box warn editable-content" id="e11-warn" contenteditable="false">香水 100ml 以上一律放託運！</div>
-          <a class="nav-btn" href="https://www.google.com/maps/search/?api=1&query=Tamburins+Seongsu" target="_blank">📍 導航至聖水</a>
+<button class="nav-btn" onclick="openNaverMaps('서울 성동구 성수동 탬버린즈 성수점')" style="background:#03C75A;">📍 Naver Maps 導航</button>
         </div></div></div>
         <div class="entry"><span class="drag-handle">⠿</span><div class="time">11:45</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e12-title" contenteditable="false">Hetras — GD 同款</div>
@@ -497,6 +485,12 @@ body.edit-active .drag-handle { display:inline; }
 </div>
 
 <script>
+  function openNaverMaps(addr) {
+  if (!addr) return;
+  const encoded = encodeURIComponent(addr);
+  window.location = `nmap://search?query=${encoded}&appname=com.ybo.korea`;
+  setTimeout(() => window.open(`https://map.naver.com/v5/search/${encoded}`, '_blank'), 500);
+}
 const firebaseConfig = {
   apiKey: "AIzaSyCSMV8JAc-VmnhncS15KK737rAL6kK-QDw",
   authDomain: "test-korea-e4f86.firebaseapp.com",
