@@ -256,20 +256,6 @@ function onSellInput() {
   }
 }
 
-function onSellInput() {
-  const cost = calcCost();
-  const sell = parseFloat(document.getElementById('inp-sell').value);
-  const el = document.getElementById('profit-preview');
-  if (cost > 0 && !isNaN(sell) && sell > 0) {
-    const p = sell - cost;
-    el.textContent = (p >= 0 ? '+' : '') + p.toLocaleString() + ' TWD';
-    el.className = 'profit-preview-val ' + (p >= 0 ? 'pos' : 'neg');
-  } else {
-    el.textContent = '－';
-    el.className = 'profit-preview-val';
-  }
-}
-
 function addItem() {
   const name = document.getElementById('inp-name').value.trim() || '未命名商品';
   const krw  = parseFloat(document.getElementById('inp-krw').value);
@@ -337,8 +323,9 @@ function clearAll() {
 
 function updateSummary() {
   let tc=0, ts=0, tp=0, hc=false, hs=false, hp=false;
-  items.forEach(i => {
-    if (i.cost>0)        { tc+=i.cost;   hc=true; }
+items.forEach(i => {
+    const c = (i.realCost > 0) ? i.realCost : i.cost;
+    if (c > 0)           { tc+=c;        hc=true; }
     if (i.sell>0)        { ts+=i.sell;   hs=true; }
     if (i.profit!==null) { tp+=i.profit; hp=true; }
   });
