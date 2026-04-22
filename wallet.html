@@ -225,15 +225,43 @@ async function loadSheet() {
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   if (lines.length <= 1) return [];
+
+  const processLine = (line) => {
+    const vals = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+        else inQ = !inQ;
+      } 
+      else if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    vals.push(cur.trim());
+    return vals.map(v => v.replace(/^"|"$/g, ''));
+  };
+
+  const header = processLine(lines[0]);
+  
+  // 找出每個標題所在的欄位索引 (Index)
+  const idxDate = header.indexOf('日期');
+  const idxItem = header.indexOf('項目');
+  // 同時相容「金額」、「總費用」、「總欠款」
+  const idxAmt = header.findIndex(h => h.includes('金額') || h.includes('費用') || h.includes('欠款'));
+  const idxLender = header.indexOf('借款方');
+  const idxPayer = header.indexOf('代付方');
+  const idxNote = header.indexOf('附註');
+
   return lines.slice(1).map(line => {
-    const v = line.split(',').map(s => s.replace(/^"|"$/g, '').trim());
+    const v = processLine(line);
     return {
-      '日期': v[0] || '',
-      '項目': v[1] || '',
-      '金額': v[2] || '0', // 對應 C 欄
-      '借款方': v[3] || '',
-      '代付方': v[4] || '',
-      '附註': v[5] || ''
+      '日期': v[idxDate] || '',
+      '項目': v[idxItem] || '',
+      '金額': v[idxAmt] || '0',
+      '借款方': v[idxLender] || '',
+      '代付方': v[idxPayer] || '',
+      '附註': v[idxNote] || ''
     };
   }).filter(r => r['日期'] || r['項目']);
 }
