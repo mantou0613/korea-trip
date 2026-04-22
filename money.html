@@ -259,8 +259,8 @@ function calcRealCost() {
   return Math.round(realKrw * rate);
 }
 
-function onKrwInput() {
-  autoFillRefund(); // 若已套用退稅率，自動帶入退稅金額
+function onKrwInput(skipAutoFill = false) {
+  if (!skipAutoFill) autoFillRefund();
   const cost     = calcCost();
   const realCost = calcRealCost();
   const refund   = parseFloat(document.getElementById('inp-refund').value);
@@ -306,7 +306,9 @@ document.getElementById('inp-name').value = '';
   document.getElementById('inp-krw').value = '';
   document.getElementById('inp-refund').value = '';
   document.getElementById('inp-sell').value = '';
+  document.getElementById('cost-badge').textContent = '－ TWD'; 
   document.getElementById('real-cost-badge').textContent = '－ TWD';
+  document.getElementById('refund-rate-hint').style.display = 'none';
   document.getElementById('profit-preview').textContent = '－';
   document.getElementById('profit-preview').className = 'profit-preview-val';
   document.getElementById('inp-name').focus();
@@ -408,7 +410,7 @@ function autoFillRefund() {
     const refund = Math.round(krw * appliedTaxRate / 100);
     document.getElementById('inp-refund').value = refund;
     document.getElementById('refund-rate-hint').style.display = 'inline';
-    onKrwInput();
+    onKrwInput(true);
   }
 }
   
