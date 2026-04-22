@@ -64,6 +64,36 @@
     .btn-save { background:#4CAF50; color:white; }
 
     ::-webkit-scrollbar { width:0px; }
+        /* 快速跳轉列 */
+.jump-bar {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  background: rgba(240,238,233,0.95);
+  backdrop-filter: blur(10px);
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 12px;
+  border-bottom: 1px solid #E8E6E0;
+  -webkit-overflow-scrolling: touch;
+}
+.jump-bar::-webkit-scrollbar { display: none; }
+.jump-chip {
+  flex: 0 0 auto;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1px solid #D8D6D0;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dark);
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: all 0.15s;
+}
+.jump-chip:active { background: var(--primary); transform: scale(0.95); }
     </style>
 </head>
 <body>
@@ -73,7 +103,7 @@
     <h2 class="page-title">採買清單</h2>
     <div style="width:50px;"></div>
 </div>
-
+<div class="jump-bar" id="jump-bar"></div>
 <div id="list-container"></div>
 
 <!-- 燈箱 -->
@@ -197,6 +227,8 @@ function renderLocation(loc) {
         itemList.appendChild(renderItem(item));
     });
     container.appendChild(card);
+    updateJumpBar();
+    card.querySelector('.loc-name').addEventListener('input', updateJumpBar);
 }
 
 // 儲存
@@ -223,15 +255,32 @@ function saveData() {
     });
     db.ref('ybo_shopping_list').set(data).then(() => alert("✅ 儲存成功！"));
 }
-
+// 更新跳轉列
+function updateJumpBar() {
+  const bar = document.getElementById('jump-bar');
+  bar.innerHTML = '';
+  document.querySelectorAll('.location-card').forEach((card, i) => {
+    const name = card.querySelector('.loc-name').value || `分區 ${i + 1}`;
+    const chip = document.createElement('button');
+    chip.className = 'jump-chip';
+    chip.textContent = name;
+    chip.onclick = () => {
+      const offset = 60;
+      const top = card.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top, behavior: 'smooth' });
+    };
+    bar.appendChild(chip);
+  });
+}
 // 載入
 function loadData() {
     db.ref('ybo_shopping_list').once('value', snap => {
         const data = snap.val();
         const container = document.getElementById('list-container');
         container.innerHTML = '';
-        if (data && data.length) data.forEach(loc => renderLocation(loc));
-        else addLocation();
+if (data && data.length) data.forEach(loc => renderLocation(loc));
+else addLocation();
+updateJumpBar();
     });
 }
 
@@ -246,7 +295,10 @@ function addItem(btn) {
 }
 
 function removeLocation(btn) {
-    if (confirm('確定要刪除整個分區嗎？')) btn.closest('.location-card').remove();
+    if (confirm('確定要刪除整個分區嗎？')) {
+        btn.closest('.location-card').remove();
+        updateJumpBar();
+    }
 }
 
 // 燈箱
