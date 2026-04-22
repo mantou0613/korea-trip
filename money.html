@@ -207,14 +207,6 @@
   <button class="btn-add" onclick="addItem()">＋ 加入清單</button>
 </div>
 
-<!-- 總計 -->
-<div class="summary">
-  <div class="summary-title">📊 本次總計</div>
-  <div class="summary-row"><span class="summary-label">總成本（台幣）</span><span class="summary-val" id="s-cost">－</span></div>
-  <div class="summary-row"><span class="summary-label">總售價（台幣）</span><span class="summary-val" id="s-sell">－</span></div>
-  <div class="summary-row"><span class="summary-label">總利潤</span><span class="summary-val big" id="s-profit">－</span></div>
-</div>
-
 <!-- 清單 -->
 <div class="list-wrap">
   <div class="list-header">
@@ -353,20 +345,7 @@ function clearAll() {
   if (confirm('確定要清除所有商品嗎？')) { items = []; renderList(); updateSummary(); }
 }
 
-function updateSummary() {
-  let tc=0, ts=0, tp=0, hc=false, hs=false, hp=false;
-items.forEach(i => {
-    const c = (i.realCost > 0) ? i.realCost : i.cost;
-    if (c > 0)           { tc+=c;        hc=true; }
-    if (i.sell>0)        { ts+=i.sell;   hs=true; }
-    if (i.profit!==null) { tp+=i.profit; hp=true; }
-  });
-  document.getElementById('s-cost').textContent = hc ? `NT$ ${tc.toLocaleString()}` : '－';
-  document.getElementById('s-sell').textContent = hs ? `NT$ ${ts.toLocaleString()}` : '－';
-  const pel = document.getElementById('s-profit');
-  pel.textContent = hp ? `NT$ ${tp.toLocaleString()}` : '－';
-  pel.className = 'summary-val big ' + (hp ? (tp>=0?'pos':'neg') : '');
-}
+
 
 function toggleDrawer() { document.body.classList.toggle('drawer-open'); }
 function closeDrawer()  { document.body.classList.remove('drawer-open'); }
