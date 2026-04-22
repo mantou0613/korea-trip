@@ -666,50 +666,21 @@ function unlock() {
   }
 }
 
-// ── SHEET READ（透過 Apps Script，無 CORS 問題）────────
+// ── SHEET READ ───────────────────────────────────────
+// gviz/tq?tqx=out:csv 是唯一支援跨域(CORS)的公開讀取方式
 async function loadSheet() {
   const btn = document.getElementById('btn-refresh');
   btn.classList.add('spinning');
   try {
-    // 先嘗試 GAS，失敗再 fallback 到 gviz
-    let loaded = false;
-
-    // 方法一：Apps Script GET
-    try {
-      const res  = await fetch(GAS_URL + '?action=read');
-      const text = await res.text();
-      // 確認不是 HTML 錯誤頁
-      if (text.trim().startsWith('{')) {
-        const json = JSON.parse(text);
-        if (json.data && Array.isArray(json.data)) {
-          const [header, ...rows] = json.data;
-          sheetRecords = rows
-            .filter(row => row && row.some(cell => String(cell).trim() !== ''))
-            .map(row => {
-              const obj = {};
-              header.forEach((h, i) => obj[String(h).trim()] = String(row[i] ?? '').trim());
-              return obj;
-            })
-            .filter(r => r['日期'] || r['項目']);
-          loaded = true;
-        }
-      }
-    } catch(e1) {
-      console.warn('GAS read failed:', e1);
-    }
-
-    // 方法二：fallback gviz CSV（最穩定）
-    if (!loaded) {
-      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
-      const res  = await fetch(url);
-      const text = await res.text();
-      sheetRecords = parseCSV(text);
-      loaded = true;
-    }
-
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    console.log('Sheet raw (first 200):', text.slice(0,200));
+    sheetRecords = parseCSV(text);
     renderTable();
     updateCards();
-    showToast(`✅ 已讀取 ${sheetRecords.length} 筆記錄`);
+    showToast('✅ 已讀取 ' + sheetRecords.length + ' 筆記錄');
   } catch(e) {
     console.error('loadSheet error:', e);
     showToast('⚠️ 讀取失敗：' + e.message);
