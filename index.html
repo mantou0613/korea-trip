@@ -172,6 +172,13 @@ html {
     .sheet-btns { display:flex; gap:10px; margin-top:6px; }
     .btn-cancel { flex:1; padding:13px; border-radius:12px; border:1px solid #D8D6D0; background:#F5F3EE; font-size:14px; font-weight:600; cursor:pointer; color:#555; font-family:inherit; }
     .btn-add { flex:2; padding:13px; border-radius:12px; border:none; background:var(--accent); color:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+
+    /* 拖曳樣式 */
+.entry[draggable] { cursor: grab; }
+.entry.dragging { opacity: 0.35; background: #fff3e0; border-radius: 12px; }
+.entry.drag-over { border-top: 2px solid var(--accent); }
+.buy-list label[draggable] { cursor: grab; }
+.buy-list label.dragging { opacity: 0.35; }
   </style>
 </head>
 <body>
@@ -209,31 +216,31 @@ html {
         </div>
       </div>
       <div class="itinerary" id="day1-entries">
-        <div class="entry"><div class="time">FIRST</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">FIRST</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e1-title" contenteditable="false">入境相關事項</div>
           <div class="box tip editable-content" id="e1-box" contenteditable="false">💰銀行櫃檯換現金<br>(美金100➡️147,188 KRW) (台幣3000➡️139,897 KRW)</div>
         </div></div></div>
-        <div class="entry"><div class="time">11:30</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">11:30</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e2-title" contenteditable="false">抵達仁川機場 → 入市區</div>
           <div class="box tip editable-content" id="e2-box" contenteditable="false">💫機場巴士 搭乘6001號➡️明洞站4號出口➡️穿過馬路➡️看到3號出口<br><br>💫機場快線(AREX) 首爾站➡️轉乘4號線➡️2站➡️明洞站➡️3號出口<br>建議搭機場巴士直達明洞，省去地鐵搬行李</div>
         </div></div></div>
-        <div class="entry"><div class="time">13:00</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">13:00</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e3-title" contenteditable="false">入住 Look Home</div>
           <div class="box warn editable-content" id="e3-box" contenteditable="false">地址：서울시 중구 퇴계로20길 32-10 루克홈 게스트하우스<br>電話：+82-10-7117-0267<br>入住時間：13:00 | 退房時間：11:00</div>
           <a class="nav-btn" href="https://www.google.com/maps/search/?api=1&query=Look+Home+Guesthouse" target="_blank">📍 開始導航</a>
         </div></div></div>
-        <div class="entry"><div class="time">CASH</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">CASH</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e4-title" contenteditable="false">MONEYPLANET 換錢(出示畫面)</div>
           <div class="box tip editable-content" id="e4-box" contenteditable="false">🏢 明洞站 5號出口 (CU 對面)<br>每天 9:00 - 20:30</div>
           <a class="nav-btn" href="https://www.google.com/maps/search/?api=1&query=MONEYPLANET+Myeongdong" target="_blank">📍 開始導航</a>
         </div></div></div>
-        <div class="entry"><div class="time">15:00</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">15:00</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e5-title" contenteditable="false">採買行程</div>
           <div class="box buy editable-content" id="e5-box" contenteditable="false">1. Olive Young 旗艦店：全區掃一遍，記下特價標籤<br>2. COSRX 低分子玻尿酸精華、Advanced Snail 蝸牛精華<br>3. Beauty of Joseon 防曬乳（Relief Sun SPF50+）<br>4. Some By Mi AHA BHA PHA 30 Days 奇蹟面霜<br>5. Dr. Jart+ Cicapair 虎皮蘭修復霜</div>
           <a class="nav-btn" href="https://maps.app.goo.gl/EcthsCY7FXrUGeRW6" target="_blank">📍 導航至 Olive Young 旗艦店</a>
         </div></div></div>
 
-        <div class="entry"><div class="time">LIST</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">LIST</div><div class="content"><div class="entry-card">
           <div class="title">OY 必買清單</div>
           <div class="buy-list" id="buy-list-oy">
             <label><input type="checkbox" id="chk-oy1"><span>ONGREDIENTS 皮膚乳液</span><input class="field" id="oy-p1" placeholder="地點"><input class="field" id="oy-v1" placeholder="₩" type="number"><button class="del-item" onclick="delBuyItem(this)">×</button></label>
@@ -245,7 +252,7 @@ html {
           </div>
         </div></div></div>
 
-        <div class="entry"><div class="time">17:30</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">17:30</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e6-title" contenteditable="false">明洞地下商街飾品掃貨</div>
           <div class="box buy editable-content" id="e6-box" contenteditable="false">1. 韓系耳環：比地面店便宜 20-30%<br>2. 蝴蝶結髮夾、珍珠髮圈、金屬戒指多件組</div>
         </div></div></div>
@@ -262,12 +269,12 @@ html {
         </div>
       </div>
       <div class="itinerary" id="day2-entries">
-        <div class="entry"><div class="time">10:00</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">10:00</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e7-title" contenteditable="false">梨大飾品批發街 (重點採購)</div>
           <div class="box buy editable-content" id="e7-box" contenteditable="false">• 耳環批發、項鍊、戒指 (部分店家買 5 送 1)<br>• 拿樣品圖直接詢問</div>
           <div class="box warn editable-content" id="e7-warn" contenteditable="false">現金議價更有彈性！部分 5 件以上才給批發價。</div>
         </div></div></div>
-        <div class="entry"><div class="time">14:00</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">14:00</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e8-title" contenteditable="false">弘大 Olive Young + 小眾彩妝</div>
           <div class="box buy editable-content" id="e8-box" contenteditable="false">• Amuse 唇釉、SIXBLEND 眼影、Rom&nd 霧感唇釉</div>
         </div></div></div>
@@ -277,13 +284,13 @@ html {
     <section class="card" id="day3-card">
       <div class="day-header"><span class="badge">Day 3</span><span class="editable-content" id="d3-header" contenteditable="false">5/29 週五 ｜ 東大門批發 + 藥局限定</span></div>
       <div class="itinerary" id="day3-entries">
-        <div class="entry"><div class="time">10:00</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">10:00</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e9-title" contenteditable="false">東大門 APM Place / Doota</div>
           <div class="box buy editable-content" id="e9-box" contenteditable="false">• 帽子、皮帶、包包批量議價<br>• 現金採購議價效率更高</div>
           <div class="box warn editable-content" id="e9-warn" contenteditable="false">建議帶大型購物袋或拉桿行李。</div>
           <a class="nav-btn" href="https://www.google.com/maps/search/?api=1&query=Hyundai+City+Outlets+Dongdaemun" target="_blank">📍 導航至現代 Outlet</a>
         </div></div></div>
-        <div class="entry"><div class="time">18:00</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">18:00</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e10-title" contenteditable="false">💊 明洞 / 乙支路藥局 (代購強項)</div>
           <div class="box buy editable-content" id="e10-box" contenteditable="false">• 膠原蛋白粉、維他命 C 安瓶 (藥局版)<br>• 牛樟芝、各種眼藥水</div>
         </div></div></div>
@@ -293,17 +300,17 @@ html {
     <section class="card" id="day4-card">
       <div class="day-header"><span class="badge">Day 4</span><span class="editable-content" id="d4-header" contenteditable="false">5/30 週六 ｜ 聖水洞香水全攻略 🎂</span></div>
       <div class="itinerary" id="day4-entries">
-        <div class="entry"><div class="time">10:00</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">10:00</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e11-title" contenteditable="false">Tamburins 旗艦店</div>
           <div class="box buy editable-content" id="e11-box" contenteditable="false">• PUMKINI 蛋形香水、護手霜 (Fey9/Vein)</div>
           <div class="box warn editable-content" id="e11-warn" contenteditable="false">香水 100ml 以上一律放託運！</div>
           <a class="nav-btn" href="https://www.google.com/maps/search/?api=1&query=Tamburins+Seongsu" target="_blank">📍 導航至聖水</a>
         </div></div></div>
-        <div class="entry"><div class="time">11:45</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">11:45</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e12-title" contenteditable="false">Hetras — GD 同款</div>
           <div class="box buy editable-content" id="e12-box" contenteditable="false">• No.29 Daisy 雛菊香水 (代購爆款)</div>
         </div></div></div>
-        <div class="entry"><div class="time">13:30</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">13:30</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e13-title" contenteditable="false">Amore Seongsu 旗艦店</div>
           <div class="box buy editable-content" id="e13-box" contenteditable="false">• 蘭芝睡眠唇膜、雪花秀潤燥精華、HERA</div>
         </div></div></div>
@@ -313,11 +320,11 @@ html {
     <section class="card" id="day5-card">
       <div class="day-header"><span class="badge">Day 5</span><span class="editable-content" id="d5-header" contenteditable="false">5/31-6/1 ｜ 退稅整理 + 裝箱返台</span></div>
       <div class="itinerary" id="day5-entries">
-        <div class="entry"><div class="time">13:00</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">13:00</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e14-title" contenteditable="false">退稅辦理 (Tax Refund)</div>
           <div class="box tip editable-content" id="e14-box" contenteditable="false">滿 30,000 KRW 即可申請，明洞主街就有退稅機。</div>
         </div></div></div>
-        <div class="entry"><div class="time">機場</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">機場</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e15-title" contenteditable="false">返台預備</div>
           <div class="box warn editable-content" id="e15-box" contenteditable="false">行李重建議搭 6001 巴士，飯店步行至明洞站即可上車。</div>
         </div></div></div>
@@ -326,11 +333,11 @@ html {
         <section class="card" id="day6-card">
       <div class="day-header"><span class="badge">Day 6</span><span class="editable-content" id="d6-header" contenteditable="false">5/31-6/1 ｜ 退稅整理 + 裝箱返台</span></div>
       <div class="itinerary" id="day5-entries">
-        <div class="entry"><div class="time">13:00</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">13:00</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e14-title" contenteditable="false">退稅辦理 (Tax Refund)</div>
           <div class="box tip editable-content" id="e14-box" contenteditable="false">滿 30,000 KRW 即可申請，明洞主街就有退稅機。</div>
         </div></div></div>
-        <div class="entry"><div class="time">機場</div><div class="content"><div class="entry-card">
+        <div class="entry" draggable="true"><div class="time">機場</div><div class="content"><div class="entry-card">
           <div class="title editable-content" id="e15-title" contenteditable="false">返台預備</div>
           <div class="box warn editable-content" id="e15-box" contenteditable="false">行李重建議搭 6001 巴士，飯店步行至明洞站即可上車。</div>
         </div></div></div>
@@ -591,7 +598,7 @@ function addBuyItem() {
   if (!name) return alert("請輸入品項名稱");
   const i = 'oy-n'+Date.now();
   document.getElementById('buy-list-oy').insertAdjacentHTML('beforeend',
-    `<label><input type="checkbox" id="chk-${i}"><span>${name}</span><input class="field" id="${i}-p" placeholder="地點"><input class="field" id="${i}-v" placeholder="₩" type="number"><button class="del-item" onclick="delBuyItem(this)">×</button></label>`);
+    `<label draggable="true"><input type="checkbox" id="chk-${i}"><span>${name}</span><input class="field" id="${i}-p" placeholder="地點"><input class="field" id="${i}-v" placeholder="₩" type="number"><button class="del-item" onclick="delBuyItem(this)">×</button></label>`);
   document.getElementById('inp-item-name').value = '';
   closeSheet();
 }
@@ -650,6 +657,40 @@ document.querySelectorAll('.tag-chip').forEach(chip => {
     if (s) { this.style.background=s.bg; this.style.color=s.color; this.style.borderColor=s.bg; }
   };
 });
+  // ── 通用拖曳排序 ──
+function initDrag(containerSelector, itemSelector) {
+  document.querySelectorAll(containerSelector).forEach(container => {
+    let dragging = null;
+
+    container.addEventListener('dragstart', e => {
+      dragging = e.target.closest(itemSelector);
+      if (!dragging) return;
+      setTimeout(() => dragging.classList.add('dragging'), 0);
+    });
+
+    container.addEventListener('dragend', () => {
+      dragging?.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      dragging = null;
+    });
+
+    container.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (!dragging) return;
+      const over = e.target.closest(itemSelector);
+      if (!over || over === dragging) return;
+      const rect = over.getBoundingClientRect();
+      const mid = rect.top + rect.height / 2;
+      if (e.clientY < mid) container.insertBefore(dragging, over);
+      else container.insertBefore(dragging, over.nextSibling);
+    });
+  });
+}
+
+// 行程條目
+initDrag('.itinerary', '.entry');
+// 必買清單
+initDrag('#buy-list-oy', 'label');
 </script>
 </body>
 </html>
