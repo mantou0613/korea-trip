@@ -146,6 +146,7 @@
     padding: 0 2px; transition: all .15s; line-height: 1;
   }
   .check-item:hover .item-del { opacity: 1; }
+    body.edit-mode .item-del { opacity: 1; }
   .item-del:hover { color: var(--accent); }
 
   /* 新增項目按鈕（編輯模式） */
@@ -219,6 +220,26 @@
 
   body.edit-mode .item-label { display: none !important; }
   body.edit-mode .cat-name-display { display: none !important; }
+    /* 拖曳把手 */
+.drag-handle-cat {
+  display: none; color: #ccc; font-size: 20px;
+  padding: 0 4px; cursor: grab; user-select: none;
+  line-height: 1;
+}
+body.edit-mode .drag-handle-cat { display: inline; }
+
+.check-item .drag-handle-item {
+  display: none; color: #ccc; font-size: 16px;
+  padding: 0 2px; cursor: grab; user-select: none;
+  flex-shrink: 0;
+}
+body.edit-mode .check-item .drag-handle-item { display: inline; }
+
+.cat-card.dragging { opacity: 0.4; box-shadow: 0 8px 30px rgba(230,67,10,0.25); }
+.cat-card.drag-over-top { border-top: 2.5px solid var(--accent); }
+.cat-card.drag-over-bottom { border-bottom: 2.5px solid var(--accent); }
+.check-item.dragging { opacity: 0.4; }
+.check-item.drag-over-top { border-top: 2px solid var(--accent); }
   </style>
 </head>
 <body>
@@ -370,6 +391,7 @@ function makeCatCard(cat, ci) {
 
   div.innerHTML = `
     <div class="cat-header">
+    <span class="drag-handle-cat">⠿</span>
       <span class="cat-icon" style="cursor:pointer;" onclick="toggleIconPicker(this)">${cat.icon}</span>
       <span class="cat-name-display">${cat.name}</span>
       <input class="cat-name-input" value="${cat.name}" placeholder="分類名稱">
@@ -403,6 +425,7 @@ function makeItemRow(item) {
       <span class="item-label">${item.text}</span>
       <input class="item-label-input" value="${item.text}" placeholder="項目內容">
     </label>
+    <span class="drag-handle-item">⠿</span>
     <button class="item-del" onclick="this.closest('.check-item').remove(); updateProgress();" title="刪除">×</button>
   `;
   return div;
@@ -521,6 +544,107 @@ db.ref('ybo_checklist').on('value', snap => {
   });
   updateProgress();
 });
+  // ── Touch 拖曳（事件委派，編輯模式限定）──
+(function() {
+  let dragging = null, clone = null, offsetY = 0;
+  let activeContainer = null, activeSelector = null;
+
+  const configs = [
+    {
+      containerFn: () => [document.getElementById('main-wrap')],
+      selector: '.cat-card'
+    },
+    {
+      containerFn: () => document.querySelectorAll('.items-list'),
+      selector: '.check-item'
+    }
+  ];
+
+  function getConfig(target) {
+    for (const cfg of configs) {
+      for (const c of cfg.containerFn()) {
+        if (c && c.contains(target)) return { container: c, selector: cfg.selector };
+      }
+    }
+    return null;
+  }
+
+  document.addEventListener('touchstart', e => {
+    if (!editMode) return;
+    const handle = e.target.closest('.drag-handle-cat, .drag-handle-item');
+    if (!handle) return;
+    const cfg = getConfig(handle);
+    if (!cfg) return;
+    const item = handle.closest(cfg.selector);
+    if (!item) return;
+
+    // cat-card 拖曳要排除 add-cat-btn-wrap
+    if (item.classList.contains('add-cat-btn-wrap')) return;
+
+    dragging = item;
+    activeContainer = cfg.container;
+    activeSelector = cfg.selector;
+    offsetY = e.touches[0].clientY - item.getBoundingClientRect().top;
+
+    clone = item.cloneNode(true);
+    clone.style.cssText = `
+      position:fixed; z-index:9999; pointer-events:none;
+      width:${item.offsetWidth}px; opacity:0.85;
+      box-shadow:0 8px 30px rgba(0,0,0,0.2);
+      border-radius:16px; background:#fff;
+      left:${item.getBoundingClientRect().left}px;
+      top:${item.getBoundingClientRect().top}px;
+    `;
+    document.body.appendChild(clone);
+    item.classList.add('dragging');
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchmove', e => {
+    if (!dragging || !clone) return;
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    clone.style.top = (y - offsetY) + 'px';
+
+    activeContainer.querySelectorAll('.drag-over-top, .drag-over-bottom')
+      .forEach(el => el.classList.remove('drag-over-top', 'drag-over-bottom'));
+
+    const items = [...activeContainer.querySelectorAll(activeSelector)]
+      .filter(el => el !== dragging && !el.classList.contains('add-cat-btn-wrap'));
+
+    for (const it of items) {
+      const rect = it.getBoundingClientRect();
+      if (y >= rect.top && y <= rect.bottom) {
+        it.classList.add(y < rect.top + rect.height / 2 ? 'drag-over-top' : 'drag-over-bottom');
+        break;
+      }
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchend', e => {
+    if (!dragging || !clone) return;
+    clone.remove(); clone = null;
+    dragging.classList.remove('dragging');
+
+    const y = e.changedTouches[0].clientY;
+    const items = [...activeContainer.querySelectorAll(activeSelector)]
+      .filter(el => el !== dragging && !el.classList.contains('add-cat-btn-wrap'));
+
+    for (const it of items) {
+      const rect = it.getBoundingClientRect();
+      if (y >= rect.top && y <= rect.bottom) {
+        if (y < rect.top + rect.height / 2) activeContainer.insertBefore(dragging, it);
+        else activeContainer.insertBefore(dragging, it.nextSibling);
+        break;
+      }
+      it.classList.remove('drag-over-top', 'drag-over-bottom');
+    }
+
+    activeContainer.querySelectorAll('.drag-over-top, .drag-over-bottom')
+      .forEach(el => el.classList.remove('drag-over-top', 'drag-over-bottom'));
+    dragging = null; activeContainer = null; activeSelector = null;
+  });
+})();
 
 loadData();
 </script>
