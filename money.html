@@ -121,8 +121,37 @@
   <span class="rate-val" id="rate-display" onclick="editRate()">讀取中...</span>
   <span>TWD（點擊修改）</span>
 </div>
-  
+  <!-- 退稅率計算機 -->
+<div style="margin:14px 12px 0;background:var(--dark);border-radius:16px;padding:16px 18px;">
+  <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--primary);margin-bottom:12px;">🧮 退稅率計算機（從收據算一次，後面自動套用）</div>
+  <div style="display:flex;gap:10px;margin-bottom:10px;">
+    <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+      <label style="font-size:10px;color:#666;font-weight:700;">收據總金額 ₩</label>
+      <input type="number" id="calc-total" placeholder="例：65000" oninput="calcTaxRate()"
+        style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:11px;padding:10px 12px;font-size:14px;font-family:inherit;color:#fff;outline:none;width:100%;">
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+      <label style="font-size:10px;color:#666;font-weight:700;">收據退稅金額 ₩</label>
+      <input type="number" id="calc-refund" placeholder="例：5915" oninput="calcTaxRate()"
+        style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:11px;padding:10px 12px;font-size:14px;font-family:inherit;color:#fff;outline:none;width:100%;">
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.05);border-radius:11px;padding:11px 14px;">
+    <span style="font-size:12px;color:#666;">算出退稅率</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:20px;font-weight:900;color:var(--primary);" id="calc-rate-result">－</span>
+      <button onclick="applyTaxRate()" id="apply-btn"
+        style="display:none;background:var(--primary);color:var(--dark);border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit;">
+        套用到下方 ↓
+      </button>
+    </div>
+  </div>
+  <div id="apply-hint" style="display:none;margin-top:8px;font-size:11px;color:#52FFD8;">
+    ✓ 已套用退稅率，下方填韓幣進價後會自動計算退稅金額
+  </div>
+</div>
 <!-- 退稅關鍵字速查 -->
+  
 <div style="margin:14px 12px 0;background:#fff;border-radius:16px;padding:14px 16px;border:1px solid #ECEAE4;">
   <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#aaa;margin-bottom:10px;">🔍 退稅金額在哪裡找</div>
   <div style="display:flex;flex-direction:column;gap:7px;font-size:12px;">
@@ -157,9 +186,9 @@
       <div class="twd-badge" id="cost-badge">－ TWD</div>
     </div>
   </div>
-  <div class="inp-row">
-    <label>退稅金額 ₩（選填｜不填代表已直接折扣）</label>
-    <input type="number" id="inp-refund" placeholder="例：2045（單據上的 환급액 / VAT Refund）" oninput="onKrwInput()">
+ <div class="inp-row">
+    <label>退稅金額 ₩（選填）<span id="refund-rate-hint" style="display:none;color:#52FFD8;font-weight:700;margin-left:6px;">← 已從退稅率自動填入</span></label>
+    <input type="number" id="inp-refund" placeholder="例：2045（或用上方計算機套用）" oninput="onKrwInput()">
   </div>
   <div class="inp-row">
     <label>實拿成本（標價 − 退稅 = 實付）</label>
@@ -231,6 +260,7 @@ function calcRealCost() {
 }
 
 function onKrwInput() {
+  autoFillRefund(); // 若已套用退稅率，自動帶入退稅金額
   const cost     = calcCost();
   const realCost = calcRealCost();
   const refund   = parseFloat(document.getElementById('inp-refund').value);
@@ -345,7 +375,43 @@ document.getElementById('drawer').addEventListener('touchend', e => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.activeElement.closest('.input-zone')) addItem();
 });
+let appliedTaxRate = 0; // 目前套用的退稅率
 
+function calcTaxRate() {
+  const total  = parseFloat(document.getElementById('calc-total').value);
+  const refund = parseFloat(document.getElementById('calc-refund').value);
+  const resultEl = document.getElementById('calc-rate-result');
+  const applyBtn = document.getElementById('apply-btn');
+
+  if (total > 0 && refund > 0 && refund < total) {
+    const rate = ((refund / total) * 100).toFixed(2);
+    resultEl.textContent = rate + '%';
+    applyBtn.style.display = 'block';
+    appliedTaxRate = parseFloat(rate);
+  } else {
+    resultEl.textContent = '－';
+    applyBtn.style.display = 'none';
+    appliedTaxRate = 0;
+  }
+}
+
+function applyTaxRate() {
+  document.getElementById('apply-hint').style.display = 'block';
+  // 如果現在進價欄已有值，立刻自動帶入退稅金額
+  autoFillRefund();
+}
+
+function autoFillRefund() {
+  if (appliedTaxRate <= 0) return;
+  const krw = parseFloat(document.getElementById('inp-krw').value);
+  if (!isNaN(krw) && krw > 0) {
+    const refund = Math.round(krw * appliedTaxRate / 100);
+    document.getElementById('inp-refund').value = refund;
+    document.getElementById('refund-rate-hint').style.display = 'inline';
+    onKrwInput();
+  }
+}
+  
 fetchRate();
 </script>
 </body>
