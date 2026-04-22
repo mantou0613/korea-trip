@@ -8,19 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0f0f13;
-    --surface: #1a1a22;
-    --surface2: #22222e;
-    --border: #2e2e3e;
-    --accent: #c9a84c;
-    --accent2: #e8c96e;
-    --red: #e05c5c;
-    --green: #5cb88a;
-    --text: #e8e8f0;
-    --text2: #8888aa;
-    --text3: #55556a;
-    --font: 'Noto Sans TC', sans-serif;
-    --mono: 'DM Mono', monospace;
+    --bg: #0f0f13; --surface: #1a1a22; --surface2: #22222e; --border: #2e2e3e;
+    --accent: #c9a84c; --accent2: #e8c96e; --red: #e05c5c; --green: #5cb88a;
+    --text: #e8e8f0; --text2: #8888aa; --text3: #55556a;
+    --font: 'Noto Sans TC', sans-serif; --mono: 'DM Mono', monospace;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
@@ -71,7 +62,7 @@
   label { display: block; font-size: 11px; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; }
   input, select { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 14px; color: var(--text); outline: none; }
   input:focus, select:focus { border-color: var(--accent); }
-  .btn-add { background: var(--accent); color: #0f0f13; border: none; border-radius: 10px; padding: 11px 24px; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; max-width: 160px; }
+  .btn-add { background: var(--accent); color: #0f0f13; border: none; border-radius: 10px; padding: 11px 24px; font-size: 14px; font-weight: 700; cursor: pointer; }
 
   /* ── TABLE ── */
   .table-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
@@ -82,7 +73,8 @@
 
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   thead th { padding: 10px 14px; text-align: left; font-size: 10px; color: var(--text3); background: var(--surface2); text-transform: uppercase; }
-  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+  tbody tr:hover { background: var(--surface2); }
   tbody td { padding: 12px 14px; color: var(--text); }
   .td-amount { font-family: var(--mono); font-weight: 500; color: var(--red); }
   .td-date { font-family: var(--mono); font-size: 12px; color: var(--text2); }
@@ -138,7 +130,7 @@
         <div class="card-value expense" id="sum-expense">NT$ 0</div>
       </div>
       <div class="card">
-        <div class="card-label">小蕙欠款</div>
+        <div class="card-label">小惠欠款</div>
         <div class="card-value expense" id="sum-hui">NT$ 0</div>
       </div>
       <div class="card">
@@ -155,8 +147,26 @@
         <div><label>總費用</label><input type="number" id="f-amount" placeholder="0"></div>
       </div>
       <div class="form-grid-2">
-        <div><label>借款方</label><select id="f-lender"><option value="">— 選擇 —</option><option value="小波">小波</option><option value="小胖">小胖</option><option value="小惠">小惠</option></select></div>
-        <div><label>代付方</label><select id="f-payer"><option value="">— 選擇 —</option><option value="小波">小波</option><option value="小胖">小胖</option><option value="小惠">小惠</option></select></div>
+        <div>
+          <label>借款方</label>
+          <select id="f-lender">
+            <option value="">— 選擇 —</option>
+            <option value="小波">小波</option>
+            <option value="小胖">小胖</option>
+            <option value="胖蟲">胖蟲</option>
+            <option value="小惠">小惠</option>
+          </select>
+        </div>
+        <div>
+          <label>代付方</label>
+          <select id="f-payer">
+            <option value="">— 選擇 —</option>
+            <option value="小波">小波</option>
+            <option value="小胖">小胖</option>
+            <option value="胖蟲">胖蟲</option>
+            <option value="小惠">小惠</option>
+          </select>
+        </div>
       </div>
       <div style="margin-bottom:14px"><label>附註</label><input type="text" id="f-note" placeholder="選填..."></div>
       <button class="btn-add" onclick="addRecord()">＋ 加入記帳</button>
@@ -202,7 +212,6 @@ async function loadSheet() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
     const res = await fetch(url);
     const text = await res.text();
-    console.log('Raw CSV:', text.slice(0,100));
     sheetRecords = parseCSV(text);
     renderTable();
     updateCards();
@@ -216,15 +225,12 @@ async function loadSheet() {
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   if (lines.length <= 1) return [];
-  
-  // 核心修復：直接對應你截圖中的 A, B, C, D, E, F 欄位位置
   return lines.slice(1).map(line => {
-    // 簡單分割 CSV (假設沒有複雜逗號)
     const v = line.split(',').map(s => s.replace(/^"|"$/g, '').trim());
     return {
       '日期': v[0] || '',
       '項目': v[1] || '',
-      '總欠款': v[2] || '0', // 對應 C 欄
+      '金額': v[2] || '0', // 對應 C 欄
       '借款方': v[3] || '',
       '代付方': v[4] || '',
       '附註': v[5] || ''
@@ -242,12 +248,11 @@ function addRecord() {
 
   if (!date || !item || !amount) { showToast('⚠️ 請填寫完整'); return; }
 
-  const rec = { '日期': date, '項目': item, '總欠款': amount, '借款方': lender, '代付方': payer, '附註': note, _local: true };
+  const rec = { '日期': date, '項目': item, '金額': amount, '借款方': lender, '代付方': payer, '附註': note, _local: true };
   localRecords.unshift(rec);
   renderTable();
   updateCards();
 
-  // 清空
   ['f-item','f-amount','f-lender','f-payer','f-note'].forEach(id => document.getElementById(id).value = '');
 
   fetch(GAS_URL, {
@@ -265,7 +270,7 @@ function renderTable() {
   if (all.length === 0) { wrap.innerHTML = '<div class="empty-state">尚無資料</div>'; return; }
 
   const rows = all.map(r => {
-    const amt = parseFloat(String(r['總欠款']).replace(/,/g,'')) || 0;
+    const amt = parseFloat(String(r['金額']).replace(/[^0-9.]/g, '')) || 0;
     return `<tr>
       <td class="td-date">${r['日期']}</td>
       <td>${r['項目']}${r._local ? ' ⏳' : ''}</td>
@@ -282,12 +287,18 @@ function renderTable() {
 function updateCards() {
   const all = [...localRecords, ...sheetRecords];
   let total = 0, hui = 0, fat = 0;
+  
   all.forEach(r => {
-    const amt = parseFloat(String(r['總欠款']).replace(/,/g,'')) || 0;
+    const amt = parseFloat(String(r['金額']).replace(/[^0-9.]/g, '')) || 0;
     total += amt;
-    if (r['借款方'] === '小惠') hui += amt;
-    if (r['借款方'] === '小胖') fat += amt;
+    
+    const lender = r['借款方'] || '';
+    // 如果包含「惠」，算進小惠欠款
+    if (lender.includes('惠')) hui += amt;
+    // 如果包含「胖」，算進胖蟲欠款 (相容 小胖、胖蟲)
+    if (lender.includes('胖')) fat += amt;
   });
+  
   document.getElementById('sum-expense').textContent = `NT$ ${total.toLocaleString()}`;
   document.getElementById('sum-hui').textContent = `NT$ ${hui.toLocaleString()}`;
   document.getElementById('sum-fat').textContent = `NT$ ${fat.toLocaleString()}`;
