@@ -711,7 +711,7 @@ function parseCSV(text) {
   }).filter(r => r['日期'] || r['項目']);
 }
 
-// ── ADD RECORD ───────────────────────────────────────
+// ── 替換後的程式碼 ──
 function addRecord() {
   const date   = document.getElementById('f-date').value;
   const item   = document.getElementById('f-item').value.trim();
@@ -727,35 +727,37 @@ function addRecord() {
 
   const rec = { '日期': date, '項目': item, '總費用': amount, '借款方': lender, '代付方': payer, '附註': note, _local: true };
 
-  // 1. 立刻加入本地，畫面馬上出現
+  // 1. 先在頁面上顯示 (讓使用者覺得很快)
   localRecords.unshift(rec);
   renderTable();
   updateCards();
 
-  // 2. 清空表單
+  // 2. 清空輸入框
   document.getElementById('f-item').value   = '';
   document.getElementById('f-amount').value = '';
   document.getElementById('f-lender').value = '';
   document.getElementById('f-payer').value  = '';
   document.getElementById('f-note').value   = '';
-  document.getElementById('f-date').valueAsDate = new Date();
 
-  showToast('⏳ 正在寫入 Google Sheet…');
+  showToast('⏳ 正在同步至 Google Sheet...');
 
-  // 3. 寫入 Google Sheet
+  // 3. 正式發送到 Google Sheet
   fetch(GAS_URL, {
     method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
+    mode: 'no-cors', // 為了避開 CORS 限制，GAS 必須使用 no-cors
     body: JSON.stringify({ '日期': date, '項目': item, '總費用': amount, '借款方': lender, '代付方': payer, '附註': note })
-  }).then(() => {
-    // 寫入成功：把本地暫存移除，重新從 Sheet 讀（Sheet 已有這筆了）
-    localRecords = localRecords.filter(r => r !== rec);
-    showToast('✅ 已寫入 Google Sheet！');
-    setTimeout(() => loadSheet(), 1800); // 等 Sheet 更新後再讀
-  }).catch(() => {
-    showToast('⚠️ 寫入失敗，記錄保留在本地');
-    // 不移除 localRecords，讓使用者還能看到
+  })
+  .then(() => {
+    // 因為 no-cors 模式下無法抓到正確回傳，我們設定 2 秒後自動重整資料
+    setTimeout(() => {
+      localRecords = localRecords.filter(r => r !== rec);
+      showToast('✅ 同步完成');
+      loadSheet(); // 重新從 Sheet 抓取最新資料
+    }, 2000);
+  })
+  .catch(err => {
+    console.error('Save error:', err);
+    showToast('❌ 發生錯誤，請檢查網路');
   });
 }
 
