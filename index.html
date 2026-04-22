@@ -20,11 +20,16 @@
   padding: 12px 14px;
   background: var(--bg);
   position: sticky;
-  top: 45px; 
+  top: 95px; 
   z-index: 90;
   -webkit-overflow-scrolling: touch;
+  
+  /* --- 新增以下這兩行來達成置中 --- */
+  justify-content: center; /* 讓內容在容器內置中 */
+  flex-wrap: nowrap;      /* 確保按鈕不換行，維持橫向排列 */
+}
 
-  .drawer-overlay { position:fixed;inset:0;z-index:200;background:rgba(26,26,24,0.5);opacity:0;pointer-events:none;transition:opacity .28s; }
+.drawer-overlay { position:fixed;inset:0;z-index:200;background:rgba(26,26,24,0.5);opacity:0;pointer-events:none;transition:opacity .28s; }
 body.drawer-open .drawer-overlay { opacity:1;pointer-events:auto; }
 .drawer { position:fixed;top:0;left:0;bottom:0;z-index:210;width:272px;background:#1A1A18;transform:translateX(-100%);transition:transform .3s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column; }
 body.drawer-open .drawer { transform:translateX(0); }
@@ -37,11 +42,6 @@ body.drawer-open .drawer { transform:translateX(0); }
 .nav-item { display:flex;align-items:center;gap:13px;padding:12px 13px;border-radius:13px;text-decoration:none;color:#888;font-size:14px;font-weight:700;margin-bottom:2px; }
 .nav-item.active { background:rgba(255,214,10,0.1);color:#FFD60A; }
 .nav-icon { width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;background:rgba(255,255,255,0.05); }
-  
-  /* --- 新增以下這兩行來達成置中 --- */
-  justify-content: center; /* 讓內容在容器內置中 */
-  flex-wrap: nowrap;      /* 確保按鈕不換行，維持橫向排列 */
-}
 
 /* 針對手機版做小優化：如果按鈕太多超出螢幕，改回靠左讓使用者可以滑 */
 @media (max-width: 480px) {
