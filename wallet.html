@@ -666,46 +666,78 @@ function unlock() {
   }
 }
 
-// ── SHEET READ ───────────────────────────────────────
+// ── SHEET READ（透過 Apps Script，無 CORS 問題）────────
 async function loadSheet() {
   const btn = document.getElementById('btn-refresh');
   btn.classList.add('spinning');
   try {
-    // 用 JSON 格式讀取，比 CSV 更可靠
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
-    const res  = await fetch(url);
-    const text = await res.text();
+    // 先嘗試 GAS，失敗再 fallback 到 gviz
+    let loaded = false;
 
-    // Google 回傳的 JSON 外面包了一層 callback，需要剝掉
-    const json = JSON.parse(text.replace(/^.*?\(/, '').replace(/\);?\s*$/, ''));
-    const cols = json.table.cols.map(c => c.label);
-    const rows = json.table.rows || [];
-
-    sheetRecords = rows.map(row => {
-      const obj = {};
-      cols.forEach((col, i) => {
-        const cell = row.c[i];
-        obj[col] = cell ? (cell.f || cell.v || '') : '';
-        // 日期格式修正：Google gviz 日期是 Date(yyyy,m,d)
-        if (typeof obj[col] === 'string' && obj[col].startsWith('Date(')) {
-          const parts = obj[col].replace('Date(','').replace(')','').split(',');
-          const y = parts[0], m = String(+parts[1]+1).padStart(2,'0'), d = String(parts[2]).padStart(2,'0');
-          obj[col] = `${y}-${m}-${d}`;
+    // 方法一：Apps Script GET
+    try {
+      const res  = await fetch(GAS_URL + '?action=read');
+      const text = await res.text();
+      // 確認不是 HTML 錯誤頁
+      if (text.trim().startsWith('{')) {
+        const json = JSON.parse(text);
+        if (json.data && Array.isArray(json.data)) {
+          const [header, ...rows] = json.data;
+          sheetRecords = rows
+            .filter(row => row && row.some(cell => String(cell).trim() !== ''))
+            .map(row => {
+              const obj = {};
+              header.forEach((h, i) => obj[String(h).trim()] = String(row[i] ?? '').trim());
+              return obj;
+            })
+            .filter(r => r['日期'] || r['項目']);
+          loaded = true;
         }
-      });
-      return obj;
-    }).filter(r => r['日期'] || r['項目']);
+      }
+    } catch(e1) {
+      console.warn('GAS read failed:', e1);
+    }
+
+    // 方法二：fallback gviz CSV（最穩定）
+    if (!loaded) {
+      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+      const res  = await fetch(url);
+      const text = await res.text();
+      sheetRecords = parseCSV(text);
+      loaded = true;
+    }
 
     renderTable();
     updateCards();
     showToast(`✅ 已讀取 ${sheetRecords.length} 筆記錄`);
   } catch(e) {
     console.error('loadSheet error:', e);
-    showToast('⚠️ 讀取失敗，請確認 Sheet 已公開');
+    showToast('⚠️ 讀取失敗：' + e.message);
     renderTable();
     updateCards();
   }
   btn.classList.remove('spinning');
+}
+
+// ── CSV PARSER (fallback) ──────────────────────────────
+function parseCSV(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+  const header = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim());
+  return lines.slice(1).map(line => {
+    // 處理欄位內有逗號的情況（用引號包住）
+    const vals = [];
+    let cur = '', inQ = false;
+    for (const ch of line) {
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    vals.push(cur.trim());
+    const obj = {};
+    header.forEach((h, i) => obj[h] = (vals[i] || '').replace(/^"|"$/g,'').trim());
+    return obj;
+  }).filter(r => r['日期'] || r['項目']);
 }
 
 // ── ADD RECORD ───────────────────────────────────────
