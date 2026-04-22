@@ -73,8 +73,8 @@ body.drawer-open .drawer { transform:translateX(0); }
 /* 讓捲動變平滑 */
 html {
   scroll-behavior: smooth;
-}
-    .currency-tool { background:#fff; border-bottom:1px solid #E8E6E0; padding:10px 16px; display:flex; align-items:center; justify-content:center; gap:10px; font-size:13px; position:sticky; top:0; z-index:99; box-shadow:0 1px 8px rgba(0,0,0,.06); }
+  }
+    .currency-tool { background:#fff; border-bottom:1px solid #E8E6E0; padding:10px 16px; display:flex; align-items:center; justify-content:center; gap:10px; font-size:13px; position:sticky; top:58px; z-index:99;
     .currency-tool input { width:88px; padding:6px 10px; border-radius:8px; border:1px solid #D8D6D0; font-weight:700; text-align:center; font-size:13px; }
     #twdResult { font-weight:900; color:var(--accent); font-size:14px; }
     .currency-tool small { color:#aaa; font-size:11px; cursor:pointer; }
@@ -493,7 +493,7 @@ body.edit-active .drag-handle { display:inline; }
   function openNaverMaps(addr) {
   if (!addr) return;
   const encoded = encodeURIComponent(addr);
-  window.location = `nmap://search?query=${encoded}&appname=com.ybo.korea`;
+  window.location = `nmap://search?query=${encoded}&appname=com.trip.ybo`;
   setTimeout(() => window.open(`https://map.naver.com/v5/search/${encoded}`, '_blank'), 500);
 }
 const firebaseConfig = {
@@ -570,14 +570,18 @@ function toggleEditMode() {
 }
 
 function saveToFirebase() {
-  const data = { content:{}, inputs:{}, checks:{}, rate:currentRate, buyList:[], prepList:[] };
-  data.entryOrder = {};
+const data = { content:{}, inputs:{}, checks:{}, rate:currentRate, buyList:[], prepList:[], navBtns:{}, entryOrder:{} };
 document.querySelectorAll('.itinerary').forEach(container => {
   const dayId = container.id;
   data.entryOrder[dayId] = [...container.querySelectorAll('.entry')].map(el => {
     const title = el.querySelector('[id$="-title"]');
     return title ? title.id : null;
   }).filter(Boolean);
+});
+document.querySelectorAll('.itinerary .nav-btn[data-nav]').forEach(btn => {
+  const entry = btn.closest('.entry');
+  const titleEl = entry?.querySelector('[id$="-title"]');
+  if (titleEl?.id) data.navBtns[titleEl.id] = btn.dataset.nav;
 });
   document.querySelectorAll('.editable-content').forEach(el => { if (el.id) data.content[el.id] = el.innerHTML; });
   document.querySelectorAll('.field').forEach(el => { if (el.id) data.inputs[el.id] = el.value; });
@@ -616,7 +620,23 @@ window.onload = function() {
     });
   });
 }
-if (data.content) Object.keys(data.content).forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = data.content[id]; });Object.keys(data.content).forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = data.content[id]; });
+    if (data.navBtns) {
+  Object.keys(data.navBtns).forEach(titleId => {
+    const titleEl = document.getElementById(titleId);
+    const card = titleEl?.closest('.entry-card');
+    if (card && !card.querySelector('[data-nav]')) {
+      const addr = data.navBtns[titleId];
+      card.insertAdjacentHTML('beforeend',
+        `<button class="nav-btn" data-nav="${addr.replace(/"/g,'&quot;')}" onclick="openNaverMaps('${addr.replace(/'/g,"\\'")}') " style="background:#03C75A;">📍 Naver Maps 導航</button>`);
+    }
+  });
+}
+    // 只保留這一行，刪掉後面那個裸露的 Object.keys(data.content)...
+if (data.content) Object.keys(data.content).forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = data.content[id];
+});
+
     if (data.inputs)  Object.keys(data.inputs).forEach(id => { const el = document.getElementById(id); if (el) el.value = data.inputs[id]; });
     if (data.checks)  Object.keys(data.checks).forEach(id => { const el = document.getElementById(id); if (el) el.checked = data.checks[id]; });
     if (data.rate) { currentRate = data.rate; document.getElementById('current-rate-text').innerText = `(${currentRate})`; }
@@ -652,8 +672,8 @@ function addEntry() {
 
   // 如果有填地址，就產生導航按鈕的 HTML
   const navBtn = nav
-    ? `<button class="nav-btn" onclick="openNaverMaps('${nav.replace(/'/g, "\\'")}')" style="background:#03C75A;">📍 Naver Maps 導航</button>`
-    : '';
+  ? `<button class="nav-btn" data-nav="${nav.replace(/"/g, '&quot;')}" onclick="openNaverMaps('${nav.replace(/'/g, "\\'")}') " style="background:#03C75A;">📍 Naver Maps 導航</button>`
+  : '';
 
   document.getElementById(day + '-entries').insertAdjacentHTML('beforeend',
     `<div class="entry new-entry">
@@ -767,9 +787,11 @@ document.querySelectorAll('.tag-chip').forEach(chip => {
     const item = handle.closest(cfg.selector);
     if (!item) return;
 
-    dragging = item;
-    activeContainer = cfg.container;
+dragging = item;
     activeSelector = cfg.selector;
+    // 立刻解析出實際 element，之後 touchmove/touchend 用這個
+    const resolved = [...cfg.container()].find(c => c.contains(item));
+    activeContainer = resolved;
     offsetY = e.touches[0].clientY - item.getBoundingClientRect().top;
 
     clone = item.cloneNode(true);
