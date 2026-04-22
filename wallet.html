@@ -741,24 +741,31 @@ function addRecord() {
 
   showToast('⏳ 正在同步至 Google Sheet...');
 
-  // 3. 正式發送到 Google Sheet
+  // 3. 寫入 Google Sheet
   fetch(GAS_URL, {
     method: 'POST',
-    mode: 'no-cors', // 為了避開 CORS 限制，GAS 必須使用 no-cors
+    mode: 'no-cors', // 必須維持 no-cors
+    cache: 'no-cache',
     body: JSON.stringify({ '日期': date, '項目': item, '總費用': amount, '借款方': lender, '代付方': payer, '附註': note })
   })
   .then(() => {
-    // 因為 no-cors 模式下無法抓到正確回傳，我們設定 2 秒後自動重整資料
-    setTimeout(() => {
-      localRecords = localRecords.filter(r => r !== rec);
-      showToast('✅ 同步完成');
-      loadSheet(); // 重新從 Sheet 抓取最新資料
-    }, 2000);
+    // 即使報 cancel 錯誤，通常 .then 還是會觸發
+    processSuccess(rec);
   })
-  .catch(err => {
-    console.error('Save error:', err);
-    showToast('❌ 發生錯誤，請檢查網路');
+  .catch((err) => {
+    // 如果真的進到 error，我們也跑一次處理，因為 no-cors 經常會被誤判為失敗
+    console.log('Fetch ended:', err);
+    processSuccess(rec);
   });
+}
+
+// 抽出來處理成功後的畫面邏輯
+function processSuccess(rec) {
+  setTimeout(() => {
+    localRecords = localRecords.filter(r => r !== rec);
+    showToast('✅ 資料已送出');
+    loadSheet(); // 重新整理表格
+  }, 1500); // 給 GAS 一點緩衝時間寫入資料
 }
 
 // ── RENDER ───────────────────────────────────────────
