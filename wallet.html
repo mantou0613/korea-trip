@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>💳帳本</title>
+<title>💳 私人帳本</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -588,11 +588,21 @@
       <div class="form-grid-2">
         <div>
           <label>借款方</label>
-          <input type="text" id="f-lender" placeholder="例：小波">
+          <select id="f-lender">
+            <option value="">— 選擇 —</option>
+            <option value="小波">小波</option>
+            <option value="小胖">小胖</option>
+            <option value="小惠">小惠</option>
+          </select>
         </div>
         <div>
           <label>代付方</label>
-          <input type="text" id="f-payer" placeholder="例：小惠">
+          <select id="f-payer">
+            <option value="">— 選擇 —</option>
+            <option value="小波">小波</option>
+            <option value="小胖">小胖</option>
+            <option value="小惠">小惠</option>
+          </select>
         </div>
       </div>
       <div style="margin-bottom:14px">
@@ -631,24 +641,20 @@
 // ── CONFIG ──────────────────────────────────────────
 const PASSWORD   = '2oxiuuil';
 const SHEET_ID   = '1VjfzTkD73H4AXVh7eYPG9jJ66hOxS8H6w6yqIedBu0c';
-const SHEET_NAME = 'Sheet1'; // ← 改成你 Sheet 的分頁名稱
-// Google Sheet Append API endpoint (POST to add row)
+const SHEET_NAME = 'Sheet1'; // Google Sheet 分頁名稱
 const GAS_URL    = 'https://script.google.com/macros/s/AKfycby2uoCy3chAq4YoL5LzekBvDh0ZBofbdMB9APAxVNMV7GwTu0FvlthgHw0VIv41H-qP0g/exec';
 
-// ── LOCAL RECORDS (新增的記錄先存本地，並顯示）──────
-let localRecords = JSON.parse(localStorage.getItem('wallet_local') || '[]');
-let sheetRecords = [];
+let sheetRecords = [];  // 從 Google Sheet 讀進來的資料
+let localRecords = [];  // 新增但還沒寫入 Sheet 的暫存
 
 // ── LOCK ────────────────────────────────────────────
 const pwInput = document.getElementById('pw-input');
 pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
 
 function unlock() {
-  const val = pwInput.value;
-  if (val === PASSWORD) {
+  if (pwInput.value === PASSWORD) {
     document.getElementById('lock-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
-    // set today's date
     document.getElementById('f-date').valueAsDate = new Date();
     loadSheet();
   } else {
@@ -665,30 +671,41 @@ async function loadSheet() {
   const btn = document.getElementById('btn-refresh');
   btn.classList.add('spinning');
   try {
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
-    const res = await fetch(url);
+    // 用 JSON 格式讀取，比 CSV 更可靠
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+    const res  = await fetch(url);
     const text = await res.text();
-    sheetRecords = parseCSV(text);
+
+    // Google 回傳的 JSON 外面包了一層 callback，需要剝掉
+    const json = JSON.parse(text.replace(/^.*?\(/, '').replace(/\);?\s*$/, ''));
+    const cols = json.table.cols.map(c => c.label);
+    const rows = json.table.rows || [];
+
+    sheetRecords = rows.map(row => {
+      const obj = {};
+      cols.forEach((col, i) => {
+        const cell = row.c[i];
+        obj[col] = cell ? (cell.f || cell.v || '') : '';
+        // 日期格式修正：Google gviz 日期是 Date(yyyy,m,d)
+        if (typeof obj[col] === 'string' && obj[col].startsWith('Date(')) {
+          const parts = obj[col].replace('Date(','').replace(')','').split(',');
+          const y = parts[0], m = String(+parts[1]+1).padStart(2,'0'), d = String(parts[2]).padStart(2,'0');
+          obj[col] = `${y}-${m}-${d}`;
+        }
+      });
+      return obj;
+    }).filter(r => r['日期'] || r['項目']);
+
     renderTable();
     updateCards();
+    showToast(`✅ 已讀取 ${sheetRecords.length} 筆記錄`);
   } catch(e) {
-    showToast('⚠️ 無法讀取 Google Sheet，顯示本地記錄');
+    console.error('loadSheet error:', e);
+    showToast('⚠️ 讀取失敗，請確認 Sheet 已公開');
     renderTable();
     updateCards();
   }
   btn.classList.remove('spinning');
-}
-
-function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  const header = lines[0].split(',').map(h => h.replace(/"/g,'').trim());
-  return lines.slice(1).map(line => {
-    const vals = line.match(/(".*?"|[^,]+|(?<=,)(?=,)|^(?=,)|(?<=,)$)/g) || [];
-    const clean = vals.map(v => v.replace(/^"|"$/g,'').trim());
-    const obj = {};
-    header.forEach((h,i) => obj[h] = clean[i] || '');
-    return obj;
-  }).filter(r => r['日期'] || r['項目']);
 }
 
 // ── ADD RECORD ───────────────────────────────────────
@@ -696,8 +713,8 @@ function addRecord() {
   const date   = document.getElementById('f-date').value;
   const item   = document.getElementById('f-item').value.trim();
   const amount = document.getElementById('f-amount').value;
-  const lender = document.getElementById('f-lender').value.trim();
-  const payer  = document.getElementById('f-payer').value.trim();
+  const lender = document.getElementById('f-lender').value;
+  const payer  = document.getElementById('f-payer').value;
   const note   = document.getElementById('f-note').value.trim();
 
   if (!date || !item || !amount) {
@@ -707,38 +724,42 @@ function addRecord() {
 
   const rec = { '日期': date, '項目': item, '總費用': amount, '借款方': lender, '代付方': payer, '附註': note, _local: true };
 
-  // 先顯示（樂觀更新）
+  // 1. 立刻加入本地，畫面馬上出現
   localRecords.unshift(rec);
-  localStorage.setItem('wallet_local', JSON.stringify(localRecords));
   renderTable();
   updateCards();
 
-  // 清空表單
-  ['f-item','f-amount','f-lender','f-payer','f-note'].forEach(id => document.getElementById(id).value = '');
+  // 2. 清空表單
+  document.getElementById('f-item').value   = '';
+  document.getElementById('f-amount').value = '';
+  document.getElementById('f-lender').value = '';
+  document.getElementById('f-payer').value  = '';
+  document.getElementById('f-note').value   = '';
   document.getElementById('f-date').valueAsDate = new Date();
 
   showToast('⏳ 正在寫入 Google Sheet…');
 
-  // 寫入 Google Sheet via Apps Script
+  // 3. 寫入 Google Sheet
   fetch(GAS_URL, {
     method: 'POST',
     mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ '日期': date, '項目': item, '總費用': amount, '借款方': lender, '代付方': payer, '附註': note })
   }).then(() => {
-    // 移除本地暫存，重新從 Sheet 讀取
-    localRecords = localRecords.filter(r => !(r['日期']===date && r['項目']===item && r._local));
-    localStorage.setItem('wallet_local', JSON.stringify(localRecords));
-    showToast('✅ 已成功寫入 Google Sheet！');
-    setTimeout(() => loadSheet(), 1500);
+    // 寫入成功：把本地暫存移除，重新從 Sheet 讀（Sheet 已有這筆了）
+    localRecords = localRecords.filter(r => r !== rec);
+    showToast('✅ 已寫入 Google Sheet！');
+    setTimeout(() => loadSheet(), 1800); // 等 Sheet 更新後再讀
   }).catch(() => {
     showToast('⚠️ 寫入失敗，記錄保留在本地');
+    // 不移除 localRecords，讓使用者還能看到
   });
 }
 
 // ── RENDER ───────────────────────────────────────────
 function renderTable() {
-  const all = [...localRecords, ...sheetRecords];
+  // 合併：本地暫存在前（橘點標示），Sheet 資料在後
+  const all  = [...localRecords, ...sheetRecords];
   const wrap = document.getElementById('table-wrap');
 
   if (all.length === 0) {
@@ -746,11 +767,10 @@ function renderTable() {
     return;
   }
 
-  const rows = all.map((r, i) => {
-    const isLocal = r._local;
-    const amt = parseFloat(r['總費用'] || 0);
+  const rows = all.map(r => {
+    const amt    = parseFloat(String(r['總費用']).replace(/[^0-9.]/g,'') || 0);
     const amtStr = amt ? `NT$ ${amt.toLocaleString()}` : '—';
-    const tag = isLocal ? '<span style="font-size:10px;color:var(--accent);margin-left:4px">●</span>' : '';
+    const tag    = r._local ? '<span style="font-size:10px;color:var(--accent);margin-left:4px" title="寫入中">●</span>' : '';
     return `<tr>
       <td class="td-date">${r['日期'] || '—'}</td>
       <td>${r['項目'] || '—'}${tag}</td>
@@ -770,9 +790,11 @@ function renderTable() {
 }
 
 function updateCards() {
-  const all = [...localRecords, ...sheetRecords];
-  let total = 0;
-  all.forEach(r => total += parseFloat(r['總費用'] || 0));
+  const all   = [...localRecords, ...sheetRecords];
+  let   total = 0;
+  all.forEach(r => {
+    total += parseFloat(String(r['總費用']).replace(/[^0-9.]/g,'') || 0);
+  });
   document.getElementById('sum-expense').textContent = `NT$ ${total.toLocaleString()}`;
   document.getElementById('sum-income').textContent  = `NT$ 0`;
   document.getElementById('sum-count').textContent   = `${all.length} 筆`;
@@ -783,7 +805,8 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2800);
 }
 </script>
 </body>
