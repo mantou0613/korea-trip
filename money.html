@@ -121,7 +121,28 @@
   <span class="rate-val" id="rate-display" onclick="editRate()">讀取中...</span>
   <span>TWD（點擊修改）</span>
 </div>
-
+  
+<!-- 退稅關鍵字速查 -->
+<div style="margin:14px 12px 0;background:#fff;border-radius:16px;padding:14px 16px;border:1px solid #ECEAE4;">
+  <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#aaa;margin-bottom:10px;">🔍 退稅金額在哪裡找</div>
+  <div style="display:flex;flex-direction:column;gap:7px;font-size:12px;">
+    <div style="display:flex;gap:8px;align-items:flex-start;">
+      <span style="background:#fff0e0;color:#c95a1e;border-radius:5px;padding:2px 7px;font-weight:700;white-space:nowrap;font-size:11px;">紙本單據</span>
+      <span style="color:#555;">환급액 ／ 세금환급액 ／ VAT Refund ／ Tax Refund Amount</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-start;">
+      <span style="background:#e0f0ff;color:#2255bb;border-radius:5px;padding:2px 7px;font-weight:700;white-space:nowrap;font-size:11px;">手機 App</span>
+      <span style="color:#555;">환급 예정액 ／ 예상 환급금 ／ Refund Amount ／ Tax Refund</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-start;">
+      <span style="background:#e0ffe8;color:#1a7a3a;border-radius:5px;padding:2px 7px;font-weight:700;white-space:nowrap;font-size:11px;">機場退稅機</span>
+      <span style="color:#555;">환급금 ／ REFUND ／ 금액 확인</span>
+    </div>
+    <div style="border-top:1px dashed #eee;padding-top:7px;color:#aaa;font-size:11px;">
+      💡 Olive Young / 大型百貨直接折扣者，退稅欄留空即可，系統直接用標價計算。
+    </div>
+  </div>
+</div>
 <!-- 輸入區 -->
 <div class="input-zone">
   <div class="input-zone-title">✏️ 新增商品</div>
@@ -134,6 +155,16 @@
     <div class="krw-row">
       <input type="number" id="inp-krw" placeholder="例：25000" oninput="onKrwInput()">
       <div class="twd-badge" id="cost-badge">－ TWD</div>
+    </div>
+  </div>
+  <div class="inp-row">
+    <label>退稅金額 ₩（選填｜不填代表已直接折扣）</label>
+    <input type="number" id="inp-refund" placeholder="例：2045（單據上的 환급액 / VAT Refund）" oninput="onKrwInput()">
+  </div>
+  <div class="inp-row">
+    <label>實拿成本（標價 − 退稅 = 實付）</label>
+    <div class="krw-row">
+      <div class="twd-badge" id="real-cost-badge" style="flex:1;">－ TWD</div>
     </div>
   </div>
   <div class="inp-row">
@@ -191,10 +222,38 @@ function calcCost() {
   return (!isNaN(krw) && krw > 0) ? Math.round(krw * rate) : 0;
 }
 
+function calcRealCost() {
+  const krw    = parseFloat(document.getElementById('inp-krw').value);
+  const refund = parseFloat(document.getElementById('inp-refund').value);
+  if (isNaN(krw) || krw <= 0) return 0;
+  const realKrw = (!isNaN(refund) && refund > 0) ? (krw - refund) : krw;
+  return Math.round(realKrw * rate);
+}
+
 function onKrwInput() {
-  const cost = calcCost();
+  const cost     = calcCost();
+  const realCost = calcRealCost();
+  const refund   = parseFloat(document.getElementById('inp-refund').value);
   document.getElementById('cost-badge').textContent = cost > 0 ? `${cost.toLocaleString()} TWD` : '－ TWD';
+  const hasRefund = !isNaN(refund) && refund > 0;
+  document.getElementById('real-cost-badge').textContent = realCost > 0
+    ? `${realCost.toLocaleString()} TWD${hasRefund ? ' ✓退稅後' : ''}`
+    : '－ TWD';
   onSellInput();
+}
+
+function onSellInput() {
+  const realCost = calcRealCost();
+  const sell     = parseFloat(document.getElementById('inp-sell').value);
+  const el       = document.getElementById('profit-preview');
+  if (realCost > 0 && !isNaN(sell) && sell > 0) {
+    const p = sell - realCost;
+    el.textContent = (p >= 0 ? '+' : '') + p.toLocaleString() + ' TWD';
+    el.className = 'profit-preview-val ' + (p >= 0 ? 'pos' : 'neg');
+  } else {
+    el.textContent = '－';
+    el.className = 'profit-preview-val';
+  }
 }
 
 function onSellInput() {
@@ -219,16 +278,19 @@ function addItem() {
 
   if (!cost && isNaN(sell)) { alert('請至少填入韓幣進價或台幣售價'); return; }
 
-  const profit = (!isNaN(sell) && sell > 0 && cost > 0) ? (sell - cost) : null;
-  items.push({ id: Date.now(), name, krw: isNaN(krw)?0:krw, cost, sell: isNaN(sell)?0:sell, profit });
+const realCost = calcRealCost();
+  const profit = (!isNaN(sell) && sell > 0 && realCost > 0) ? (sell - realCost) : null;
+  const refundKrw = parseFloat(document.getElementById('inp-refund').value);
+  items.push({ id: Date.now(), name, krw: isNaN(krw)?0:krw, cost, realCost, refundKrw: isNaN(refundKrw)?0:refundKrw, sell: isNaN(sell)?0:sell, profit });
 
   renderList();
   updateSummary();
 
-  document.getElementById('inp-name').value = '';
+document.getElementById('inp-name').value = '';
   document.getElementById('inp-krw').value = '';
+  document.getElementById('inp-refund').value = '';
   document.getElementById('inp-sell').value = '';
-  document.getElementById('cost-badge').textContent = '－ TWD';
+  document.getElementById('real-cost-badge').textContent = '－ TWD';
   document.getElementById('profit-preview').textContent = '－';
   document.getElementById('profit-preview').className = 'profit-preview-val';
   document.getElementById('inp-name').focus();
@@ -247,8 +309,8 @@ function renderList() {
     div.innerHTML = `
       <div class="list-item-info">
         <div class="list-item-name">${item.name}</div>
-        <div class="list-item-meta">
-          ${item.krw ? `₩${item.krw.toLocaleString()} → NT$${item.cost.toLocaleString()}` : ''}
+<div class="list-item-meta">
+          ${item.krw ? `₩${item.krw.toLocaleString()}${item.refundKrw ? ` −₩${item.refundKrw.toLocaleString()}退稅` : ''} → NT$${item.realCost.toLocaleString()}` : ''}
           ${item.krw && item.sell ? ' ｜ ' : ''}
           ${item.sell ? `售 NT$${item.sell.toLocaleString()}` : ''}
         </div>
