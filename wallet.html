@@ -690,25 +690,37 @@ async function loadSheet() {
   btn.classList.remove('spinning');
 }
 
-// ── CSV PARSER (fallback) ──────────────────────────────
 function parseCSV(text) {
-  const lines = text.trim().split('\n').filter(l => l.trim());
-  if (lines.length < 2) return [];
-  const header = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim());
-  return lines.slice(1).map(line => {
-    // 處理欄位內有逗號的情況（用引號包住）
+  const lines = text.trim().split('\n');
+  if (lines.length < 1) return [];
+
+  // 自動處理 Google CSV 常見的引號問題
+  const processLine = (line) => {
     const vals = [];
     let cur = '', inQ = false;
-    for (const ch of line) {
-      if (ch === '"') { inQ = !inQ; }
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQ && line[i+1] === '"') { cur += '"'; i++; } // 處理雙引號
+        else inQ = !inQ;
+      } 
       else if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
       else cur += ch;
     }
     vals.push(cur.trim());
+    return vals.map(v => v.replace(/^"|"$/g, '')); // 去除前後引號
+  };
+
+  const header = processLine(lines[0]);
+  return lines.slice(1).map(line => {
+    const vals = processLine(line);
     const obj = {};
-    header.forEach((h, i) => obj[h] = (vals[i] || '').replace(/^"|"$/g,'').trim());
+    // 這裡要對應你 Sheet 上的標題名稱
+    header.forEach((h, i) => {
+      obj[h] = vals[i] || '';
+    });
     return obj;
-  }).filter(r => r['日期'] || r['項目']);
+  }).filter(r => r['日期'] || r['項目']); // 確保不是空行
 }
 
 // ── 替換後的程式碼 ──
@@ -780,8 +792,9 @@ function renderTable() {
   }
 
   const rows = all.map(r => {
-    const amt    = parseFloat(String(r['總費用']).replace(/[^0-9.]/g,'') || 0);
-    const amtStr = amt ? `NT$ ${amt.toLocaleString()}` : '—';
+// 找到 renderTable 裡面這兩行並修改
+const rawAmount = String(r['總費用'] || '0').replace(/,/g, ''); // 移除千分位逗號
+const amt = parseFloat(rawAmount) || 0;
     const tag    = r._local ? '<span style="font-size:10px;color:var(--accent);margin-left:4px" title="寫入中">●</span>' : '';
     return `<tr>
       <td class="td-date">${r['日期'] || '—'}</td>
