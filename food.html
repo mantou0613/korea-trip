@@ -8,7 +8,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
-    :root { --primary:#FFD60A; --dark:#1A1A18; --bg:#F0EEE9; --accent:#E6430A; }
+    :root { --primary:#FFD60A; --dark:#1A1A18; --bg:#F0EEE9; --accent:#E6430A; --naver:#03C75A; }
     * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
     body { font-family:'Noto Sans TC',sans-serif; background:var(--bg); padding-bottom:120px; color:var(--dark); }
 
@@ -61,7 +61,23 @@
     .rest-field input:focus, .rest-field textarea:focus { border-color:var(--dark); }
     .rest-field textarea { resize:none;height:56px;line-height:1.6; }
 
-    .nav-map-btn { display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:9px;background:#4285F4;border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;margin-top:4px; }
+    /* ── 導航按鈕群組 ── */
+    .nav-btns { display:flex;gap:8px;margin-top:4px; }
+
+    .nav-map-btn {
+      display:flex;align-items:center;justify-content:center;gap:5px;
+      flex:1;padding:10px 6px;
+      border:none;border-radius:10px;
+      color:#fff;font-size:12px;font-weight:700;
+      cursor:pointer;font-family:inherit;text-decoration:none;
+      transition:opacity .15s, transform .15s;
+    }
+    .nav-map-btn:active { opacity:.8; transform:scale(0.97); }
+
+    /* Naver 綠 */
+    .btn-naver { background:var(--naver); }
+    /* Google 藍（備用） */
+    .btn-google { background:#4285F4; }
 
     .btn-add-rest { margin-top:8px;background:#F2F0EA;border:none;padding:12px;width:100%;border-radius:12px;color:#666;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:background 0.2s; }
     .btn-add-rest:hover { background:#E8E6E0; }
@@ -91,7 +107,7 @@
     <a href="shopping-list.html" class="nav-item"><div class="nav-icon">🛒</div><span>採買清單</span></a>
     <div class="nav-section-label">即將推出</div>
     <a href="money.html" class="nav-item"><div class="nav-icon">💰</div><span>代購利潤計算</span></a>
-    <a href="food.html" class="nav-item"><div class="nav-icon">🍜</div><span>美食清單</span></a>
+    <a href="food.html" class="nav-item active"><div class="nav-icon">🍜</div><span>美食清單</span></a>
     <a href="transport.html" class="nav-item"><div class="nav-icon">🚇</div><span>交通地圖</span></a>
   </nav>
 </div>
@@ -102,7 +118,7 @@
   <span class="topbar-title">🍜 美食清單</span>
 </div>
 
-<!-- 跳轉列（動態產生） -->
+<!-- 跳轉列 -->
 <div class="jump-bar" id="jump-bar"></div>
 
 <!-- 內容 -->
@@ -127,31 +143,78 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// ── Naver Maps 深層連結 ──
+// 優先嘗試開啟 App（nmap://），若未安裝則 fallback 到網頁版
+function openNaverMaps(addr) {
+  if (!addr || !addr.trim()) {
+    alert('請先填寫地址！');
+    return;
+  }
+  const encoded = encodeURIComponent(addr);
+
+  // nmap:// scheme → 直接叫起 Naver Maps App（iOS & Android 通用）
+  const appUrl  = `nmap://search?query=${encoded}&appname=com.ybo.korea`;
+  // 網頁備用（若 App 未安裝）
+  const webUrl  = `https://map.naver.com/v5/search/${encoded}`;
+
+  // 嘗試打開 App；若 500ms 內沒反應（App 未裝）就開網頁
+  const start = Date.now();
+  window.location = appUrl;
+  setTimeout(() => {
+    // 若使用者還在頁面上（App 沒攔截跳轉），就開網頁版
+    if (Date.now() - start < 1500) {
+      window.open(webUrl, '_blank');
+    }
+  }, 500);
+}
+
 // ── 渲染餐廳列 ──
 function renderRestaurant(rest) {
   const div = document.createElement('div');
   div.className = 'restaurant-row';
   div.innerHTML = `
     <div class="rest-header">
-      <input type="text" class="rest-name-input" value="${rest.name||''}" placeholder="餐廳名稱">
+      <input type="text" class="rest-name-input" value="${escHtml(rest.name||'')}" placeholder="餐廳名稱">
       <button class="del-btn" onclick="this.closest('.restaurant-row').remove()">×</button>
     </div>
     <div class="rest-fields">
-      <div class="rest-field"><label>📍 地址</label><input type="text" class="rest-addr" value="${rest.addr||''}" placeholder="例：서울시 중구..."></div>
-      <div class="rest-field"><label>📞 電話</label><input type="tel" class="rest-phone" value="${rest.phone||''}" placeholder="例：+82-2-1234-5678"></div>
-      <div class="rest-field"><label>🕐 營業時間</label><input type="text" class="rest-hours" value="${rest.hours||''}" placeholder="例：11:00 - 21:00"></div>
-      <div class="rest-field"><label>🍽️ 推薦菜色</label><textarea class="rest-menu" placeholder="例：炸雞、部隊鍋...">${rest.menu||''}</textarea></div>
+      <div class="rest-field"><label>📍 地址（韓文更準確）</label><input type="text" class="rest-addr" value="${escHtml(rest.addr||'')}" placeholder="例：서울 중구 명동길 14"></div>
+      <div class="rest-field"><label>📞 電話</label><input type="tel" class="rest-phone" value="${escHtml(rest.phone||'')}" placeholder="例：+82-2-1234-5678"></div>
+      <div class="rest-field"><label>🕐 營業時間</label><input type="text" class="rest-hours" value="${escHtml(rest.hours||'')}" placeholder="例：11:00 - 21:00"></div>
+      <div class="rest-field"><label>🍽️ 推薦菜色</label><textarea class="rest-menu" placeholder="例：炸雞、部隊鍋...">${escHtml(rest.menu||'')}</textarea></div>
     </div>
-    <a class="nav-map-btn rest-nav-btn" href="${rest.addr ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(rest.addr) : '#'}" target="_blank">📍 開始導航</a>
+    <div class="nav-btns">
+      <button class="nav-map-btn btn-naver" onclick="openNaverMaps(this.closest('.restaurant-row').querySelector('.rest-addr').value)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.64 2L10.36 2L4 22H7.5L9 17H15L16.5 22H20L13.64 2ZM9.83 14L12 6.8L14.17 14H9.83Z" fill="white"/></svg>
+        Naver Maps 導航
+      </button>
+      <a class="nav-map-btn btn-google rest-gmap-btn" href="#" target="_blank">
+        🗺 Google Maps
+      </a>
+    </div>
   `;
 
-  // 地址變更時同步更新導航連結
-  div.querySelector('.rest-addr').addEventListener('input', function() {
-    const btn = div.querySelector('.rest-nav-btn');
-    btn.href = this.value ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(this.value) : '#';
-  });
+  // 地址變更時同步更新 Google Maps 連結
+  const addrInput = div.querySelector('.rest-addr');
+  const gmapBtn   = div.querySelector('.rest-gmap-btn');
+
+  function updateGmap() {
+    const v = addrInput.value.trim();
+    gmapBtn.href = v
+      ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(v)
+      : '#';
+  }
+  updateGmap(); // 初始化
+  addrInput.addEventListener('input', updateGmap);
 
   return div;
+}
+
+// ── HTML 轉義（防 XSS） ──
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── 渲染地區區塊 ──
@@ -159,12 +222,11 @@ function renderArea(area) {
   const container = document.getElementById('list-container');
   const card = document.createElement('div');
   card.className = 'area-card';
-  const safeId = 'area-' + Date.now() + Math.random().toString(36).slice(2,6);
-  card.id = safeId;
+  card.id = 'area-' + Date.now() + Math.random().toString(36).slice(2,6);
 
   card.innerHTML = `
     <div class="area-header">
-      <input type="text" class="area-name-input" value="${area.name||''}" placeholder="輸入地區名稱（例：明洞）">
+      <input type="text" class="area-name-input" value="${escHtml(area.name||'')}" placeholder="輸入地區名稱（例：明洞）">
       <button class="del-btn" onclick="removeArea(this)">×</button>
     </div>
     <div class="rest-list"></div>
@@ -191,27 +253,23 @@ function updateJumpBar() {
     chip.className = 'jump-chip';
     chip.textContent = name;
     chip.onclick = () => {
-      const offset = 115;
-      const top = card.getBoundingClientRect().top + window.scrollY - offset;
+      const top = card.getBoundingClientRect().top + window.scrollY - 115;
       window.scrollTo({ top, behavior: 'smooth' });
     };
     bar.appendChild(chip);
   });
 }
 
-// ── 新增地區 ──
 function addArea() {
   renderArea({ name:'', restaurants:[{ name:'', addr:'', phone:'', hours:'', menu:'' }] });
   window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
 
-// ── 新增餐廳 ──
 function addRestaurant(btn) {
   const restList = btn.parentElement.querySelector('.rest-list');
   restList.appendChild(renderRestaurant({ name:'', addr:'', phone:'', hours:'', menu:'' }));
 }
 
-// ── 刪除地區 ──
 function removeArea(btn) {
   if (confirm('確定要刪除這個地區嗎？')) {
     btn.closest('.area-card').remove();
@@ -219,7 +277,6 @@ function removeArea(btn) {
   }
 }
 
-// ── 儲存 ──
 function saveData() {
   const data = [];
   document.querySelectorAll('.area-card').forEach(card => {
@@ -242,7 +299,6 @@ function saveData() {
   db.ref('ybo_food_list').set(data).then(() => alert('✅ 儲存成功！'));
 }
 
-// ── 載入 ──
 function loadData() {
   db.ref('ybo_food_list').once('value', snap => {
     const data = snap.val();
@@ -253,9 +309,8 @@ function loadData() {
   });
 }
 
-// ── 抽屜 ──
 function toggleDrawer() { document.body.classList.toggle('drawer-open'); }
-function closeDrawer() { document.body.classList.remove('drawer-open'); }
+function closeDrawer()  { document.body.classList.remove('drawer-open'); }
 document.getElementById('drawer').addEventListener('touchend', e => {
   if (e.changedTouches[0].clientX < 50) closeDrawer();
 }, { passive: true });
