@@ -185,14 +185,16 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const PASSWORD = '2oxiuuil';
-const SHEET_ID = '1VjfzTkD73H4AXVh7eYPG9jJ66hOxS8H6w6yqIedBu0c';
-const SHEET_NAME = 'Sheet1'; 
-const GAS_URL = 'https://script.google.com/macros/s/AKfycby2uoCy3chAq4YoL5LzekBvDh0ZBofbdMB9APAxVNMV7GwTu0FvlthgHw0VIv41H-qP0g/exec';
+// ── CONFIG ──────────────────────────────────────────
+const PASSWORD    = '2oxiuuil';
+const SHEET_ID    = '1VjfzTkD73H4AXVh7eYPG9jJ66hOxS8H6w6yqIedBu0c';
+const SHEET_NAME  = 'Sheet1'; 
+const GAS_URL     = 'https://script.google.com/macros/s/AKfycby2uoCy3chAq4YoL5LzekBvDh0ZBofbdMB9APAxVNMV7GwTu0FvlthgHw0VIv41H-qP0g/exec';
 
-let sheetRecords = [];
-let localRecords = [];
+let sheetRecords = [];  
+let localRecords = [];  
 
+// ── LOCK ────────────────────────────────────────────
 function unlock() {
   if (document.getElementById('pw-input').value === PASSWORD) {
     document.getElementById('lock-screen').style.display = 'none';
@@ -205,13 +207,15 @@ function unlock() {
   }
 }
 
+// ── SHEET READ ───────────────────────────────────────
 async function loadSheet() {
   const btn = document.getElementById('btn-refresh');
   btn.classList.add('spinning');
   try {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
-    const res = await fetch(url);
+    const res  = await fetch(url);
     const text = await res.text();
+    console.log('Raw CSV Check:', text.split('\n')[0]); // 偵錯用
     sheetRecords = parseCSV(text);
     renderTable();
     updateCards();
@@ -226,6 +230,7 @@ function parseCSV(text) {
   const lines = text.trim().split('\n');
   if (lines.length <= 1) return [];
 
+  // 強大解析器：處理引號、逗號
   const processLine = (line) => {
     const vals = [];
     let cur = '', inQ = false;
@@ -242,18 +247,29 @@ function parseCSV(text) {
     return vals.map(v => v.replace(/^"|"$/g, ''));
   };
 
-  const header = processLine(lines[0]);
-  
-  // 找出每個標題所在的欄位索引 (Index)
-  const idxDate = header.indexOf('日期');
-  const idxItem = header.indexOf('項目');
-  // 同時相容「金額」、「總費用」、「總欠款」
-  const idxAmt = header.findIndex(h => h.includes('金額') || h.includes('費用') || h.includes('欠款'));
-  const idxLender = header.indexOf('借款方');
-  const idxPayer = header.indexOf('代付方');
-  const idxNote = header.indexOf('附註');
+  // 1. 尋找真正的標題列 (有些 CSV 開頭會有空行或總計)
+  let headerIndex = 0;
+  for(let i=0; i<lines.length; i++){
+    if(lines[i].includes('日期') && lines[i].includes('項目')){
+      headerIndex = i;
+      break;
+    }
+  }
 
-  return lines.slice(1).map(line => {
+  const header = processLine(lines[headerIndex]);
+  
+  // 2. 動態定位欄位索引
+  const findIdx = (names) => header.findIndex(h => names.some(n => h.includes(n)));
+  
+  const idxDate   = findIdx(['日期']);
+  const idxItem   = findIdx(['項目']);
+  const idxAmt    = findIdx(['費用', '金額', '欠款']);
+  const idxLender = findIdx(['借款方']);
+  const idxPayer  = findIdx(['代付方']);
+  const idxNote   = findIdx(['附註']);
+
+  // 3. 讀取資料列
+  return lines.slice(headerIndex + 1).map(line => {
     const v = processLine(line);
     return {
       '日期': v[idxDate] || '',
@@ -263,16 +279,16 @@ function parseCSV(text) {
       '代付方': v[idxPayer] || '',
       '附註': v[idxNote] || ''
     };
-  }).filter(r => r['日期'] || r['項目']);
+  }).filter(r => r['日期'] && r['日期'] !== '日期'); // 過濾標題重複或空行
 }
 
 function addRecord() {
-  const date = document.getElementById('f-date').value;
-  const item = document.getElementById('f-item').value.trim();
+  const date   = document.getElementById('f-date').value;
+  const item   = document.getElementById('f-item').value.trim();
   const amount = document.getElementById('f-amount').value;
   const lender = document.getElementById('f-lender').value;
-  const payer = document.getElementById('f-payer').value;
-  const note = document.getElementById('f-note').value;
+  const payer  = document.getElementById('f-payer').value;
+  const note   = document.getElementById('f-note').value;
 
   if (!date || !item || !amount) { showToast('⚠️ 請填寫完整'); return; }
 
@@ -292,20 +308,24 @@ function addRecord() {
   });
 }
 
+// ── RENDER ───────────────────────────────────────────
 function renderTable() {
-  const all = [...localRecords, ...sheetRecords];
+  const all  = [...localRecords, ...sheetRecords];
   const wrap = document.getElementById('table-wrap');
   if (all.length === 0) { wrap.innerHTML = '<div class="empty-state">尚無資料</div>'; return; }
 
   const rows = all.map(r => {
-    const amt = parseFloat(String(r['金額']).replace(/[^0-9.]/g, '')) || 0;
+    // 清除數字以外的符號 (如 $ 或 ,) 確保計算正確
+    const cleanAmt = String(r['金額'] || '0').replace(/[^0-9.]/g, '');
+    const amt = parseFloat(cleanAmt) || 0;
+    
     return `<tr>
       <td class="td-date">${r['日期']}</td>
       <td>${r['項目']}${r._local ? ' ⏳' : ''}</td>
       <td class="td-amount">NT$ ${amt.toLocaleString()}</td>
       <td><span class="badge badge-lender">${r['借款方'] || '—'}</span></td>
       <td><span class="badge badge-payer">${r['代付方'] || '—'}</span></td>
-      <td>${r['附註'] || '—'}</td>
+      <td class="td-note">${r['附註'] || '—'}</td>
     </tr>`;
   }).join('');
 
@@ -317,13 +337,12 @@ function updateCards() {
   let total = 0, hui = 0, fat = 0;
   
   all.forEach(r => {
-    const amt = parseFloat(String(r['金額']).replace(/[^0-9.]/g, '')) || 0;
-    total += amt;
+    const cleanAmt = String(r['金額'] || '0').replace(/[^0-9.]/g, '');
+    const amt = parseFloat(cleanAmt) || 0;
     
+    total += amt;
     const lender = r['借款方'] || '';
-    // 如果包含「惠」，算進小惠欠款
     if (lender.includes('惠')) hui += amt;
-    // 如果包含「胖」，算進胖蟲欠款 (相容 小胖、胖蟲)
     if (lender.includes('胖')) fat += amt;
   });
   
