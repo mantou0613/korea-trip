@@ -68,8 +68,9 @@
     .split-preview span { color:#fff;font-weight:700; }
     .split-preview .each { color:var(--teal); }
 
-    .btn-add { width:100%;padding:13px;background:var(--primary);color:var(--dark);border:none;border-radius:12px;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit; }
+    .btn-add { width:100%;padding:13px;background:var(--primary);color:var(--dark);border:none;border-radius:12px;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;transition:opacity .15s; }
     .btn-add:active { transform:scale(0.97); }
+    .btn-add:disabled { opacity:.5;cursor:not-allowed; }
 
     /* 結算卡片 */
     .settle-wrap { margin:14px 12px 0; }
@@ -115,11 +116,18 @@
 
     .empty-hint { text-align:center;color:#bbb;font-size:13px;padding:30px 0; }
 
-    /* 貨幣符號 */
-    .currency-symbol { color:#aaa; }
+    /* Toast */
+    .toast { position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(12px);background:#1A1A18;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:all .25s;z-index:999;pointer-events:none;white-space:nowrap; }
+    .toast.show { opacity:1;transform:translateX(-50%) translateY(0); }
+
+    /* Loading */
+    .loading-bar { height:3px;background:var(--primary);position:fixed;top:0;left:0;z-index:999;transition:width .3s;width:0; }
   </style>
 </head>
 <body>
+
+<div class="loading-bar" id="loading-bar"></div>
+<div class="toast" id="toast"></div>
 
 <div class="drawer-overlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
@@ -200,17 +208,15 @@
 
   <div class="split-preview" id="split-preview">選好金額和分攤人後顯示每人應付...</div>
 
-  <button class="btn-add" onclick="addRecord()">＋ 加入記帳</button>
+  <button class="btn-add" id="btn-add" onclick="addRecord()">＋ 加入記帳</button>
 </div>
 
 <!-- 結算 -->
 <div class="settle-wrap">
-  <!-- 每人狀況 -->
   <div class="settle-card">
     <div class="settle-title">👛 每人結算</div>
     <div id="balance-list"><div style="color:#555;font-size:13px;text-align:center;padding:10px 0;">還沒有記錄</div></div>
   </div>
-  <!-- 還款路徑 -->
   <div class="settle-card" id="settle-card" style="display:none;">
     <div class="settle-title">💸 誰還誰多少</div>
     <div id="settle-list"></div>
@@ -223,6 +229,9 @@
 </div>
 
 <script>
+// ─────────────────────────────────────────
+// Firebase 設定
+// ─────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyCSMV8JAc-VmnhncS15KK737rAL6kK-QDw",
   authDomain: "test-korea-e4f86.firebaseapp.com",
@@ -234,16 +243,23 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const REF = 'ybo_split/records';
 
-const MEMBERS = ['小波','小胖','小惠'];
+// ─────────────────────────────────────────
+// 常數
+// ─────────────────────────────────────────
+const MEMBERS   = ['小波','小胖','小惠'];
 const DAY_LABELS = { D1:'D1 5/27', D2:'D2 5/28', D3:'D3 5/29', D4:'D4 5/30', D5:'D5 5/31', D6:'D6 6/1' };
-const EMOJIS = ['🍜','🚕','🛒','☕','🍺','🎟️','🏨','✈️','💊','🛍️'];
+const EMOJIS    = ['🍜','🚕','🛒','☕','🍺','🎟️','🏨','✈️','💊','🛍️'];
 
-let records = [];
+let records  = [];   // ← 唯一的資料來源，永遠是陣列
 let currency = 'TWD';
-let krwRate  = 0.025; // 1 KRW = ? TWD
+let krwRate  = 0.025;
+let saving   = false; // 防止自己的寫入觸發 listener 清空
 
-// ── 匯率 ──
+// ─────────────────────────────────────────
+// 匯率
+// ─────────────────────────────────────────
 async function fetchRate() {
   try {
     const r = await fetch('https://open.er-api.com/v6/latest/KRW');
@@ -269,7 +285,9 @@ function fmtAmt(twd) {
   return `NT$ ${twd.toLocaleString()}`;
 }
 
-// ── 日期選擇 ──
+// ─────────────────────────────────────────
+// UI 互動
+// ─────────────────────────────────────────
 function selectDay(btn) {
   document.querySelectorAll('.day-chip').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -278,7 +296,6 @@ function getSelectedDay() {
   return document.querySelector('.day-chip.active')?.dataset.day || 'D1';
 }
 
-// ── 付款人 ──
 function selectPayer(btn) {
   document.querySelectorAll('.payer-chip').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -288,10 +305,9 @@ function getSelectedPayer() {
   return document.querySelector('.payer-chip.active')?.dataset.person || '小波';
 }
 
-// ── 分攤人員 ──
 function toggleMember(btn) {
   const active = document.querySelectorAll('.member-chip.active');
-  if (btn.classList.contains('active') && active.length === 1) return; // 至少保留一人
+  if (btn.classList.contains('active') && active.length === 1) return;
   btn.classList.toggle('active');
   updatePreview();
 }
@@ -299,7 +315,6 @@ function getSelectedMembers() {
   return [...document.querySelectorAll('.member-chip.active')].map(b => b.dataset.person);
 }
 
-// ── 預覽 ──
 function updatePreview() {
   const amt     = parseFloat(document.getElementById('inp-amount').value);
   const members = getSelectedMembers();
@@ -309,96 +324,134 @@ function updatePreview() {
     el.innerHTML = '選好金額和分攤人後顯示每人應付...';
     return;
   }
-  const twd     = toTWD(amt);
-  const each    = Math.round(twd / members.length);
-  const membersStr = members.join('、');
-  el.innerHTML = `<span>${payer}</span> 先墊 <span class="each">${fmtAmt(twd)}</span><br>由 <span>${membersStr}</span> 均分 → 每人 <span class="each">${fmtAmt(each)}</span>`;
+  const twd  = toTWD(amt);
+  const each = Math.round(twd / members.length);
+  el.innerHTML = `<span>${payer}</span> 先墊 <span class="each">${fmtAmt(twd)}</span><br>由 <span>${members.join('、')}</span> 均分 → 每人 <span class="each">${fmtAmt(each)}</span>`;
 }
 
-// ── 新增 ──
+// ─────────────────────────────────────────
+// 新增記錄 — 核心修復：saving flag
+// ─────────────────────────────────────────
 function addRecord() {
   const event   = document.getElementById('inp-event').value.trim() || '未命名';
   const amt     = parseFloat(document.getElementById('inp-amount').value);
   const members = getSelectedMembers();
   const payer   = getSelectedPayer();
   const day     = getSelectedDay();
-  if (!amt || amt <= 0) { alert('請填入金額'); return; }
-  if (members.length === 0) { alert('請選擇分攤人員'); return; }
+
+  if (!amt || amt <= 0) { showToast('⚠️ 請填入金額'); return; }
+  if (members.length === 0) { showToast('⚠️ 請選擇分攤人員'); return; }
 
   const twd  = toTWD(amt);
   const each = Math.round(twd / members.length);
   const rec  = {
     id: Date.now(),
-    event,
-    twd,
-    origAmt: amt,
-    origCurrency: currency,
-    payer,
-    members,
-    each,
-    day,
+    event, twd,
+    origAmt: amt, origCurrency: currency,
+    payer, members, each, day,
     emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)]
   };
+
+  // 1. 先把新記錄加到本地陣列並立即渲染 → 使用者馬上看到
   records.push(rec);
-  saveToFirebase();
   renderAll();
 
-  document.getElementById('inp-event').value = '';
+  // 2. 清空表單
+  document.getElementById('inp-event').value  = '';
   document.getElementById('inp-amount').value = '';
   document.getElementById('split-preview').innerHTML = '選好金額和分攤人後顯示每人應付...';
   document.getElementById('inp-event').focus();
+
+  // 3. 寫入 Firebase（設 saving flag 避免 listener 重複覆蓋）
+  saveToFirebase();
 }
 
-// ── 刪除 ──
+// ─────────────────────────────────────────
+// 刪除
+// ─────────────────────────────────────────
 function removeRecord(id) {
   records = records.filter(r => r.id !== id);
-  saveToFirebase();
   renderAll();
+  saveToFirebase();
 }
 
-// ── Firebase ──
+// ─────────────────────────────────────────
+// Firebase 存取 — 修復重點
+// ─────────────────────────────────────────
 function saveToFirebase() {
-  db.ref('ybo_split/records').set(records);
+  saving = true;
+  setLoading(true);
+  // 儲存純陣列，避免 Firebase 把稀疏陣列轉成物件
+  const payload = records.map(r => Object.assign({}, r)); // 去除 undefined
+  db.ref(REF).set(payload)
+    .then(() => {
+      showToast('✅ 已同步');
+    })
+    .catch(() => {
+      showToast('⚠️ 同步失敗，資料保留在本機');
+    })
+    .finally(() => {
+      setLoading(false);
+      // 短暫延遲後解鎖，讓 Firebase echo 的 value event 不誤覆蓋
+      setTimeout(() => { saving = false; }, 800);
+    });
 }
 
 window.onload = function() {
   fetchRate();
-  db.ref('ybo_split/records').on('value', snap => {
+  setLoading(true);
+
+  db.ref(REF).on('value', snap => {
+    // 如果是自己剛寫入觸發的回傳，略過，避免覆蓋本地資料
+    if (saving) return;
+
     const data = snap.val();
-    if (Array.isArray(data)) { records = data; renderAll(); }
-    else if (data) { records = Object.values(data); renderAll(); }
+
+    // ── 修復核心：嚴格判斷資料型別 ──
+    if (data === null || data === undefined) {
+      // Firebase 沒有資料 → 清空（正常）
+      records = [];
+    } else if (Array.isArray(data)) {
+      // 純陣列 → 過濾掉 null 空洞（Firebase 稀疏陣列會有 null）
+      records = data.filter(r => r && r.id);
+    } else if (typeof data === 'object') {
+      // Firebase 把陣列轉成了物件（{0:{…}, 1:{…}}）→ 轉回陣列
+      records = Object.values(data).filter(r => r && r.id);
+    } else {
+      records = [];
+    }
+
+    renderAll();
+    setLoading(false);
   });
 };
 
-// ── 渲染 ──
+// ─────────────────────────────────────────
+// 渲染
+// ─────────────────────────────────────────
 function renderAll() {
   renderBalance();
   renderDays();
 }
 
-// 結算：每人付了多少、應付多少、餘額
 function renderBalance() {
-  const paid   = {};  // 實際付出
-  const owed   = {};  // 應付
+  const paid  = {};
+  const owed  = {};
   MEMBERS.forEach(m => { paid[m] = 0; owed[m] = 0; });
 
   records.forEach(r => {
-    paid[r.payer] = (paid[r.payer] || 0) + r.twd;
-    r.members.forEach(m => {
-      owed[m] = (owed[m] || 0) + r.each;
+    if (!r || !r.payer) return; // 防禦性檢查
+    paid[r.payer] = (paid[r.payer] || 0) + (r.twd || 0);
+    (r.members || []).forEach(m => {
+      owed[m] = (owed[m] || 0) + (r.each || 0);
     });
   });
 
-  // 餘額 = 付出 - 應付（正 = 別人欠我，負 = 我欠別人）
   const balance = {};
   MEMBERS.forEach(m => { balance[m] = (paid[m] || 0) - (owed[m] || 0); });
 
-  // 每人總花費（實際分攤）
-  const totalSpent = {};
-  MEMBERS.forEach(m => { totalSpent[m] = owed[m] || 0; });
-
   const balanceEl = document.getElementById('balance-list');
-  const total = records.reduce((s, r) => s + r.twd, 0);
+  const total = records.reduce((s, r) => s + (r?.twd || 0), 0);
 
   if (records.length === 0) {
     balanceEl.innerHTML = '<div style="color:#555;font-size:13px;text-align:center;padding:10px 0;">還沒有記錄</div>';
@@ -407,7 +460,7 @@ function renderBalance() {
   }
 
   balanceEl.innerHTML = MEMBERS.map(m => {
-    const b = balance[m] || 0;
+    const b   = balance[m] || 0;
     const cls = b > 0 ? 'pos' : b < 0 ? 'neg' : 'zero';
     const sign = b > 0 ? '被欠 +' : b < 0 ? '需還 ' : '已結清 ';
     return `
@@ -418,43 +471,40 @@ function renderBalance() {
         </div>
         <div class="balance-amt ${cls}">${sign}${fmtAmt(Math.abs(b))}</div>
       </div>`;
-  }).join('') + `<div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:8px;margin-top:4px;display:flex;justify-content:space-between;"><span style="font-size:11px;color:#555;">全程總花費</span><span style="font-size:13px;font-weight:700;color:#fff;">${fmtAmt(total)}</span></div>`;
+  }).join('') +
+  `<div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:8px;margin-top:4px;display:flex;justify-content:space-between;">
+    <span style="font-size:11px;color:#555;">全程總花費</span>
+    <span style="font-size:13px;font-weight:700;color:#fff;">${fmtAmt(total)}</span>
+  </div>`;
 
-  // 還款路徑（最優化）
   renderSettle(balance);
 }
 
 function renderSettle(balance) {
-  // 找出誰欠誰，最少交易次數
-  const debtors   = MEMBERS.filter(m => balance[m] < 0).map(m => ({ name:m, amt: -balance[m] }));
-  const creditors = MEMBERS.filter(m => balance[m] > 0).map(m => ({ name:m, amt: balance[m] }));
+  const debtors   = MEMBERS.filter(m => balance[m] < -1).map(m => ({ name:m, amt:-balance[m] }));
+  const creditors = MEMBERS.filter(m => balance[m] > 1 ).map(m => ({ name:m, amt: balance[m] }));
   const txns = [];
-
   let di = 0, ci = 0;
   while (di < debtors.length && ci < creditors.length) {
     const pay = Math.min(debtors[di].amt, creditors[ci].amt);
-    if (pay > 1) txns.push({ from: debtors[di].name, to: creditors[ci].name, amt: Math.round(pay) });
-    debtors[di].amt -= pay;
+    if (pay > 1) txns.push({ from:debtors[di].name, to:creditors[ci].name, amt:Math.round(pay) });
+    debtors[di].amt  -= pay;
     creditors[ci].amt -= pay;
-    if (debtors[di].amt < 1) di++;
+    if (debtors[di].amt  < 1) di++;
     if (creditors[ci].amt < 1) ci++;
   }
 
-  const settleEl  = document.getElementById('settle-list');
   const settleCard = document.getElementById('settle-card');
-
-  if (txns.length === 0) {
-    settleCard.style.display = 'none';
-    return;
-  }
+  if (txns.length === 0) { settleCard.style.display = 'none'; return; }
   settleCard.style.display = 'block';
-  settleEl.innerHTML = txns.map(t => `
-    <div class="settle-row">
+  document.getElementById('settle-list').innerHTML = txns.map(t =>
+    `<div class="settle-row">
       <span class="settle-from">${t.from}</span>
       <span class="settle-arrow">→ 還給</span>
       <span class="settle-to">${t.to}</span>
       <span class="settle-amt">${fmtAmt(t.amt)}</span>
-    </div>`).join('');
+    </div>`
+  ).join('');
 }
 
 function renderDays() {
@@ -463,28 +513,30 @@ function renderDays() {
     wrap.innerHTML = '<div class="empty-hint">還沒有記錄，在上方新增吧！</div>';
     return;
   }
+
   const byDay = {};
   records.forEach(r => {
+    if (!r?.day) return;
     if (!byDay[r.day]) byDay[r.day] = [];
     byDay[r.day].push(r);
   });
 
   const dayOrder = ['D1','D2','D3','D4','D5','D6'];
   wrap.innerHTML = dayOrder.filter(d => byDay[d]).map(d => {
-    const recs    = byDay[d];
-    const dayTotal = recs.reduce((s, r) => s + r.twd, 0);
+    const recs     = byDay[d];
+    const dayTotal = recs.reduce((s, r) => s + (r.twd || 0), 0);
     const rows = recs.map(r => {
-      const origStr = r.origCurrency === 'KRW' ? `₩${r.origAmt.toLocaleString()} → ` : '';
+      const origStr = r.origCurrency === 'KRW' ? `₩${(r.origAmt||0).toLocaleString()} → ` : '';
       return `
         <div class="record-item">
-          <div class="record-emoji">${r.emoji}</div>
+          <div class="record-emoji">${r.emoji || '💸'}</div>
           <div class="record-info">
-            <div class="record-name">${r.event}</div>
-            <div class="record-meta">${r.payer} 付 ｜ ${r.members.join('+')} 均分</div>
+            <div class="record-name">${r.event || '—'}</div>
+            <div class="record-meta">${r.payer} 付 ｜ ${(r.members||[]).join('+')} 均分</div>
           </div>
           <div class="record-right">
-            <div class="record-amt">${origStr}${fmtAmt(r.twd)}</div>
-            <div class="record-each">每人 ${fmtAmt(r.each)}</div>
+            <div class="record-amt">${origStr}${fmtAmt(r.twd||0)}</div>
+            <div class="record-each">每人 ${fmtAmt(r.each||0)}</div>
           </div>
           <button class="record-del" onclick="removeRecord(${r.id})">×</button>
         </div>`;
@@ -498,6 +550,22 @@ function renderDays() {
         ${rows}
       </div>`;
   }).join('');
+}
+
+// ─────────────────────────────────────────
+// 工具
+// ─────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function setLoading(on) {
+  document.getElementById('loading-bar').style.width = on ? '60%' : '0';
+  if (!on) setTimeout(() => { document.getElementById('loading-bar').style.width = '0'; }, 300);
 }
 
 function toggleDrawer() { document.body.classList.toggle('drawer-open'); }
