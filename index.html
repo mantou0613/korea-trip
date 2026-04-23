@@ -567,7 +567,7 @@ async function fetchCurrentRate() {
     const r = await fetch('https://open.er-api.com/v6/latest/KRW');
     const d = await r.json();
     if (d?.rates?.TWD) {
-      currentRate = parseFloat((d.rates.TWD * 1.01).toFixed(4));
+      currentRate = parseFloat(d.rates.TWD.toFixed(5));
       document.getElementById('current-rate-text').innerText = `(${currentRate})`;
       convertCurrency();
     }
