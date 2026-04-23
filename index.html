@@ -707,39 +707,21 @@ function addEntry() {
   const title = document.getElementById('inp-title').value;
   const content = document.getElementById('inp-content').value;
   const type = document.getElementById('inp-type').value;
-  const nav = document.getElementById('inp-nav').value.trim(); // 新增
+  const nav = document.getElementById('inp-nav').value.trim();
 
   if (!time || !title) return alert("請填寫時間和標題");
 
   const id = "custom-" + Date.now();
 
-  // 如果有填地址，就產生導航按鈕的 HTML
-  const navBtn = nav// 收集圖片
-const photos = [];
-document.querySelectorAll('#entry-photo-area img').forEach(img => photos.push(img.src));
-const photosHtml = photos.map(src =>
-  `<img src="${src}" style="width:100%;border-radius:8px;margin-top:8px;display:block;">`
-).join('');
+  const navBtn = nav
+    ? `<button class="nav-btn" data-nav="${nav.replace(/"/g,'&quot;')}" onclick="openNaverMaps('${nav.replace(/'/g,"\\'")}') " style="background:#03C75A;">📍 Naver Maps 導航</button>`
+    : '';
 
-document.getElementById(day + '-entries').insertAdjacentHTML('beforeend',
-  `<div class="entry new-entry">
-    <span class="drag-handle">⠿</span>
-    <div class="time editable-content" id="${id}-time">${time}</div>
-    <div class="content">
-      <div class="entry-card">
-        <div class="title editable-content" id="${id}-title">${title}</div>
-        <div class="box ${type} editable-content" id="${id}-box">${content}</div>
-        ${navBtn}
-        ${photosHtml}
-      </div>
-    </div>
-  </div>`);
-
-// 清空圖片預覽
-const area = document.getElementById('entry-photo-area');
-area.querySelectorAll('div:not(:last-child), div img').forEach(el => {
-  if (el.tagName === 'DIV' && el.querySelector('img')) el.remove();
-});
+  const photos = [];
+  document.querySelectorAll('#entry-photo-area img').forEach(img => photos.push(img.src));
+  const photosHtml = photos.map(src =>
+    `<img src="${src}" style="width:100%;border-radius:8px;margin-top:8px;display:block;">`
+  ).join('');
 
   document.getElementById(day + '-entries').insertAdjacentHTML('beforeend',
     `<div class="entry new-entry">
@@ -750,11 +732,14 @@ area.querySelectorAll('div:not(:last-child), div img').forEach(el => {
           <div class="title editable-content" id="${id}-title">${title}</div>
           <div class="box ${type} editable-content" id="${id}-box">${content}</div>
           ${navBtn}
+          ${photosHtml}
         </div>
       </div>
     </div>`);
 
-  // 清空地址欄
+  const area = document.getElementById('entry-photo-area');
+  area.querySelectorAll('div[style*="position:relative"]').forEach(el => el.remove());
+
   document.getElementById('inp-nav').value = '';
   closeSheet();
   alert("已新增，請記得按「儲存」同步到雲端");
