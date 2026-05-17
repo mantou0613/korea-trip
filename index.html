@@ -263,7 +263,7 @@ body.edit-active .drag-handle { display:inline; }
     <span>匯率</span>
     <input type="number" id="krwInput" placeholder="韓幣 ₩" oninput="convertCurrency()">
     <span id="twdResult">≈ 0 TWD</span>
-    <small id="current-rate-text" onclick="editRate()">(0.025)</small>
+    <small id="current-rate-text" onclick="editRate()">(0.0232)</small>
   </div>
 
   <main class="wrap" id="main-wrap">
@@ -554,8 +554,7 @@ const firebaseConfig = {
 };
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-
-let currentRate = 0.025, isEditMode = false, isSyncLocked = false;
+let currentRate = 0.0232, isEditMode = false, isSyncLocked = false;
 
 const tagStyles = {
   '退稅': {bg:'#ffe0cc', color:'#c95a1e'},
@@ -602,18 +601,6 @@ document.getElementById('entry-photo-input').addEventListener('change', function
   this.value = '';
 });
   
-async function fetchCurrentRate() {
-  try {
-    const r = await fetch('https://open.er-api.com/v6/latest/KRW');
-    const d = await r.json();
-    if (d?.rates?.TWD) {
-      currentRate = parseFloat(d.rates.TWD.toFixed(5));
-      document.getElementById('current-rate-text').innerText = `(${currentRate})`;
-      convertCurrency();
-    }
-  } catch(e) {}
-}
-fetchCurrentRate();
 
   function scrollToDay(id) {
   const element = document.getElementById(id);
