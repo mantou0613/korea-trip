@@ -12,6 +12,24 @@
     :root { --primary:#FFD60A; --dark:#1A1A18; --bg:#F0EEE9; --accent:#E6430A; }
     * { box-sizing:border-box; margin:0; padding:0; }
     body { font-family:'Noto Sans TC',sans-serif; background:var(--bg); padding-bottom:120px; -webkit-font-smoothing:antialiased; }
+
+/* 長按選單 */
+.ctx-menu { position:fixed; z-index:9999; background:var(--color-background-primary,#fff); border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.18); overflow:hidden; min-width:160px; }
+.ctx-btn { display:flex; align-items:center; gap:10px; width:100%; padding:13px 18px; border:none; background:transparent; font-size:14px; font-family:inherit; cursor:pointer; color:#1A1A18; }
+.ctx-btn.danger { color:#E6430A; }
+.ctx-btn:active { background:#f5f5f3; }
+
+/* 編輯模式下的刪除按鈕 */
+.entry-del-btn { display:none; position:absolute; bottom:8px; right:8px; background:#E6430A; border:none; color:#fff; border-radius:8px; padding:5px 10px; font-size:12px; cursor:pointer; font-family:inherit; }
+body.edit-active .entry-del-btn { display:block; }
+.entry-card { position:relative; }
+
+/* 編輯彈窗 */
+#edit-entry-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:400; display:none; align-items:flex-end; justify-content:center; }
+#edit-entry-overlay.active { display:flex; }
+#edit-entry-sheet { background:#fff; width:100%; max-width:580px; border-radius:22px 22px 0 0; padding:20px 18px 40px; max-height:85vh; overflow-y:auto; }
+
+    
     /* 跳轉按鈕列 */
 /* 修改後的跳轉按鈕列 */
 .jump-tabs {
@@ -593,6 +611,28 @@ fetchCurrentRate();
   }
 }
 
+<!-- 編輯行程彈窗 -->
+<div id="edit-entry-overlay" onclick="closeEditOnOverlay(event)">
+  <div id="edit-entry-sheet">
+    <p style="font-size:16px;font-weight:700;margin:0 0 16px;">✏️ 編輯行程</p>
+    <div class="sheet-row"><label>時間</label><input type="text" id="edit-time" placeholder="14:30"></div>
+    <div class="sheet-row"><label>標題</label><input type="text" id="edit-title" placeholder="例：弘大 Olive Young"></div>
+    <div class="sheet-row"><label>內容</label><textarea id="edit-content" style="resize:none;height:80px;" placeholder="內容說明"></textarea></div>
+    <div class="sheet-row"><label>📍 Naver Maps 地址（選填）</label><input type="text" id="edit-nav" placeholder="例：서울 성동구 성수동 탬버린즈"></div>
+    <div class="sheet-row"><label>類型</label>
+      <select id="edit-type">
+        <option value="buy">🟡 採購（黃）</option>
+        <option value="warn">🔴 注意（紅）</option>
+        <option value="tip">🟢 小提示（綠）</option>
+      </select>
+    </div>
+    <div class="sheet-btns">
+      <button class="btn-cancel" onclick="closeEditSheet()">取消</button>
+      <button class="btn-add" onclick="saveEditEntry()">儲存 ✓</button>
+    </div>
+  </div>
+</div>
+  
 function convertCurrency() {
   const krw = document.getElementById('krwInput').value;
   document.getElementById('twdResult').innerText = krw > 0 ? `≈ ${Math.round(krw * currentRate).toLocaleString()} TWD` : `≈ 0 TWD`;
@@ -910,6 +950,139 @@ document.getElementById('drawer').addEventListener('touchend', e => {
   if (e.changedTouches[0].clientX < 50) closeDrawer();
 }, { passive: true });
 
+
+  /* ────── 長按 + 刪除 + 編輯 ────── */
+let _editTarget = null, _ctxMenu = null, _pressTimer = null;
+
+function removeCtxMenu() { if (_ctxMenu) { _ctxMenu.remove(); _ctxMenu = null; } }
+
+function showCtxMenu(entry, x, y) {
+  removeCtxMenu();
+  const m = document.createElement('div');
+  m.className = 'ctx-menu';
+  m.style.cssText = `left:${Math.min(x, window.innerWidth-180)}px;top:${Math.min(y, window.innerHeight-120)}px;`;
+  m.innerHTML = `
+    <button class="ctx-btn" onclick="openEditSheet(window._ctxEntry)">✏️ 編輯行程</button>
+    <button class="ctx-btn danger" onclick="confirmDeleteEntry(window._ctxEntry)">🗑 刪除行程</button>`;
+  document.body.appendChild(m);
+  _ctxMenu = m;
+  window._ctxEntry = entry;
+  setTimeout(() => document.addEventListener('touchstart', removeCtxMenu, { once:true }), 100);
+}
+
+function confirmDeleteEntry(entry) {
+  removeCtxMenu();
+  const title = entry.querySelector('[id$="-title"]')?.innerText || '此行程';
+  if (confirm(`確定刪除「${title}」？`)) {
+    entry.remove();
+    alert('已刪除，請按「儲存」同步到雲端。');
+  }
+}
+
+function openEditSheet(entry) {
+  removeCtxMenu();
+  _editTarget = entry;
+  const timeEl = entry.querySelector('.time');
+  const titleEl = entry.querySelector('[id$="-title"]');
+  const boxEl = entry.querySelector('[id$="-box"]');
+  const navBtn = entry.querySelector('.nav-btn[data-nav]');
+  const boxClass = boxEl?.className.match(/\b(buy|warn|tip)\b/)?.[0] || 'buy';
+
+  document.getElementById('edit-time').value = timeEl?.innerText.trim() || '';
+  document.getElementById('edit-title').value = titleEl?.innerText.trim() || '';
+  document.getElementById('edit-content').value = boxEl?.innerText.trim() || '';
+  document.getElementById('edit-nav').value = navBtn?.dataset.nav || '';
+  document.getElementById('edit-type').value = boxClass;
+  document.getElementById('edit-entry-overlay').classList.add('active');
+}
+
+function saveEditEntry() {
+  if (!_editTarget) return;
+  const time = document.getElementById('edit-time').value.trim();
+  const title = document.getElementById('edit-title').value.trim();
+  const content = document.getElementById('edit-content').value.trim();
+  const nav = document.getElementById('edit-nav').value.trim();
+  const type = document.getElementById('edit-type').value;
+
+  if (!title) return alert('請輸入標題');
+
+  const timeEl = _editTarget.querySelector('.time');
+  const titleEl = _editTarget.querySelector('[id$="-title"]');
+  const boxEl = _editTarget.querySelector('[id$="-box"]');
+
+  if (timeEl) timeEl.innerText = time;
+  if (titleEl) titleEl.innerText = title;
+  if (boxEl) { boxEl.innerText = content; boxEl.className = `box ${type} editable-content`; }
+
+  // 更新或新增導航按鈕
+  const card = _editTarget.querySelector('.entry-card');
+  let oldNav = card.querySelector('.nav-btn[data-nav]');
+  if (nav) {
+    const safeNav = nav.replace(/'/g, "\\'");
+    if (oldNav) {
+      oldNav.dataset.nav = nav;
+      oldNav.onclick = () => openNaverMaps(nav);
+    } else {
+      card.insertAdjacentHTML('beforeend',
+        `<button class="nav-btn" data-nav="${nav.replace(/"/g,'&quot;')}" onclick="openNaverMaps('${safeNav}')" style="background:#03C75A;">📍 Naver Maps 導航</button>`);
+    }
+  } else if (oldNav) {
+    oldNav.remove();
+  }
+
+  closeEditSheet();
+  alert('已更新，請按「儲存」同步到雲端。');
+}
+
+function closeEditSheet() {
+  document.getElementById('edit-entry-overlay').classList.remove('active');
+  _editTarget = null;
+}
+function closeEditOnOverlay(e) { if (e.target.id === 'edit-entry-overlay') closeEditSheet(); }
+
+// 長按事件綁定（委派到 #app）
+document.getElementById('app').addEventListener('touchstart', e => {
+  const entry = e.target.closest('.itinerary .entry');
+  if (!entry) return;
+  _pressTimer = setTimeout(() => {
+    const t = e.touches[0];
+    showCtxMenu(entry, t.clientX, t.clientY);
+    if (navigator.vibrate) navigator.vibrate(30);
+  }, 550);
+}, { passive:true });
+
+document.getElementById('app').addEventListener('touchend', () => {
+  clearTimeout(_pressTimer);
+}, { passive:true });
+
+document.getElementById('app').addEventListener('touchmove', () => {
+  clearTimeout(_pressTimer);
+}, { passive:true });
+
+// 編輯模式下的刪除按鈕（動態注入）
+const _origToggle = toggleEditMode;
+// 在每個 entry-card 加入刪除按鈕
+function injectDelBtns() {
+  document.querySelectorAll('.entry-card').forEach(card => {
+    if (!card.querySelector('.entry-del-btn')) {
+      const btn = document.createElement('button');
+      btn.className = 'entry-del-btn';
+      btn.textContent = '🗑 刪除';
+      btn.onclick = () => {
+        const entry = btn.closest('.entry');
+        const title = entry.querySelector('[id$="-title"]')?.innerText || '此行程';
+        if (confirm(`確定刪除「${title}」？`)) { entry.remove(); }
+      };
+      card.appendChild(btn);
+    }
+  });
+}
+// 覆寫 toggleEditMode 在進入編輯時注入按鈕
+const _origToggleEditMode = toggleEditMode;
+window.toggleEditMode = function() {
+  _origToggleEditMode();
+  if (isEditMode) injectDelBtns();
+};
 </script>
 </body>
 </html>
