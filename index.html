@@ -427,6 +427,27 @@ body.edit-active .drag-handle { display:inline; }
   </main>
 </div>
 
+<div id="edit-entry-overlay" onclick="closeEditOnOverlay(event)">
+  <div id="edit-entry-sheet">
+    <p style="font-size:16px;font-weight:700;margin:0 0 16px;">✏️ 編輯行程</p>
+    <div class="sheet-row"><label>時間</label><input type="text" id="edit-time" placeholder="14:30"></div>
+    <div class="sheet-row"><label>標題</label><input type="text" id="edit-title" placeholder="例：弘大 Olive Young"></div>
+    <div class="sheet-row"><label>內容</label><textarea id="edit-content" style="resize:none;height:80px;" placeholder="內容說明"></textarea></div>
+    <div class="sheet-row"><label>📍 Naver Maps 地址（選填）</label><input type="text" id="edit-nav" placeholder="例：서울 성동구 성수동 탬버린즈"></div>
+    <div class="sheet-row"><label>類型</label>
+      <select id="edit-type">
+        <option value="buy">🟡 採購（黃）</option>
+        <option value="warn">🔴 注意（紅）</option>
+        <option value="tip">🟢 小提示（綠）</option>
+      </select>
+    </div>
+    <div class="sheet-btns">
+      <button class="btn-cancel" onclick="closeEditSheet()">取消</button>
+      <button class="btn-add" onclick="saveEditEntry()">儲存 ✓</button>
+    </div>
+  </div>
+</div>
+  
 <div id="admin-controls">
   <button id="edit-btn" onclick="toggleEditMode()">✏️ 編輯模式</button>
   <button id="save-btn" onclick="saveToFirebase()">💾 儲存變更</button>
@@ -611,27 +632,7 @@ fetchCurrentRate();
   }
 }
 
-<!-- 編輯行程彈窗 -->
-<div id="edit-entry-overlay" onclick="closeEditOnOverlay(event)">
-  <div id="edit-entry-sheet">
-    <p style="font-size:16px;font-weight:700;margin:0 0 16px;">✏️ 編輯行程</p>
-    <div class="sheet-row"><label>時間</label><input type="text" id="edit-time" placeholder="14:30"></div>
-    <div class="sheet-row"><label>標題</label><input type="text" id="edit-title" placeholder="例：弘大 Olive Young"></div>
-    <div class="sheet-row"><label>內容</label><textarea id="edit-content" style="resize:none;height:80px;" placeholder="內容說明"></textarea></div>
-    <div class="sheet-row"><label>📍 Naver Maps 地址（選填）</label><input type="text" id="edit-nav" placeholder="例：서울 성동구 성수동 탬버린즈"></div>
-    <div class="sheet-row"><label>類型</label>
-      <select id="edit-type">
-        <option value="buy">🟡 採購（黃）</option>
-        <option value="warn">🔴 注意（紅）</option>
-        <option value="tip">🟢 小提示（綠）</option>
-      </select>
-    </div>
-    <div class="sheet-btns">
-      <button class="btn-cancel" onclick="closeEditSheet()">取消</button>
-      <button class="btn-add" onclick="saveEditEntry()">儲存 ✓</button>
-    </div>
-  </div>
-</div>
+
   
 function convertCurrency() {
   const krw = document.getElementById('krwInput').value;
