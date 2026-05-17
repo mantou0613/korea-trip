@@ -622,8 +622,9 @@ document.getElementById('entry-photo-input').addEventListener('change', function
 
   
 function convertCurrency() {
-  const krw = document.getElementById('krwInput').value;
-  document.getElementById('twdResult').innerText = krw > 0 ? `≈ ${Math.round(krw * currentRate).toLocaleString()} TWD` : `≈ 0 TWD`;
+  const krw = parseFloat(document.getElementById('krwInput').value) || 0;
+  document.getElementById('twdResult').innerText = 
+    krw > 0 ? `≈ ${Math.round(krw * currentRate).toLocaleString()} TWD` : `≈ 0 TWD`;
 }
 function editRate() {
   const val = prompt("修改匯率:", currentRate);
