@@ -263,7 +263,7 @@ body.edit-active .drag-handle { display:inline; }
     <span>匯率</span>
     <input type="number" id="krwInput" placeholder="韓幣 ₩" oninput="convertCurrency()">
     <span id="twdResult">≈ 0 TWD</span>
-    <small id="current-rate-text" onclick="editRate()">(0.0232)</small>
+    <small id="current-rate-text" onclick="editRate()">(0.0211)</small>
   </div>
 
   <main class="wrap" id="main-wrap">
@@ -554,7 +554,7 @@ const firebaseConfig = {
 };
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-let currentRate = 0.0232, isEditMode = false, isSyncLocked = false;
+let currentRate = 0.0211, isEditMode = false, isSyncLocked = false;
 
 const tagStyles = {
   '退稅': {bg:'#ffe0cc', color:'#c95a1e'},
