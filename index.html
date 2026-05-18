@@ -77,7 +77,6 @@ body.drawer-open .drawer { transform:translateX(0); }
 
 html { scroll-behavior: smooth; }
 
-/* ── 匯率工具列 ── */
 .currency-tool {
   background:#fff;
   border-bottom:1px solid #E8E6E0;
@@ -249,7 +248,6 @@ html { scroll-behavior: smooth; }
     <span style="font-size:16px;font-weight:900;">🗓️ 行程秘笈</span>
   </div>
 
-  <!-- ── 匯率換算工具列 ── -->
   <div class="currency-tool">
     <span>匯率</span>
     <input type="number" id="krwInput" placeholder="韓幣 ₩" oninput="convertCurrency()">
@@ -267,142 +265,40 @@ html { scroll-behavior: smooth; }
       <button class="jump-btn" onclick="scrollToDay('day6-card')">6/1  (D6)</button>
     </div>
 
+    <!-- ★ 行程卡片：僅保留骨架，entry 全部由 JS 動態渲染 -->
     <section class="card" id="day1-card">
       <div class="day-header"><span class="badge">Day 1</span><span class="editable-content" id="d1-header" contenteditable="false">5/27 週三 ｜ 抵達 → 明洞 Look Home Check-in</span></div>
-      <div class="itinerary" id="day1-entries">
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">FIRST</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e1-title" contenteditable="false">入境相關事項</div>
-          <div class="box tip editable-content" id="e1-box" contenteditable="false">💰銀行櫃檯換現金<br>(美金100➡️147,188 KRW) (台幣3000➡️139,897 KRW)</div>
-        </div></div></div>
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">11:30</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e2-title" contenteditable="false">抵達仁川機場 → 入市區</div>
-          <div class="box tip editable-content" id="e2-box" contenteditable="false">💫機場巴士 搭乘6001號➡️明洞站4號出口➡️穿過馬路➡️看到3號出口<br><br>💫機場快線(AREX) 首爾站➡️轉乘4號線➡️2站➡️明洞站➡️3號出口<br>建議搭機場巴士直達明洞，省去地鐵搬行李</div>
-        </div></div></div>
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">13:00</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e3-title" contenteditable="false">入住 Look Home</div>
-          <div class="box warn editable-content" id="e3-box" contenteditable="false">地址：서울시 중구 퇴계로20길 32-10 루크홈 게스트하우스<br>電話：+82-10-7117-0267<br>入住時間：13:00 | 退房時間：11:00</div>
-          <button class="nav-btn" onclick="openNaverMaps('서울시 중구 퇴계로20길 32-10 루크홈 게스트하우스')" style="background:#03C75A;">📍 Naver Maps 導航</button>
-        </div></div></div>
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">CASH</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e4-title" contenteditable="false">MONEYPLANET 換錢(出示畫面)</div>
-          <div class="box tip editable-content" id="e4-box" contenteditable="false">🏢 明洞站 5號出口 (CU 對面)<br>每天 9:00 - 20:30</div>
-          <button class="nav-btn" onclick="openNaverMaps('서울 중구 명동 MONEYPLANET')" style="background:#03C75A;">📍 Naver Maps 導航</button>
-        </div></div></div>
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">15:00</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e5-title" contenteditable="false">採買行程</div>
-          <div class="box buy editable-content" id="e5-box" contenteditable="false">1. Olive Young 旗艦店：全區掃一遍，記下特價標籤<br>2. COSRX 低分子玻尿酸精華、Advanced Snail 蝸牛精華<br>3. Beauty of Joseon 防曬乳（Relief Sun SPF50+）<br>4. Some By Mi AHA BHA PHA 30 Days 奇蹟面霜<br>5. Dr. Jart+ Cicapair 虎皮蘭修復霜</div>
-          <button class="nav-btn" onclick="openNaverMaps('서울 중구 명동 올리브영 명동타운점')" style="background:#03C75A;">📍 Naver Maps 導航</button>
-        </div></div></div>
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">17:30</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e6-title" contenteditable="false">明洞地下商街飾品掃貨</div>
-          <div class="box buy editable-content" id="e6-box" contenteditable="false">1. 韓系耳環：比地面店便宜 20-30%<br>2. 蝴蝶結髮夾、珍珠髮圈、金屬戒指多件組</div>
-        </div></div></div>
-      </div>
+      <div class="itinerary" id="day1-entries"></div>
     </section>
 
     <section class="card" id="day2-card">
       <div class="day-header"><span class="badge">Day 2</span><span class="editable-content" id="d2-header" contenteditable="false">5/28 週四 ｜ 梨大 + 弘大 飾品主攻</span></div>
-      <div class="itinerary" id="day2-entries">
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">10:00</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e7-title" contenteditable="false">梨大飾品批發街 (重點採購)</div>
-          <div class="box buy editable-content" id="e7-box" contenteditable="false">• 耳環批發、項鍊、戒指 (部分店家買 5 送 1)<br>• 拿樣品圖直接詢問</div>
-          <div class="box warn editable-content" id="e7-warn" contenteditable="false">現金議價更有彈性！部分 5 件以上才給批發價。</div>
-        </div></div></div>
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">14:00</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e8-title" contenteditable="false">弘大 Olive Young + 小眾彩妝</div>
-          <div class="box buy editable-content" id="e8-box" contenteditable="false">• Amuse 唇釉、SIXBLEND 眼影、Rom&nd 霧感唇釉</div>
-        </div></div></div>
-      </div>
+      <div class="itinerary" id="day2-entries"></div>
     </section>
 
     <section class="card" id="day3-card">
       <div class="day-header"><span class="badge">Day 3</span><span class="editable-content" id="d3-header" contenteditable="false">5/29 週五 ｜ 東大門批發 + 藥局限定</span></div>
-      <div class="itinerary" id="day3-entries">
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">10:00</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e9-title" contenteditable="false">東大門 APM Place / Doota</div>
-          <div class="box buy editable-content" id="e9-box" contenteditable="false">• 帽子、皮帶、包包批量議價<br>• 現金採購議價效率更高</div>
-          <div class="box warn editable-content" id="e9-warn" contenteditable="false">建議帶大型購物袋或拉桿行李。</div>
-          <button class="nav-btn" onclick="openNaverMaps('서울 중구 을지로 6가 현대시티아울렛 동대문점')" style="background:#03C75A;">📍 Naver Maps 導航</button>
-        </div></div></div>
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">18:00</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e10-title" contenteditable="false">💊 明洞 / 乙支路藥局 (代購強項)</div>
-          <div class="box buy editable-content" id="e10-box" contenteditable="false">• 膠原蛋白粉、維他命 C 安瓶 (藥局版)<br>• 牛樟芝、各種眼藥水</div>
-        </div></div></div>
-      </div>
+      <div class="itinerary" id="day3-entries"></div>
     </section>
 
     <section class="card" id="day4-card">
       <div class="day-header"><span class="badge">Day 4</span><span class="editable-content" id="d4-header" contenteditable="false">5/30 週六 ｜ 聖水洞香水全攻略 🎂</span></div>
-      <div class="itinerary" id="day4-entries">
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">10:00</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e11-title" contenteditable="false">Tamburins 旗艦店</div>
-          <div class="box buy editable-content" id="e11-box" contenteditable="false">• PUMKINI 蛋形香水、護手霜 (Fey9/Vein)</div>
-          <div class="box warn editable-content" id="e11-warn" contenteditable="false">香水 100ml 以上一律放託運！</div>
-          <button class="nav-btn" onclick="openNaverMaps('서울 성동구 성수동 탬버린즈 성수점')" style="background:#03C75A;">📍 Naver Maps 導航</button>
-        </div></div></div>
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">11:45</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e12-title" contenteditable="false">Hetras — GD 同款</div>
-          <div class="box buy editable-content" id="e12-box" contenteditable="false">• No.29 Daisy 雛菊香水 (代購爆款)</div>
-        </div></div></div>
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">13:30</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e13-title" contenteditable="false">Amore Seongsu 旗艦店</div>
-          <div class="box buy editable-content" id="e13-box" contenteditable="false">• 蘭芝睡眠唇膜、雪花秀潤燥精華、HERA</div>
-        </div></div></div>
-      </div>
+      <div class="itinerary" id="day4-entries"></div>
     </section>
 
     <section class="card" id="day5-card">
       <div class="day-header"><span class="badge">Day 5</span><span class="editable-content" id="d5-header" contenteditable="false">5/31 週日 ｜ 退稅整理 + 裝箱返台</span></div>
-      <div class="itinerary" id="day5-entries">
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">13:00</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e14-title" contenteditable="false">退稅辦理 (Tax Refund)</div>
-          <div class="box tip editable-content" id="e14-box" contenteditable="false">滿 30,000 KRW 即可申請，明洞主街就有退稅機。</div>
-        </div></div></div>
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">機場</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e15-title" contenteditable="false">返台預備</div>
-          <div class="box warn editable-content" id="e15-box" contenteditable="false">行李重建議搭 6001 巴士，飯店步行至明洞站即可上車。</div>
-        </div></div></div>
-      </div>
+      <div class="itinerary" id="day5-entries"></div>
     </section>
 
     <section class="card" id="day6-card">
       <div class="day-header"><span class="badge">Day 6</span><span class="editable-content" id="d6-header" contenteditable="false">6/1 週一 ｜ 最後掃貨 + 返台</span></div>
-      <div class="itinerary" id="day6-entries">
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">09:00</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e16-title" contenteditable="false">退房 Look Home (11:00 前)</div>
-          <div class="box tip editable-content" id="e16-box" contenteditable="false">行李可寄放到下午，輕鬆最後掃貨。</div>
-        </div></div></div>
-        <div class="entry"><span class="drag-handle">⠿</span><div class="time">機場</div><div class="content"><div class="entry-card">
-          <div class="title editable-content" id="e17-title" contenteditable="false">仁川機場 → 返台</div>
-          <div class="box warn editable-content" id="e17-box" contenteditable="false">機場退稅需提前 3 小時到。香水、液體類確認放託運。</div>
-        </div></div></div>
-      </div>
+      <div class="itinerary" id="day6-entries"></div>
     </section>
 
     <section class="card prep-card">
       <h3>💡 代購重點提醒</h3>
-      <div class="prep-list" id="prep-list">
-        <div class="prep-item">
-          <span class="prep-tag" style="background:#ffe0cc;color:#c95a1e;" onclick="cyclePrepTag(this)">退稅</span>
-          <span class="prep-text" contenteditable="false">收據每天整理，市區退比機場方便</span>
-          <button class="prep-del" onclick="delPrepItem(this)">×</button>
-        </div>
-        <div class="prep-item">
-          <span class="prep-tag" style="background:#ffe0cc;color:#c95a1e;" onclick="cyclePrepTag(this)">現金</span>
-          <span class="prep-text" contenteditable="false">議價更有力，批發場合更明顯</span>
-          <button class="prep-del" onclick="delPrepItem(this)">×</button>
-        </div>
-        <div class="prep-item">
-          <span class="prep-tag" style="background:#ffd6d6;color:#c0392b;" onclick="cyclePrepTag(this)">注意</span>
-          <span class="prep-text" contenteditable="false">香水 100ml 以上一律放托運行李</span>
-          <button class="prep-del" onclick="delPrepItem(this)">×</button>
-        </div>
-        <div class="prep-item">
-          <span class="prep-tag" style="background:#d6f0d6;color:#27ae60;" onclick="cyclePrepTag(this)">APP</span>
-          <span class="prep-text" contenteditable="false">Olive Young 下載，領取當日折扣券</span>
-          <button class="prep-del" onclick="delPrepItem(this)">×</button>
-        </div>
-      </div>
+      <div class="prep-list" id="prep-list"></div>
       <button class="prep-add-btn" onclick="openSheet('prep')">＋ 新增提醒</button>
     </section>
 
@@ -518,6 +414,58 @@ html { scroll-behavior: smooth; }
 
 <script>
 /* ══════════════════════════════════════════
+   預設資料（首次無 Firebase 資料時顯示）
+══════════════════════════════════════════ */
+const DEFAULT_DATA = {
+  rate: 0.0211,
+  headers: {
+    'd1-header': '5/27 週三 ｜ 抵達 → 明洞 Look Home Check-in',
+    'd2-header': '5/28 週四 ｜ 梨大 + 弘大 飾品主攻',
+    'd3-header': '5/29 週五 ｜ 東大門批發 + 藥局限定',
+    'd4-header': '5/30 週六 ｜ 聖水洞香水全攻略 🎂',
+    'd5-header': '5/31 週日 ｜ 退稅整理 + 裝箱返台',
+    'd6-header': '6/1 週一 ｜ 最後掃貨 + 返台'
+  },
+  days: {
+    day1: [
+      { id:'e1', time:'FIRST', title:'入境相關事項', content:'💰銀行櫃檯換現金\n(美金100➡️147,188 KRW) (台幣3000➡️139,897 KRW)', type:'tip', nav:'' },
+      { id:'e2', time:'11:30', title:'抵達仁川機場 → 入市區', content:'💫機場巴士 搭乘6001號➡️明洞站4號出口➡️穿過馬路➡️看到3號出口\n\n💫機場快線(AREX) 首爾站➡️轉乘4號線➡️2站➡️明洞站➡️3號出口\n建議搭機場巴士直達明洞，省去地鐵搬行李', type:'tip', nav:'' },
+      { id:'e3', time:'13:00', title:'入住 Look Home', content:'地址：서울시 중구 퇴계로20길 32-10 루크홈 게스트하우스\n電話：+82-10-7117-0267\n入住時間：13:00 | 退房時間：11:00', type:'warn', nav:'서울시 중구 퇴계로20길 32-10 루크홈 게스트하우스' },
+      { id:'e4', time:'CASH', title:'MONEYPLANET 換錢(出示畫面)', content:'🏢 明洞站 5號出口 (CU 對面)\n每天 9:00 - 20:30', type:'tip', nav:'서울 중구 명동 MONEYPLANET' },
+      { id:'e5', time:'15:00', title:'採買行程', content:'1. Olive Young 旗艦店：全區掃一遍，記下特價標籤\n2. COSRX 低分子玻尿酸精華、Advanced Snail 蝸牛精華\n3. Beauty of Joseon 防曬乳（Relief Sun SPF50+）\n4. Some By Mi AHA BHA PHA 30 Days 奇蹟面霜\n5. Dr. Jart+ Cicapair 虎皮蘭修復霜', type:'buy', nav:'서울 중구 명동 올리브영 명동타운점' },
+      { id:'e6', time:'17:30', title:'明洞地下商街飾品掃貨', content:'1. 韓系耳環：比地面店便宜 20-30%\n2. 蝴蝶結髮夾、珍珠髮圈、金屬戒指多件組', type:'buy', nav:'' }
+    ],
+    day2: [
+      { id:'e7', time:'10:00', title:'梨大飾品批發街 (重點採購)', content:'• 耳環批發、項鍊、戒指 (部分店家買 5 送 1)\n• 拿樣品圖直接詢問\n⚠️ 現金議價更有彈性！部分 5 件以上才給批發價。', type:'buy', nav:'' },
+      { id:'e8', time:'14:00', title:'弘大 Olive Young + 小眾彩妝', content:'• Amuse 唇釉、SIXBLEND 眼影、Rom&nd 霧感唇釉', type:'buy', nav:'' }
+    ],
+    day3: [
+      { id:'e9', time:'10:00', title:'東大門 APM Place / Doota', content:'• 帽子、皮帶、包包批量議價\n• 現金採購議價效率更高\n⚠️ 建議帶大型購物袋或拉桿行李。', type:'buy', nav:'서울 중구 을지로 6가 현대시티아울렛 동대문점' },
+      { id:'e10', time:'18:00', title:'💊 明洞 / 乙支路藥局 (代購強項)', content:'• 膠原蛋白粉、維他命 C 安瓶 (藥局版)\n• 牛樟芝、各種眼藥水', type:'buy', nav:'' }
+    ],
+    day4: [
+      { id:'e11', time:'10:00', title:'Tamburins 旗艦店', content:'• PUMKINI 蛋形香水、護手霜 (Fey9/Vein)\n⚠️ 香水 100ml 以上一律放託運！', type:'buy', nav:'서울 성동구 성수동 탬버린즈 성수점' },
+      { id:'e12', time:'11:45', title:'Hetras — GD 同款', content:'• No.29 Daisy 雛菊香水 (代購爆款)', type:'buy', nav:'' },
+      { id:'e13', time:'13:30', title:'Amore Seongsu 旗艦店', content:'• 蘭芝睡眠唇膜、雪花秀潤燥精華、HERA', type:'buy', nav:'' }
+    ],
+    day5: [
+      { id:'e14', time:'13:00', title:'退稅辦理 (Tax Refund)', content:'滿 30,000 KRW 即可申請，明洞主街就有退稅機。', type:'tip', nav:'' },
+      { id:'e15', time:'機場', title:'返台預備', content:'行李重建議搭 6001 巴士，飯店步行至明洞站即可上車。', type:'warn', nav:'' }
+    ],
+    day6: [
+      { id:'e16', time:'09:00', title:'退房 Look Home (11:00 前)', content:'行李可寄放到下午，輕鬆最後掃貨。', type:'tip', nav:'' },
+      { id:'e17', time:'機場', title:'仁川機場 → 返台', content:'機場退稅需提前 3 小時到。香水、液體類確認放託運。', type:'warn', nav:'' }
+    ]
+  },
+  prepList: [
+    { tag:'退稅', text:'收據每天整理，市區退比機場方便', bg:'#ffe0cc', color:'#c95a1e' },
+    { tag:'現金', text:'議價更有力，批發場合更明顯', bg:'#ffe0cc', color:'#c95a1e' },
+    { tag:'注意', text:'香水 100ml 以上一律放托運行李', bg:'#ffd6d6', color:'#c0392b' },
+    { tag:'APP',  text:'Olive Young 下載，領取當日折扣券', bg:'#d6f0d6', color:'#27ae60' }
+  ]
+};
+
+/* ══════════════════════════════════════════
    Naver Maps
 ══════════════════════════════════════════ */
 function openNaverMaps(addr) {
@@ -545,41 +493,95 @@ const db = firebase.database();
 /* ══════════════════════════════════════════
    全域狀態
 ══════════════════════════════════════════ */
-// ★ 修正：確保 currentRate 永遠是 number，預設 0.0211（韓幣→台幣）
 let currentRate = 0.0211;
 let isEditMode = false;
 let isSyncLocked = false;
 
 /* ══════════════════════════════════════════
-   ★ 匯率換算（修正版）
-   公式：TWD = KRW × currentRate
-   例：10,000 KRW × 0.0211 ≈ 211 TWD
+   ★ 核心：將一筆 entry 資料渲染成 DOM 字串
+══════════════════════════════════════════ */
+function buildEntryHTML(e) {
+  const safeNav = (e.nav || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const navBtn = e.nav
+    ? '<button class="nav-btn" data-nav="' + safeNav + '" onclick="openNaverMaps(\'' + safeNav + '\')" style="background:#03C75A;">📍 Naver Maps 導航</button>'
+    : '';
+  const photosHtml = (e.photos || []).map(src =>
+    '<img src="' + src + '" style="width:100%;border-radius:8px;margin-top:8px;display:block;">'
+  ).join('');
+  return '<div class="entry" data-entry-id="' + e.id + '">'
+    + '<span class="drag-handle">⠿</span>'
+    + '<div class="time editable-content" id="' + e.id + '-time">' + (e.time || '') + '</div>'
+    + '<div class="content"><div class="entry-card">'
+    + '<div class="title editable-content" id="' + e.id + '-title">' + (e.title || '') + '</div>'
+    + '<div class="box ' + (e.type || 'buy') + ' editable-content" id="' + e.id + '-box">' + (e.content || '') + '</div>'
+    + navBtn + photosHtml
+    + '</div></div></div>';
+}
+
+/* ══════════════════════════════════════════
+   ★ 核心：從 DOM 收集所有 entry 資料（用於儲存）
+══════════════════════════════════════════ */
+function collectDaysData() {
+  const days = {};
+  ['day1','day2','day3','day4','day5','day6'].forEach(dayId => {
+    const container = document.getElementById(dayId + '-entries');
+    if (!container) return;
+    days[dayId] = [...container.querySelectorAll('.entry')].map(entryEl => {
+      const id = entryEl.dataset.entryId || ('e-' + Date.now() + Math.random());
+      const timeEl  = entryEl.querySelector('.time');
+      const titleEl = entryEl.querySelector('[id$="-title"]');
+      const boxEl   = entryEl.querySelector('[id$="-box"]');
+      const navBtn  = entryEl.querySelector('.nav-btn[data-nav]');
+      const photos  = [...entryEl.querySelectorAll('img[src^="data:"]')].map(img => img.src);
+      const boxClass = boxEl && (boxEl.className.match(/\b(buy|warn|tip)\b/) || ['','buy']);
+      return {
+        id,
+        time:    timeEl  ? timeEl.innerText.trim()  : '',
+        title:   titleEl ? titleEl.innerText.trim() : '',
+        content: boxEl   ? boxEl.innerText.trim()   : '',
+        type:    boxClass ? boxClass[0] : 'buy',
+        nav:     navBtn  ? navBtn.dataset.nav        : '',
+        photos
+      };
+    });
+  });
+  return days;
+}
+
+/* ══════════════════════════════════════════
+   ★ 核心：渲染整個行程到 DOM
+══════════════════════════════════════════ */
+function renderAllDays(daysData) {
+  ['day1','day2','day3','day4','day5','day6'].forEach(dayId => {
+    const container = document.getElementById(dayId + '-entries');
+    if (!container) return;
+    const entries = daysData[dayId] || [];
+    container.innerHTML = entries.map(buildEntryHTML).join('');
+  });
+  if (isEditMode) injectDelBtns();
+}
+
+/* ══════════════════════════════════════════
+   匯率換算
 ══════════════════════════════════════════ */
 function convertCurrency() {
   const krwInput = document.getElementById('krwInput').value;
-  // 確保輸入值轉為數字，空白或非數字時為 0
   const krw = parseFloat(krwInput);
   if (!krwInput || isNaN(krw) || krw <= 0) {
     document.getElementById('twdResult').innerText = '≈ 0 TWD';
     return;
   }
-  // 確保 currentRate 是數字再計算
-  const rate = parseFloat(currentRate);
-  const twd = Math.round(krw * rate);
+  const twd = Math.round(krw * parseFloat(currentRate));
   document.getElementById('twdResult').innerText = '≈ ' + twd.toLocaleString() + ' TWD';
 }
 
 function editRate() {
   const val = prompt('修改匯率（韓幣→台幣，例如 0.0211）：', currentRate);
-  if (val === null || val.trim() === '') return; // 按取消或空值不更新
+  if (val === null || val.trim() === '') return;
   const parsed = parseFloat(val);
-  if (isNaN(parsed) || parsed <= 0) {
-    alert('請輸入正確的匯率數字，例如 0.0211');
-    return;
-  }
+  if (isNaN(parsed) || parsed <= 0) { alert('請輸入正確的匯率數字，例如 0.0211'); return; }
   currentRate = parsed;
   document.getElementById('current-rate-text').innerText = '(' + currentRate + ')';
-  // 立即重新換算顯示
   convertCurrency();
 }
 
@@ -621,14 +623,12 @@ document.getElementById('entry-photo-input').addEventListener('change', function
 });
 
 /* ══════════════════════════════════════════
-   捲動到指定天
+   捲動
 ══════════════════════════════════════════ */
 function scrollToDay(id) {
   const el = document.getElementById(id);
   if (!el) return;
-  const offset = 100;
-  const top = el.getBoundingClientRect().top + window.pageYOffset - offset;
-  window.scrollTo({ top: top, behavior: 'smooth' });
+  window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - 100, behavior: 'smooth' });
 }
 
 /* ══════════════════════════════════════════
@@ -654,56 +654,21 @@ function toggleEditMode() {
 }
 
 /* ══════════════════════════════════════════
-   儲存到 Firebase
+   ★ 儲存到 Firebase（完整序列化）
 ══════════════════════════════════════════ */
 function saveToFirebase() {
-  const data = {
-    content: {}, inputs: {}, checks: {},
-    // ★ 修正：currentRate 存為 number
-    rate: parseFloat(currentRate),
-    buyList: [], prepList: [], navBtns: {}, entryOrder: {}
-  };
-
-  document.querySelectorAll('.itinerary').forEach(container => {
-    const dayId = container.id;
-    data.entryOrder[dayId] = [...container.querySelectorAll('.entry')].map(el => {
-      const title = el.querySelector('[id$="-title"]');
-      return title ? title.id : null;
-    }).filter(Boolean);
+  // 收集 headers
+  const headers = {};
+  document.querySelectorAll('.editable-content[id^="d"]').forEach(el => {
+    if (el.id) headers[el.id] = el.innerText;
   });
 
-  document.querySelectorAll('.itinerary .nav-btn[data-nav]').forEach(btn => {
-    const entry = btn.closest('.entry');
-    const titleEl = entry && entry.querySelector('[id$="-title"]');
-    if (titleEl && titleEl.id) data.navBtns[titleEl.id] = btn.dataset.nav;
-  });
-
-  document.querySelectorAll('.editable-content').forEach(el => {
-    if (el.id) data.content[el.id] = el.innerHTML;
-  });
-  document.querySelectorAll('.field').forEach(el => {
-    if (el.id) data.inputs[el.id] = el.value;
-  });
-  document.querySelectorAll('input[type="checkbox"]').forEach(el => {
-    if (el.id) data.checks[el.id] = el.checked;
-  });
-
-  document.querySelectorAll('#buy-list-oy label').forEach(label => {
-    const span = label.querySelector('span');
-    const fields = label.querySelectorAll('.field');
-    const chk = label.querySelector('input[type=checkbox]');
-    if (span) data.buyList.push({
-      name: span.textContent,
-      place: fields[0] ? fields[0].value : '',
-      price: fields[1] ? fields[1].value : '',
-      checked: chk ? chk.checked : false
-    });
-  });
-
+  // 收集 prepList
+  const prepList = [];
   document.querySelectorAll('#prep-list .prep-item').forEach(item => {
     const tag = item.querySelector('.prep-tag');
     const text = item.querySelector('.prep-text');
-    if (tag && text) data.prepList.push({
+    if (tag && text) prepList.push({
       tag: tag.textContent,
       text: text.textContent,
       bg: tag.style.background,
@@ -711,8 +676,15 @@ function saveToFirebase() {
     });
   });
 
-  db.ref('ybo_itinerary/data').set(data).then(() => {
-    alert('✅ 儲存成功！');
+  const data = {
+    rate: parseFloat(currentRate),
+    headers,
+    days: collectDaysData(),
+    prepList
+  };
+
+  db.ref('ybo_itinerary/v2').set(data).then(() => {
+    alert('✅ 儲存成功！所有裝置都會同步。');
     toggleEditMode();
   }).catch(err => {
     alert('❌ 儲存失敗：' + err.message);
@@ -720,97 +692,41 @@ function saveToFirebase() {
 }
 
 /* ══════════════════════════════════════════
-   Firebase 讀取（頁面載入）
+   ★ Firebase 讀取（動態渲染）
 ══════════════════════════════════════════ */
 window.onload = function() {
-  db.ref('ybo_itinerary/data').on('value', snap => {
+  db.ref('ybo_itinerary/v2').on('value', snap => {
     if (isSyncLocked) return;
     const data = snap.val();
-    if (!data) return;
 
-    // 恢復排序
-    if (data.entryOrder) {
-      Object.keys(data.entryOrder).forEach(containerId => {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        data.entryOrder[containerId].forEach(titleId => {
-          const titleEl = document.getElementById(titleId);
-          if (titleEl) {
-            const entry = titleEl.closest('.entry');
-            if (entry) container.appendChild(entry);
-          }
-        });
-      });
-    }
+    // 無資料時用預設值
+    const source = data || DEFAULT_DATA;
 
-    // 恢復導航按鈕
-    if (data.navBtns) {
-      Object.keys(data.navBtns).forEach(titleId => {
-        const titleEl = document.getElementById(titleId);
-        const card = titleEl && titleEl.closest('.entry-card');
-        if (card && !card.querySelector('[data-nav]')) {
-          const addr = data.navBtns[titleId];
-          const safeAddr = addr.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-          card.insertAdjacentHTML('beforeend',
-            '<button class="nav-btn" data-nav="' + safeAddr + '" onclick="openNaverMaps(\'' + safeAddr + '\')" style="background:#03C75A;">📍 Naver Maps 導航</button>');
-        }
-      });
+    // 渲染 headers
+    const headers = source.headers || DEFAULT_DATA.headers;
+    Object.keys(headers).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = headers[id];
+    });
+
+    // ★ 渲染行程（全部從資料重建 DOM）
+    renderAllDays(source.days || DEFAULT_DATA.days);
+
+    // 匯率
+    const rate = parseFloat(source.rate);
+    if (!isNaN(rate) && rate > 0) {
+      currentRate = rate;
+      document.getElementById('current-rate-text').innerText = '(' + currentRate + ')';
+      convertCurrency();
     }
 
-    // 恢復文字內容
-    if (data.content) {
-      Object.keys(data.content).forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = data.content[id];
-      });
-    }
-
-    if (data.inputs) {
-      Object.keys(data.inputs).forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = data.inputs[id];
-      });
-    }
-    if (data.checks) {
-      Object.keys(data.checks).forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.checked = data.checks[id];
-      });
-    }
-
-    // ★ 修正：確保從 Firebase 讀回的 rate 轉為 number
-    if (data.rate !== undefined && data.rate !== null) {
-      const parsedRate = parseFloat(data.rate);
-      if (!isNaN(parsedRate) && parsedRate > 0) {
-        currentRate = parsedRate;
-        document.getElementById('current-rate-text').innerText = '(' + currentRate + ')';
-        // 如果輸入框有值，重新計算
-        convertCurrency();
-      }
-    }
-
-    if (data.buyList && data.buyList.length) {
-      const list = document.getElementById('buy-list-oy');
-      if (list) {
-        list.innerHTML = '';
-        data.buyList.forEach((item, i) => {
-          const id = 'oy-r' + i;
-          list.innerHTML += '<label><input type="checkbox" id="chk-' + id + '" ' + (item.checked ? 'checked' : '') + '>'
-            + '<span>' + item.name + '</span>'
-            + '<input class="field" id="' + id + '-p" placeholder="地點" value="' + (item.place || '') + '">'
-            + '<input class="field" id="' + id + '-v" placeholder="₩" type="number" value="' + (item.price || '') + '">'
-            + '<button class="del-item" onclick="delBuyItem(this)">×</button></label>';
-        });
-      }
-    }
-
-    if (data.prepList && data.prepList.length) {
-      const pl = document.getElementById('prep-list');
-      pl.innerHTML = '';
-      data.prepList.forEach(item => {
-        pl.innerHTML += makePrepItem(item.tag, item.text, item.bg, item.color);
-      });
-    }
+    // prepList
+    const prepList = source.prepList || DEFAULT_DATA.prepList;
+    const pl = document.getElementById('prep-list');
+    pl.innerHTML = '';
+    prepList.forEach(item => {
+      pl.innerHTML += makePrepItem(item.tag, item.text, item.bg, item.color);
+    });
   });
 };
 
@@ -828,25 +744,14 @@ function addEntry() {
   if (!time || !title) return alert('請填寫時間和標題');
 
   const id = 'custom-' + Date.now();
-  const navBtn = nav
-    ? '<button class="nav-btn" data-nav="' + nav.replace(/"/g, '&quot;') + '" onclick="openNaverMaps(\'' + nav.replace(/'/g, "\\'") + '\')" style="background:#03C75A;">📍 Naver Maps 導航</button>'
-    : '';
-
   const photos = [];
   document.querySelectorAll('#entry-photo-area img').forEach(img => photos.push(img.src));
-  const photosHtml = photos.map(src => '<img src="' + src + '" style="width:100%;border-radius:8px;margin-top:8px;display:block;">').join('');
 
-  document.getElementById(day + '-entries').insertAdjacentHTML('beforeend',
-    '<div class="entry new-entry">'
-    + '<span class="drag-handle">⠿</span>'
-    + '<div class="time editable-content" id="' + id + '-time">' + time + '</div>'
-    + '<div class="content"><div class="entry-card">'
-    + '<div class="title editable-content" id="' + id + '-title">' + title + '</div>'
-    + '<div class="box ' + type + ' editable-content" id="' + id + '-box">' + content + '</div>'
-    + navBtn + photosHtml
-    + '</div></div></div>'
-  );
+  const entryData = { id, time, title, content, type, nav, photos };
+  const container = document.getElementById(day + '-entries');
+  container.insertAdjacentHTML('beforeend', buildEntryHTML(entryData));
 
+  // 清理圖片預覽
   const area = document.getElementById('entry-photo-area');
   area.querySelectorAll('div[style*="position:relative"]').forEach(el => el.remove());
   document.getElementById('inp-nav').value = '';
@@ -899,10 +804,9 @@ function addPrepItem() {
 }
 
 function makePrepItem(tag, text, bg, color) {
-  const editable = isEditMode ? 'true' : 'false';
   return '<div class="prep-item">'
     + '<span class="prep-tag" style="background:' + bg + ';color:' + color + ';" onclick="cyclePrepTag(this)">' + tag + '</span>'
-    + '<span class="prep-text" contenteditable="' + editable + '">' + text + '</span>'
+    + '<span class="prep-text" contenteditable="false">' + text + '</span>'
     + '<button class="prep-del" onclick="delPrepItem(this)">×</button>'
     + '</div>';
 }
@@ -1084,37 +988,37 @@ function confirmDeleteEntry(entry) {
 function openEditSheet(entry) {
   removeCtxMenu();
   _editTarget = entry;
-  const timeEl = entry.querySelector('.time');
+  const timeEl  = entry.querySelector('.time');
   const titleEl = entry.querySelector('[id$="-title"]');
-  const boxEl = entry.querySelector('[id$="-box"]');
-  const navBtn = entry.querySelector('.nav-btn[data-nav]');
+  const boxEl   = entry.querySelector('[id$="-box"]');
+  const navBtn  = entry.querySelector('.nav-btn[data-nav]');
   const boxClass = boxEl && boxEl.className.match(/\b(buy|warn|tip)\b/);
 
-  document.getElementById('edit-time').value = timeEl ? timeEl.innerText.trim() : '';
-  document.getElementById('edit-title').value = titleEl ? titleEl.innerText.trim() : '';
-  document.getElementById('edit-content').value = boxEl ? boxEl.innerText.trim() : '';
-  document.getElementById('edit-nav').value = navBtn ? navBtn.dataset.nav : '';
-  document.getElementById('edit-type').value = boxClass ? boxClass[0] : 'buy';
+  document.getElementById('edit-time').value    = timeEl  ? timeEl.innerText.trim()  : '';
+  document.getElementById('edit-title').value   = titleEl ? titleEl.innerText.trim() : '';
+  document.getElementById('edit-content').value = boxEl   ? boxEl.innerText.trim()   : '';
+  document.getElementById('edit-nav').value     = navBtn  ? navBtn.dataset.nav        : '';
+  document.getElementById('edit-type').value    = boxClass ? boxClass[0] : 'buy';
   document.getElementById('edit-entry-overlay').classList.add('active');
 }
 
 function saveEditEntry() {
   if (!_editTarget) return;
-  const time = document.getElementById('edit-time').value.trim();
-  const title = document.getElementById('edit-title').value.trim();
+  const time    = document.getElementById('edit-time').value.trim();
+  const title   = document.getElementById('edit-title').value.trim();
   const content = document.getElementById('edit-content').value.trim();
-  const nav = document.getElementById('edit-nav').value.trim();
-  const type = document.getElementById('edit-type').value;
+  const nav     = document.getElementById('edit-nav').value.trim();
+  const type    = document.getElementById('edit-type').value;
 
   if (!title) return alert('請輸入標題');
 
-  const timeEl = _editTarget.querySelector('.time');
+  const timeEl  = _editTarget.querySelector('.time');
   const titleEl = _editTarget.querySelector('[id$="-title"]');
-  const boxEl = _editTarget.querySelector('[id$="-box"]');
+  const boxEl   = _editTarget.querySelector('[id$="-box"]');
 
-  if (timeEl) timeEl.innerText = time;
+  if (timeEl)  timeEl.innerText  = time;
   if (titleEl) titleEl.innerText = title;
-  if (boxEl) { boxEl.innerText = content; boxEl.className = 'box ' + type + ' editable-content'; }
+  if (boxEl)   { boxEl.innerText = content; boxEl.className = 'box ' + type + ' editable-content'; }
 
   const card = _editTarget.querySelector('.entry-card');
   const oldNav = card.querySelector('.nav-btn[data-nav]');
@@ -1151,7 +1055,7 @@ document.getElementById('app').addEventListener('touchstart', e => {
   }, 550);
 }, { passive: true });
 
-document.getElementById('app').addEventListener('touchend', () => clearTimeout(_pressTimer), { passive: true });
+document.getElementById('app').addEventListener('touchend',  () => clearTimeout(_pressTimer), { passive: true });
 document.getElementById('app').addEventListener('touchmove', () => clearTimeout(_pressTimer), { passive: true });
 
 /* ══════════════════════════════════════════
