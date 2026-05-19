@@ -265,7 +265,6 @@ html { scroll-behavior: smooth; }
       <button class="jump-btn" onclick="scrollToDay('day6-card')">6/1  (D6)</button>
     </div>
 
-    <!-- ★ 行程卡片：僅保留骨架，entry 全部由 JS 動態渲染 -->
     <section class="card" id="day1-card">
       <div class="day-header"><span class="badge">Day 1</span><span class="editable-content" id="d1-header" contenteditable="false">5/27 週三 ｜ 抵達 → 明洞 Look Home Check-in</span></div>
       <div class="itinerary" id="day1-entries"></div>
@@ -499,11 +498,11 @@ let isSyncLocked = false;
 
 /* ══════════════════════════════════════════
    ★ 核心：將一筆 entry 資料渲染成 DOM 字串
+   修正：nav 改用 this.dataset.nav，不再拼接 onclick 字串
 ══════════════════════════════════════════ */
 function buildEntryHTML(e) {
-  const safeNav = (e.nav || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
   const navBtn = e.nav
-    ? '<button class="nav-btn" data-nav="' + safeNav + '" onclick="openNaverMaps(\'' + safeNav + '\')" style="background:#03C75A;">📍 Naver Maps 導航</button>'
+    ? '<button class="nav-btn" data-nav="' + (e.nav || '').replace(/"/g, '&quot;') + '" onclick="openNaverMaps(this.dataset.nav)" style="background:#03C75A;">📍 Naver Maps 導航</button>'
     : '';
   const photosHtml = (e.photos || []).map(src =>
     '<img src="' + src + '" style="width:100%;border-radius:8px;margin-top:8px;display:block;">'
@@ -520,6 +519,7 @@ function buildEntryHTML(e) {
 
 /* ══════════════════════════════════════════
    ★ 核心：從 DOM 收集所有 entry 資料（用於儲存）
+   修正：boxClass → boxMatch，統一變數名
 ══════════════════════════════════════════ */
 function collectDaysData() {
   const days = {};
@@ -532,14 +532,14 @@ function collectDaysData() {
       const titleEl = entryEl.querySelector('[id$="-title"]');
       const boxEl   = entryEl.querySelector('[id$="-box"]');
       const navBtn  = entryEl.querySelector('.nav-btn[data-nav]');
-      const photos  = [...entryEl.querySelectorAll('img[src^="data:"]')].map(img => img.src);
-      const boxClass = boxEl && (boxEl.className.match(/\b(buy|warn|tip)\b/) || ['','buy']);
+      const photos  = [...entryEl.querySelectorAll('img')].map(img => img.src).filter(Boolean);
+      const boxMatch = boxEl ? boxEl.className.match(/\b(buy|warn|tip)\b/) : null;
       return {
         id,
         time:    timeEl  ? timeEl.innerText.trim()  : '',
         title:   titleEl ? titleEl.innerText.trim() : '',
         content: boxEl   ? boxEl.innerText.trim()   : '',
-        type:    boxClass ? boxClass[0] : 'buy',
+        type:    boxMatch ? boxMatch[0] : 'buy',
         nav:     navBtn  ? navBtn.dataset.nav        : '',
         photos
       };
@@ -655,6 +655,8 @@ function toggleEditMode() {
 
 /* ══════════════════════════════════════════
    ★ 儲存到 Firebase（完整序列化）
+   修正：儲存成功後手動關閉編輯模式，不依賴 toggleEditMode()
+   避免 Firebase on() 競態條件導致不同步
 ══════════════════════════════════════════ */
 function saveToFirebase() {
   // 收集 headers
@@ -684,17 +686,23 @@ function saveToFirebase() {
   };
 
   db.ref('ybo_itinerary/v2').set(data).then(() => {
+    // 手動關閉編輯模式，避免觸發 Firebase on() 競態
+    isSyncLocked = false;
+    isEditMode = false;
+    document.body.classList.remove('edit-active');
+    document.getElementById('edit-btn').innerText = '✏️ 編輯模式';
+    document.getElementById('save-btn').style.display = 'none';
+    document.querySelectorAll('.editable-content').forEach(el => el.contentEditable = false);
+    document.querySelectorAll('.prep-text').forEach(el => el.contentEditable = false);
     alert('✅ 儲存成功！所有裝置都會同步。');
-    toggleEditMode();
-  }).catch(err => {
-    alert('❌ 儲存失敗：' + err.message);
-  });
+  }).catch(err => alert('❌ 儲存失敗：' + err.message));
 }
 
 /* ══════════════════════════════════════════
    ★ Firebase 讀取（動態渲染）
+   修正：window.onload → window.addEventListener('load', ...)
 ══════════════════════════════════════════ */
-window.onload = function() {
+window.addEventListener('load', function() {
   db.ref('ybo_itinerary/v2').on('value', snap => {
     if (isSyncLocked) return;
     const data = snap.val();
@@ -728,10 +736,11 @@ window.onload = function() {
       pl.innerHTML += makePrepItem(item.tag, item.text, item.bg, item.color);
     });
   });
-};
+});
 
 /* ══════════════════════════════════════════
    新增行程
+   修正：加入欄位清空邏輯
 ══════════════════════════════════════════ */
 function addEntry() {
   const day = document.querySelector('.day-chip.active').dataset.day;
@@ -754,7 +763,14 @@ function addEntry() {
   // 清理圖片預覽
   const area = document.getElementById('entry-photo-area');
   area.querySelectorAll('div[style*="position:relative"]').forEach(el => el.remove());
+
+  // 清空所有輸入欄位
+  document.getElementById('inp-time').value = '';
+  document.getElementById('inp-title').value = '';
+  document.getElementById('inp-content').value = '';
   document.getElementById('inp-nav').value = '';
+  document.getElementById('inp-type').value = 'buy';
+
   closeSheet();
   alert('已新增，請記得按「儲存」同步到雲端');
 }
@@ -1002,6 +1018,11 @@ function openEditSheet(entry) {
   document.getElementById('edit-entry-overlay').classList.add('active');
 }
 
+/* ══════════════════════════════════════════
+   saveEditEntry
+   修正：補上 boxEl.innerText = content（之前漏掉）
+         nav 按鈕改用 this.dataset.nav
+══════════════════════════════════════════ */
 function saveEditEntry() {
   if (!_editTarget) return;
   const time    = document.getElementById('edit-time').value.trim();
@@ -1018,18 +1039,20 @@ function saveEditEntry() {
 
   if (timeEl)  timeEl.innerText  = time;
   if (titleEl) titleEl.innerText = title;
-  if (boxEl)   { boxEl.innerText = content; boxEl.className = 'box ' + type + ' editable-content'; }
+  if (boxEl) {
+    boxEl.innerText = content;
+    boxEl.className = 'box ' + type + (isEditMode ? ' editable-content' : '');
+  }
 
   const card = _editTarget.querySelector('.entry-card');
   const oldNav = card.querySelector('.nav-btn[data-nav]');
   if (nav) {
-    const safeNav = nav.replace(/'/g, "\\'");
     if (oldNav) {
       oldNav.dataset.nav = nav;
-      oldNav.onclick = function() { openNaverMaps(nav); };
+      oldNav.onclick = function() { openNaverMaps(this.dataset.nav); };
     } else {
       card.insertAdjacentHTML('beforeend',
-        '<button class="nav-btn" data-nav="' + nav.replace(/"/g, '&quot;') + '" onclick="openNaverMaps(\'' + safeNav + '\')" style="background:#03C75A;">📍 Naver Maps 導航</button>');
+        '<button class="nav-btn" data-nav="' + nav.replace(/"/g, '&quot;') + '" onclick="openNaverMaps(this.dataset.nav)" style="background:#03C75A;">📍 Naver Maps 導航</button>');
     }
   } else if (oldNav) {
     oldNav.remove();
