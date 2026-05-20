@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>韓國秘笈</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></scri<!--  -->pt>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
     :root { --primary:#FFD60A; --dark:#1A1A18; --bg:#F0EEE9; --accent:#E6430A; }
@@ -890,17 +890,11 @@ document.getElementById('drawer').addEventListener('touchend', e => {
   let dragging = null, clone = null, offsetY = 0;
   let activeContainer = null, activeSelector = null;
 
-  const configs = [
-    { container: () => document.querySelectorAll('.itinerary'), selector: '.entry' },
-    { container: () => { const el = document.getElementById('buy-list-oy'); return el ? [el] : []; }, selector: 'label' }
-  ];
-
-  function getConfig(target) {
-    for (const cfg of configs) {
-      for (const c of cfg.container()) {
-        if (c && c.contains(target)) return { container: c, selector: cfg.selector };
-      }
-    }
+  function getContainerAndSelector(target) {
+    const itinerary = target.closest('.itinerary');
+    if (itinerary) return { container: itinerary, selector: '.entry' };
+    const buyList = target.closest('#buy-list-oy');
+    if (buyList) return { container: buyList, selector: 'label' };
     return null;
   }
 
@@ -908,42 +902,59 @@ document.getElementById('drawer').addEventListener('touchend', e => {
     if (!isEditMode) return;
     const handle = e.target.closest('.drag-handle');
     if (!handle) return;
-    const cfg = getConfig(handle);
+
+    const cfg = getContainerAndSelector(handle);
     if (!cfg) return;
     const item = handle.closest(cfg.selector);
     if (!item) return;
 
+    e.preventDefault();  // ← 移到這裡，確保有效
+
     dragging = item;
     activeSelector = cfg.selector;
-    const resolved = [...cfg.container()].find(c => c.contains(item));
-    activeContainer = resolved;
+    activeContainer = cfg.container;
     offsetY = e.touches[0].clientY - item.getBoundingClientRect().top;
 
     clone = item.cloneNode(true);
-    clone.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;'
-      + 'width:' + item.offsetWidth + 'px;opacity:0.85;'
-      + 'box-shadow:0 8px 30px rgba(0,0,0,0.18);border-radius:12px;background:#fff;'
-      + 'left:' + item.getBoundingClientRect().left + 'px;'
-      + 'top:' + item.getBoundingClientRect().top + 'px;';
+    const rect = item.getBoundingClientRect();
+    clone.style.cssText = [
+      'position:fixed',
+      'z-index:9999',
+      'pointer-events:none',
+      'width:' + item.offsetWidth + 'px',
+      'opacity:0.85',
+      'box-shadow:0 8px 30px rgba(0,0,0,0.25)',
+      'border-radius:12px',
+      'background:#fff',
+      'left:' + rect.left + 'px',
+      'top:' + rect.top + 'px',
+      'transition:none'
+    ].join(';');
     document.body.appendChild(clone);
-    item.classList.add('dragging');
-    e.preventDefault();
-  }, { passive: false });
+    item.style.opacity = '0.3';
+
+  }, { passive: false });  // ← 必須 false 才能 preventDefault
 
   document.addEventListener('touchmove', e => {
     if (!dragging || !clone) return;
     e.preventDefault();
+
     const y = e.touches[0].clientY;
+    const x = e.touches[0].clientX;
     clone.style.top = (y - offsetY) + 'px';
 
+    // 清除所有指示線
     activeContainer.querySelectorAll('.drag-over-top, .drag-over-bottom')
       .forEach(el => el.classList.remove('drag-over-top', 'drag-over-bottom'));
 
-    const items = [...activeContainer.querySelectorAll(activeSelector)].filter(el => el !== dragging);
+    const items = [...activeContainer.querySelectorAll(activeSelector)]
+      .filter(el => el !== dragging);
+
     for (const item of items) {
       const rect = item.getBoundingClientRect();
       if (y >= rect.top && y <= rect.bottom) {
-        item.classList.add(y < rect.top + rect.height / 2 ? 'drag-over-top' : 'drag-over-bottom');
+        const isTop = y < rect.top + rect.height / 2;
+        item.classList.add(isTop ? 'drag-over-top' : 'drag-over-bottom');
         break;
       }
     }
@@ -951,24 +962,35 @@ document.getElementById('drawer').addEventListener('touchend', e => {
 
   document.addEventListener('touchend', e => {
     if (!dragging || !clone) return;
-    clone.remove(); clone = null;
+
+    clone.remove();
+    clone = null;
+    dragging.style.opacity = '';
     dragging.classList.remove('dragging');
 
     const y = e.changedTouches[0].clientY;
-    const items = [...activeContainer.querySelectorAll(activeSelector)].filter(el => el !== dragging);
+    const items = [...activeContainer.querySelectorAll(activeSelector)]
+      .filter(el => el !== dragging);
+
+    let inserted = false;
     for (const item of items) {
       const rect = item.getBoundingClientRect();
-      if (y >= rect.top && y <= rect.bottom) {
-        if (y < rect.top + rect.height / 2) activeContainer.insertBefore(dragging, item);
-        else activeContainer.insertBefore(dragging, item.nextSibling);
-        break;
-      }
       item.classList.remove('drag-over-top', 'drag-over-bottom');
+      if (!inserted && y >= rect.top && y <= rect.bottom) {
+        if (y < rect.top + rect.height / 2) {
+          activeContainer.insertBefore(dragging, item);
+        } else {
+          activeContainer.insertBefore(dragging, item.nextSibling);
+        }
+        inserted = true;
+      }
     }
-    activeContainer.querySelectorAll('.drag-over-top, .drag-over-bottom')
-      .forEach(el => el.classList.remove('drag-over-top', 'drag-over-bottom'));
-    dragging = null; activeContainer = null; activeSelector = null;
+
+    dragging = null;
+    activeContainer = null;
+    activeSelector = null;
   });
+
 })();
 
 /* ══════════════════════════════════════════
