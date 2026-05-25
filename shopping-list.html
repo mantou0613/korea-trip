@@ -9,24 +9,23 @@
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
     :root { --primary:#FFD60A; --dark:#1A1A18; --bg:#F0EEE9; --accent:#E6430A; --card-bg:#FFFFFF; }
-        .drawer-overlay { position:fixed;inset:0;z-index:200;background:rgba(26,26,24,0.5);opacity:0;pointer-events:none;transition:opacity .28s; }
-body.drawer-open .drawer-overlay { opacity:1;pointer-events:auto; }
-.drawer { position:fixed;top:0;left:0;bottom:0;z-index:210;width:272px;background:#1A1A18;transform:translateX(-100%);transition:transform .3s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column; }
-body.drawer-open .drawer { transform:translateX(0); }
-.drawer-header { padding:52px 22px 20px;border-bottom:1px solid rgba(255,214,10,0.12); }
-.drawer-trip-label { font-size:10px;color:#FFD60A;font-weight:700;letter-spacing:2px;opacity:.75; }
-.drawer-trip-name { font-size:19px;font-weight:900;color:#fff;margin-top:4px; }
-.drawer-trip-date { font-size:12px;color:#555;margin-top:4px; }
-.drawer-nav { flex:1;overflow-y:auto;padding:14px 10px; }
-.nav-section-label { font-size:9px;color:#444;font-weight:700;letter-spacing:2px;padding:12px 10px 5px; }
-.nav-item { display:flex;align-items:center;gap:13px;padding:12px 13px;border-radius:13px;text-decoration:none;color:#888;font-size:14px;font-weight:700;margin-bottom:2px; }
-.nav-item.active { background:rgba(255,214,10,0.1);color:#FFD60A; }
-.nav-icon { width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;background:rgba(255,255,255,0.05); }
+    .drawer-overlay { position:fixed;inset:0;z-index:200;background:rgba(26,26,24,0.5);opacity:0;pointer-events:none;transition:opacity .28s; }
+    body.drawer-open .drawer-overlay { opacity:1;pointer-events:auto; }
+    .drawer { position:fixed;top:0;left:0;bottom:0;z-index:210;width:272px;background:#1A1A18;transform:translateX(-100%);transition:transform .3s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column; }
+    body.drawer-open .drawer { transform:translateX(0); }
+    .drawer-header { padding:52px 22px 20px;border-bottom:1px solid rgba(255,214,10,0.12); }
+    .drawer-trip-label { font-size:10px;color:#FFD60A;font-weight:700;letter-spacing:2px;opacity:.75; }
+    .drawer-trip-name { font-size:19px;font-weight:900;color:#fff;margin-top:4px; }
+    .drawer-trip-date { font-size:12px;color:#555;margin-top:4px; }
+    .drawer-nav { flex:1;overflow-y:auto;padding:14px 10px; }
+    .nav-section-label { font-size:9px;color:#444;font-weight:700;letter-spacing:2px;padding:12px 10px 5px; }
+    .nav-item { display:flex;align-items:center;gap:13px;padding:12px 13px;border-radius:13px;text-decoration:none;color:#888;font-size:14px;font-weight:700;margin-bottom:2px; }
+    .nav-item.active { background:rgba(255,214,10,0.1);color:#FFD60A; }
+    .nav-icon { width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;background:rgba(255,255,255,0.05); }
     * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
     body { font-family:'Noto Sans TC',sans-serif; background:var(--bg); margin:0; padding:16px 12px 140px; color:var(--dark); }
 
     .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; padding:0 4px; }
-    .back-btn { padding:10px 16px; background:#fff; border:none; border-radius:12px; text-decoration:none; color:var(--dark); font-size:13px; font-weight:700; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
     .page-title { margin:0; font-size:18px; font-weight:900; }
 
     .location-card { background:var(--card-bg); border-radius:24px; padding:20px; margin-bottom:20px; box-shadow:0 4px 20px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.03); }
@@ -35,9 +34,9 @@ body.drawer-open .drawer { transform:translateX(0); }
     .location-title input::placeholder { color:#ccc; }
 
     /* 商品列 */
-    .item-row { background:#FAFAF8; border-radius:16px; padding:14px; margin-bottom:12px; transition:all 0.2s; }
+    .item-row { background:#FAFAF8; border-radius:16px; padding:14px; margin-bottom:12px; transition:all 0.2s; position:relative; }
     .item-row:focus-within { background:#fff; box-shadow:0 0 0 2px var(--primary); }
-    .item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; }
     .item-name-input { font-weight:700; font-size:15px; border:none; flex:1; outline:none; background:transparent; color:#1a1a1a; }
     .item-fields { display:grid; grid-template-columns:1.2fr 1fr 0.8fr; gap:10px; margin-bottom:12px; }
     .sub-field { display:flex; flex-direction:column; gap:5px; }
@@ -62,11 +61,26 @@ body.drawer-open .drawer { transform:translateX(0); }
     #lightbox img { max-width:92vw; max-height:85vh; border-radius:16px; object-fit:contain; }
     #lightbox-close { position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.15); border:none; color:#fff; font-size:22px; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; }
 
-    /* 隱藏 file input */
     .hidden-file { display:none; }
 
+    /* 右上角按鈕群 */
+    .item-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
     .del-btn { color:#D1D1D1; cursor:pointer; border:none; background:#f5f5f5; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; transition:all 0.2s; flex-shrink:0; }
     .del-btn:hover { background:#ffeded; color:var(--accent); }
+
+    /* 移動按鈕 */
+    .move-btn { color:#aaa; cursor:pointer; border:none; background:#f5f5f5; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; transition:all 0.2s; flex-shrink:0; position:relative; }
+    .move-btn:hover { background:#FFF3CD; color:#B8860B; }
+
+    /* 移動下拉選單 */
+    .move-dropdown { position:absolute; top:34px; right:0; background:#fff; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,0.15); z-index:50; min-width:170px; overflow:hidden; border:1px solid #F0EEE9; }
+    .move-dropdown-header { font-size:10px; color:#999; font-weight:700; letter-spacing:0.8px; padding:10px 14px 6px; }
+    .move-dropdown-item { display:flex; align-items:center; gap:8px; padding:11px 14px; font-size:13px; font-weight:700; cursor:pointer; color:var(--dark); transition:background 0.15s; }
+    .move-dropdown-item:hover { background:#FFF9E6; color:#B8860B; }
+    .move-dropdown-item .loc-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+    .move-dropdown-item.current-loc { color:#ccc; cursor:default; }
+    .move-dropdown-item.current-loc:hover { background:transparent; }
+
     .btn-add-item { margin-top:8px; background:#F2F0EA; border:none; padding:12px; width:100%; border-radius:12px; color:#666; cursor:pointer; font-size:13px; font-weight:700; transition:background 0.2s; font-family:inherit; }
     .btn-add-item:hover { background:#E8E6E0; }
 
@@ -77,84 +91,72 @@ body.drawer-open .drawer { transform:translateX(0); }
     .btn-save { background:#4CAF50; color:white; }
 
     ::-webkit-scrollbar { width:0px; }
-        /* 快速跳轉列 */
-.jump-bar {
-  position: sticky;
-  top: 0;
-  z-index: 90;
-  background: rgba(240,238,233,0.95);
-  backdrop-filter: blur(10px);
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 10px 12px;
-  border-bottom: 1px solid #E8E6E0;
-  -webkit-overflow-scrolling: touch;
-}
-.jump-bar::-webkit-scrollbar { display: none; }
-.jump-chip {
-  flex: 0 0 auto;
-  padding: 7px 14px;
-  border-radius: 10px;
-  border: 1px solid #D8D6D0;
-  background: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--dark);
-  cursor: pointer;
-  white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  transition: all 0.15s;
-}
-.jump-chip:active { background: var(--primary); transform: scale(0.95); }
+
+    /* 快速跳轉列 */
+    .jump-bar {
+      position: sticky; top: 0; z-index: 90;
+      background: rgba(240,238,233,0.95); backdrop-filter: blur(10px);
+      display: flex; gap: 8px; overflow-x: auto;
+      padding: 10px 12px; border-bottom: 1px solid #E8E6E0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .jump-bar::-webkit-scrollbar { display: none; }
+    .jump-chip {
+      flex: 0 0 auto; padding: 7px 14px; border-radius: 10px;
+      border: 1px solid #D8D6D0; background: #fff;
+      font-size: 12px; font-weight: 700; color: var(--dark);
+      cursor: pointer; white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.15s;
+    }
+    .jump-chip:active { background: var(--primary); transform: scale(0.95); }
+
+    /* 移動動畫 */
+    @keyframes moveFlash {
+      0% { background: #FFF9C4; }
+      100% { background: #FAFAF8; }
+    }
+    .item-row.just-moved { animation: moveFlash 1s ease-out; }
     </style>
 </head>
 <body>
     <div class="drawer-overlay" onclick="closeDrawer()"></div>
-<div class="drawer" id="drawer">
-  <div class="drawer-header">
-    <div class="drawer-trip-label">TRIP GUIDE</div>
-    <div class="drawer-trip-name">YBO 韓國之旅</div>
-    <div class="drawer-trip-date">5/27 – 6/1 ｜ 首爾 6 天</div>
-  </div>
-  <nav class="drawer-nav">
-    <div class="nav-section-label">主要功能</div>
-    <a href="index.html" class="nav-item">
-      <div class="nav-icon">🗓️</div><span>行程秘笈</span>
-    </a>
-    <a href="checklist.html" class="nav-item">
-      <div class="nav-icon">✈️</div><span>行前準備</span>
-    </a>
-    <a href="shopping-list.html" class="nav-item active">
-      <div class="nav-icon">🛒</div><span>採買清單</span>
-    </a>
-    <div class="nav-section-label">即將推出</div>
-      <a href="split.html" class="nav-item"><div class="nav-icon">💵</div><span>記帳</span></a>
-    <a href="money.html" class="nav-item"><div class="nav-icon">💰</div><span>代購利潤計算</span></a>
-    <a href="food.html" class="nav-item"><div class="nav-icon">🍜</div><span>美食清單</span></a>
-    <a href="transport.html" class="nav-item"><div class="nav-icon">🚇</div><span>交通地圖</span></a>
-      <a href="wallet.html" class="nav-item"><div class="nav-icon">🫧</div><span>小波錢包</span></a>
-  </nav>
-</div>
+    <div class="drawer" id="drawer">
+      <div class="drawer-header">
+        <div class="drawer-trip-label">TRIP GUIDE</div>
+        <div class="drawer-trip-name">YBO 韓國之旅</div>
+        <div class="drawer-trip-date">5/27 – 6/1 ｜ 首爾 6 天</div>
+      </div>
+      <nav class="drawer-nav">
+        <div class="nav-section-label">主要功能</div>
+        <a href="index.html" class="nav-item"><div class="nav-icon">🗓️</div><span>行程秘笈</span></a>
+        <a href="checklist.html" class="nav-item"><div class="nav-icon">✈️</div><span>行前準備</span></a>
+        <a href="shopping-list.html" class="nav-item active"><div class="nav-icon">🛒</div><span>採買清單</span></a>
+        <div class="nav-section-label">即將推出</div>
+        <a href="split.html" class="nav-item"><div class="nav-icon">💵</div><span>記帳</span></a>
+        <a href="money.html" class="nav-item"><div class="nav-icon">💰</div><span>代購利潤計算</span></a>
+        <a href="food.html" class="nav-item"><div class="nav-icon">🍜</div><span>美食清單</span></a>
+        <a href="transport.html" class="nav-item"><div class="nav-icon">🚇</div><span>交通地圖</span></a>
+        <a href="wallet.html" class="nav-item"><div class="nav-icon">🫧</div><span>小波錢包</span></a>
+      </nav>
+    </div>
 
-<div class="header">
-<button onclick="toggleDrawer()" style="width:38px;height:38px;background:#1A1A18;border:none;border-radius:11px;cursor:pointer;font-size:18px;color:#FFD60A;flex-shrink:0;">☰</button>
-    <h2 class="page-title">採買清單</h2>
-    <div style="width:50px;"></div>
-</div>
-<div class="jump-bar" id="jump-bar"></div>
-<div id="list-container"></div>
+    <div class="header">
+        <button onclick="toggleDrawer()" style="width:38px;height:38px;background:#1A1A18;border:none;border-radius:11px;cursor:pointer;font-size:18px;color:#FFD60A;flex-shrink:0;">☰</button>
+        <h2 class="page-title">採買清單</h2>
+        <div style="width:50px;"></div>
+    </div>
+    <div class="jump-bar" id="jump-bar"></div>
+    <div id="list-container"></div>
 
-<!-- 燈箱 -->
-<div id="lightbox" onclick="closeLightbox(event)">
-    <button id="lightbox-close" onclick="closeLightbox()">✕</button>
-    <img id="lightbox-img" src="" alt="">
-</div>
+    <div id="lightbox" onclick="closeLightbox(event)">
+        <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+        <img id="lightbox-img" src="" alt="">
+    </div>
 
-<div class="footer-tools">
-    <button class="btn-new-loc" onclick="addLocation()">＋ 新增分區</button>
-    <button class="btn-save" onclick="saveData()">💾 儲存清單</button>
-</div>
+    <div class="footer-tools">
+        <button class="btn-new-loc" onclick="addLocation()">＋ 新增分區</button>
+        <button class="btn-save" onclick="saveData()">💾 儲存清單</button>
+    </div>
 
 <script>
 const firebaseConfig = {
@@ -169,7 +171,13 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 圖片壓縮成 base64（最長邊壓到 600px）
+// 關閉所有移動選單
+function closeAllDropdowns() {
+    document.querySelectorAll('.move-dropdown').forEach(d => d.remove());
+}
+document.addEventListener('click', closeAllDropdowns);
+
+// 圖片壓縮
 function compressImage(file, callback) {
     const reader = new FileReader();
     reader.onload = e => {
@@ -189,7 +197,6 @@ function compressImage(file, callback) {
     reader.readAsDataURL(file);
 }
 
-// 新增縮圖到商品列
 function appendPhoto(photosDiv, base64) {
     const thumb = document.createElement('div');
     thumb.className = 'photo-thumb';
@@ -197,9 +204,57 @@ function appendPhoto(photosDiv, base64) {
         <img src="${base64}" onclick="openLightbox('${base64}')" alt="商品圖">
         <button class="del-photo" onclick="this.parentElement.remove()" title="刪除圖片">×</button>
     `;
-    // 插在「新增圖片」按鈕前面
     const addBtn = photosDiv.querySelector('.add-photo-btn');
     photosDiv.insertBefore(thumb, addBtn);
+}
+
+// 顯示移動選單
+function showMoveDropdown(btn, itemRow) {
+    event.stopPropagation();
+    closeAllDropdowns();
+
+    const currentCard = itemRow.closest('.location-card');
+    const allCards = Array.from(document.querySelectorAll('.location-card'));
+
+    if (allCards.length <= 1) {
+        // 只有一個分區時提示
+        const tip = document.createElement('div');
+        tip.className = 'move-dropdown';
+        tip.style.cssText = 'position:absolute;top:34px;right:0;';
+        tip.innerHTML = `<div class="move-dropdown-header">目前只有一個分區</div><div style="padding:10px 14px 12px;font-size:12px;color:#aaa;">請先新增其他分區</div>`;
+        btn.appendChild(tip);
+        return;
+    }
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'move-dropdown';
+    dropdown.innerHTML = `<div class="move-dropdown-header">移動到 →</div>`;
+
+    allCards.forEach((card, i) => {
+        const name = card.querySelector('.loc-name').value || `分區 ${i + 1}`;
+        const isCurrent = card === currentCard;
+        const item = document.createElement('div');
+        item.className = 'move-dropdown-item' + (isCurrent ? ' current-loc' : '');
+        item.innerHTML = `<span class="loc-dot" style="${isCurrent ? 'background:#ddd;' : ''}"></span>${name}${isCurrent ? ' <span style="font-size:10px;color:#ccc;font-weight:400;">(目前)</span>' : ''}`;
+        if (!isCurrent) {
+            item.onclick = (e) => {
+                e.stopPropagation();
+                const targetList = card.querySelector('.item-list');
+                targetList.appendChild(itemRow);
+                itemRow.classList.add('just-moved');
+                setTimeout(() => itemRow.classList.remove('just-moved'), 1000);
+                closeAllDropdowns();
+                // 滾動到目標分區
+                const offset = 60;
+                const top = card.getBoundingClientRect().top + window.scrollY - offset;
+                window.scrollTo({ top, behavior: 'smooth' });
+            };
+        }
+        dropdown.appendChild(item);
+    });
+
+    btn.style.position = 'relative';
+    btn.appendChild(dropdown);
 }
 
 // 渲染商品列
@@ -209,7 +264,10 @@ function renderItem(item) {
     div.innerHTML = `
         <div class="item-header">
             <input type="text" class="item-name-input" value="${item.name||''}" placeholder="商品名稱">
-            <button class="del-btn" onclick="this.closest('.item-row').remove()" style="width:22px;height:22px;font-size:12px;">×</button>
+            <div class="item-actions">
+                <div class="move-btn" title="移動到其他分區">✈︎</div>
+                <button class="del-btn" title="刪除商品" style="width:22px;height:22px;font-size:12px;">×</button>
+            </div>
         </div>
         <div class="item-fields">
             <div class="sub-field"><label>詳細位置</label><input type="text" class="item-pos" value="${item.pos||''}"></div>
@@ -218,7 +276,7 @@ function renderItem(item) {
         </div>
         <span class="photo-label">商品圖片</span>
         <div class="item-photos">
-            <div class="add-photo-btn" onclick="this.nextElementSibling.click()" title="新增圖片">
+            <div class="add-photo-btn" title="新增圖片">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 新增
             </div>
@@ -226,24 +284,30 @@ function renderItem(item) {
         </div>
     `;
 
-    // 綁定 file input
     const fileInput = div.querySelector('.hidden-file');
     const photosDiv = div.querySelector('.item-photos');
-
-    // 修正：add-photo-btn 點擊要觸發同層的 file input
     div.querySelector('.add-photo-btn').onclick = () => fileInput.click();
 
     fileInput.addEventListener('change', () => {
         Array.from(fileInput.files).forEach(file => {
             compressImage(file, base64 => appendPhoto(photosDiv, base64));
         });
-        fileInput.value = ''; // 清空讓同張圖可重複選
+        fileInput.value = '';
     });
 
-    // 還原已儲存的圖片
     if (item.photos && item.photos.length) {
         item.photos.forEach(b64 => appendPhoto(photosDiv, b64));
     }
+
+    // 移動按鈕
+    const moveBtn = div.querySelector('.move-btn');
+    moveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showMoveDropdown(moveBtn, div);
+    });
+
+    // 刪除按鈕
+    div.querySelector('.del-btn').onclick = () => div.remove();
 
     return div;
 }
@@ -270,7 +334,6 @@ function renderLocation(loc) {
     card.querySelector('.loc-name').addEventListener('input', updateJumpBar);
 }
 
-// 儲存
 function saveData() {
     const data = [];
     document.querySelectorAll('.location-card').forEach(card => {
@@ -294,32 +357,32 @@ function saveData() {
     });
     db.ref('ybo_shopping_list').set(data).then(() => alert("✅ 儲存成功！"));
 }
-// 更新跳轉列
+
 function updateJumpBar() {
-  const bar = document.getElementById('jump-bar');
-  bar.innerHTML = '';
-  document.querySelectorAll('.location-card').forEach((card, i) => {
-    const name = card.querySelector('.loc-name').value || `分區 ${i + 1}`;
-    const chip = document.createElement('button');
-    chip.className = 'jump-chip';
-    chip.textContent = name;
-    chip.onclick = () => {
-      const offset = 60;
-      const top = card.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top, behavior: 'smooth' });
-    };
-    bar.appendChild(chip);
-  });
+    const bar = document.getElementById('jump-bar');
+    bar.innerHTML = '';
+    document.querySelectorAll('.location-card').forEach((card, i) => {
+        const name = card.querySelector('.loc-name').value || `分區 ${i + 1}`;
+        const chip = document.createElement('button');
+        chip.className = 'jump-chip';
+        chip.textContent = name;
+        chip.onclick = () => {
+            const offset = 60;
+            const top = card.getBoundingClientRect().top + window.scrollY - offset;
+            window.scrollTo({ top, behavior: 'smooth' });
+        };
+        bar.appendChild(chip);
+    });
 }
-// 載入
+
 function loadData() {
     db.ref('ybo_shopping_list').once('value', snap => {
         const data = snap.val();
         const container = document.getElementById('list-container');
         container.innerHTML = '';
-if (data && data.length) data.forEach(loc => renderLocation(loc));
-else addLocation();
-updateJumpBar();
+        if (data && data.length) data.forEach(loc => renderLocation(loc));
+        else addLocation();
+        updateJumpBar();
     });
 }
 
@@ -340,7 +403,6 @@ function removeLocation(btn) {
     }
 }
 
-// 燈箱
 function openLightbox(src) {
     document.getElementById('lightbox-img').src = src;
     document.getElementById('lightbox').classList.add('open');
@@ -352,10 +414,11 @@ function closeLightbox(e) {
 }
 
 loadData();
-    function toggleDrawer() { document.body.classList.toggle('drawer-open'); }
+
+function toggleDrawer() { document.body.classList.toggle('drawer-open'); }
 function closeDrawer() { document.body.classList.remove('drawer-open'); }
 document.getElementById('drawer').addEventListener('touchend', e => {
-  if (e.changedTouches[0].clientX < 50) closeDrawer();
+    if (e.changedTouches[0].clientX < 50) closeDrawer();
 }, { passive: true });
 </script>
 </body>
