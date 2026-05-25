@@ -663,13 +663,11 @@ function toggleEditMode() {
    避免 Firebase on() 競態條件導致不同步
 ══════════════════════════════════════════ */
 function saveToFirebase() {
-  // 收集 headers
   const headers = {};
   document.querySelectorAll('.editable-content[id^="d"]').forEach(el => {
     if (el.id) headers[el.id] = el.innerText;
   });
 
-  // 收集 prepList
   const prepList = [];
   document.querySelectorAll('#prep-list .prep-item').forEach(item => {
     const tag = item.querySelector('.prep-tag');
@@ -688,10 +686,9 @@ function saveToFirebase() {
     days: collectDaysData(),
     prepList
   };
-isSaving = true;
+
+  isSaving = true;
   db.ref('ybo_itinerary/v2').set(data).then(() => {
-  
-db.ref('ybo_itinerary/v2').set(data).then(() => {
     isSaving = false;
     isSyncLocked = false;
     isEditMode = false;
