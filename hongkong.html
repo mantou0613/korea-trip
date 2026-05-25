@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>香港秘笈</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+    :root {
+      --primary: #FF0000;
+      --dark: #1A1A1A;
+      --bg: #F5F3EE;
+      --accent: #C8102E;
+      --gold: #D4AF37;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); padding-bottom: 120px; -webkit-font-smoothing: antialiased; }
+
+    /* 上下文選單 */
+    .ctx-menu { position: fixed; z-index: 9999; background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); overflow: hidden; min-width: 160px; }
+    .ctx-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 18px; border: none; background: transparent; font-size: 14px; font-family: inherit; cursor: pointer; color: #1A1A1A; }
+    .ctx-btn.danger { color: var(--accent); }
+    .ctx-btn:active { background: #f5f5f3; }
+
+    /* 刪除按鈕 */
+    .entry-del-btn { display: none; position: absolute; bottom: 8px; right: 8px; background: var(--accent); border: none; color: #fff; border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; font-family: inherit; }
+    body.edit-active .entry-del-btn { display: block; }
+    .entry-card { position: relative; }
+
+    /* 編輯行程彈窗 */
+    #edit-entry-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 400; display: none; align-items: flex-end; justify-content: center; }
+    #edit-entry-overlay.active { display: flex; }
+    #edit-entry-sheet { background: #fff; width: 100%; max-width: 580px; border-radius: 22px 22px 0 0; padding: 20px 18px 40px; max-height: 85vh; overflow-y: auto; }
+
+    /* 快速跳轉 */
+    .jump-tabs {
+      display: flex; gap: 8px; overflow-x: auto; padding: 12px 14px;
+      background: var(--bg); position: sticky; top: 95px; z-index: 90;
+      -webkit-overflow-scrolling: touch; justify-content: center; flex-wrap: nowrap;
+    }
+    .jump-tabs::-webkit-scrollbar { display: none; }
+    .jump-btn {
+      flex: 0 0 auto; padding: 8px 15px; border-radius: 12px;
+      border: 1px solid #D8D6D0; background: #fff; font-size: 12px;
+      font-weight: 700; color: #1A1A1A; cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .jump-btn:active { background: var(--primary); color: #fff; transform: scale(0.95); }
+    @media (max-width: 480px) { .jump-tabs { justify-content: flex-start; } }
+    html { scroll-behavior: smooth; }
+
+    /* 抽屜 */
+    .drawer-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(26,26,26,0.5); opacity: 0; pointer-events: none; transition: opacity .28s; }
+    body.drawer-open .drawer-overlay { opacity: 1; pointer-events: auto; }
+    .drawer { position: fixed; top: 0; left: 0; bottom: 0; z-index: 210; width: 272px; background: #1A1A1A; transform: translateX(-100%); transition: transform .3s cubic-bezier(0.32,0.72,0,1); display: flex; flex-direction: column; }
+    body.drawer-open .drawer { transform: translateX(0); }
+    .drawer-header { padding: 52px 22px 20px; border-bottom: 1px solid rgba(255,0,0,0.15); }
+    .drawer-trip-label { font-size: 10px; color: var(--primary); font-weight: 700; letter-spacing: 2px; opacity: .85; }
+    .drawer-trip-name { font-size: 19px; font-weight: 900; color: #fff; margin-top: 4px; }
+    .drawer-trip-date { font-size: 12px; color: #666; margin-top: 4px; }
+    .drawer-nav { flex: 1; overflow-y: auto; padding: 14px 10px; }
+    .nav-section-label { font-size: 9px; color: #444; font-weight: 700; letter-spacing: 2px; padding: 12px 10px 5px; }
+    .nav-item { display: flex; align-items: center; gap: 13px; padding: 12px 13px; border-radius: 13px; text-decoration: none; color: #888; font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+    .nav-item.active { background: rgba(255,0,0,0.1); color: var(--primary); }
+    .nav-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; background: rgba(255,255,255,0.05); }
+
+    /* 匯率工具 */
+    .currency-tool {
+      background: #fff; border-bottom: 1px solid #E8E6E0;
+      padding: 10px 16px; display: flex; align-items: center;
+      justify-content: center; gap: 10px; font-size: 13px;
+      position: sticky; top: 58px; z-index: 99;
+      box-shadow: 0 1px 8px rgba(0,0,0,.06);
+    }
+    .currency-tool input { width: 88px; padding: 6px 10px; border-radius: 8px; border: 1px solid #D8D6D0; font-weight: 700; text-align: center; font-size: 13px; }
+    #twdResult { font-weight: 900; color: var(--accent); font-size: 14px; }
+    .currency-tool small { color: #aaa; font-size: 11px; cursor: pointer; }
+
+    /* 主體 */
+    .wrap { padding: 14px 12px; max-width: 580px; margin: 0 auto; }
+    .card { background: #fff; border-radius: 20px; margin-bottom: 18px; overflow: hidden; border: .5px solid #E4E2DC; box-shadow: 0 2px 16px rgba(0,0,0,.05); }
+    .day-header { background: var(--dark); color: #fff; padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+    .day-header span:last-child { font-size: 13.5px; font-weight: 500; opacity: .92; }
+    .badge { background: linear-gradient(135deg, var(--primary), #FF4444); color: #fff; padding: 4px 12px; border-radius: 8px; font-weight: 900; font-size: 11.5px; white-space: nowrap; }
+
+    /* 行程 entry */
+    .entry { display: flex; align-items: flex-start; gap: 12px; padding: 10px 14px; }
+    .entry + .entry { border-top: .5px solid #F2F0EA; }
+    .entry.new-entry { animation: fadeIn .3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .time { min-width: 48px; font-size: 12px; color: var(--accent); font-weight: 900; padding-top: 13px; text-align: right; }
+    .content { flex: 1; padding: 4px 0; }
+    .entry-card { border: .5px solid #ECEAE4; border-radius: 14px; padding: 10px 13px; background: #FAFAF8; }
+    .title { font-weight: 700; font-size: 14.5px; margin-bottom: 7px; line-height: 1.4; color: #1A1A1A; }
+
+    .box { font-size: 12.5px; padding: 9px 12px; border-radius: 10px; line-height: 1.7; white-space: pre-wrap; word-break: break-all; margin-bottom: 6px; }
+    .buy  { background: #FFF3F3; border-left: 3px solid var(--primary); color: #7A1020; }
+    .warn { background: #FFF8E1; border-left: 3px solid var(--gold); color: #7A5A00; }
+    .tip  { background: #E8F4FD; border-left: 3px solid #2196F3; color: #0D47A1; }
+
+    .nav-btn { display: flex; align-items: center; justify-content: center; width: 100%; padding: 9px 0; margin: 8px 0; background: #4285F4; border-radius: 8px; text-decoration: none; font-size: 11.5px; color: #fff; font-weight: 600; border: none; cursor: pointer; font-family: inherit; }
+
+    /* 提醒清單 */
+    .prep-card { border-left: 5px solid var(--accent); padding-top: 10px; }
+    .prep-card h3 { margin: 0 0 6px 16px; font-size: 14.5px; color: #1A1A1A; }
+    .prep-list { padding: 0 14px 8px; display: flex; flex-direction: column; }
+    .prep-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: .5px dashed #eee; font-size: 13.5px; }
+    .prep-item:last-child { border-bottom: none; }
+    .prep-tag { border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 600; white-space: nowrap; margin-top: 2px; cursor: pointer; user-select: none; }
+    .prep-text { flex: 1; outline: none; border: none; background: transparent; font-family: inherit; font-size: 13.5px; color: #333; padding: 2px 4px; }
+    .prep-del { background: none; border: none; color: #ddd; font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; }
+    .prep-del:hover { color: var(--accent); }
+    .prep-add-btn { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 14px 12px; padding: 7px 12px; background: #f5f5f3; border: 1px dashed #ccc; border-radius: 8px; font-size: 12px; color: #888; cursor: pointer; width: calc(100% - 28px); font-family: inherit; }
+
+    [contenteditable="true"] { outline: 1.5px dashed #4285F4 !important; background: rgba(66,133,244,0.05) !important; border-radius: 4px; min-height: 1.2em; cursor: text; padding: 2px 4px; }
+
+    /* 底部控制列 */
+    #admin-controls { position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 10px; padding: 12px 16px; background: rgba(255,255,255,.95); backdrop-filter: blur(10px); border-top: .5px solid #E4E2DC; z-index: 200; }
+    #admin-controls button { flex: 1; border: none; padding: 13px 0; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
+    #edit-btn { background: #FF9800; color: #fff; }
+    #save-btn { background: #4CAF50; color: #fff; display: none; }
+    #add-btn  { background: var(--dark); color: var(--primary); }
+
+    /* Sheet 彈窗 */
+    #sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 300; display: none; align-items: flex-end; justify-content: center; }
+    #sheet-overlay.active { display: flex; }
+    #sheet { background: #fff; width: 100%; max-width: 580px; border-radius: 22px 22px 0 0; padding: 20px 18px 40px; animation: slideUp .25s ease; max-height: 85vh; overflow-y: auto; }
+    @keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .sheet-tabs { display: flex; gap: 0; margin-bottom: 16px; border-radius: 10px; overflow: hidden; border: 1px solid #E0DED8; }
+    .sheet-tab { flex: 1; padding: 9px 4px; font-size: 12px; font-weight: 600; text-align: center; cursor: pointer; background: #F5F3EE; color: #888; border: none; font-family: inherit; }
+    .sheet-tab.active { background: var(--dark); color: var(--primary); }
+
+    .sheet-panel { display: none; }
+    .sheet-panel.active { display: block; }
+
+    .sheet-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 13px; }
+    .sheet-row label { font-size: 12px; color: #888; font-weight: 500; }
+    .sheet-row input, .sheet-row select, .sheet-row textarea { border: 1px solid #D8D6D0; border-radius: 10px; padding: 10px 12px; font-size: 14px; font-family: inherit; width: 100%; background: #FAFAF8; }
+    .sheet-row textarea { resize: none; height: 72px; }
+
+    .day-select { display: flex; gap: 8px; flex-wrap: wrap; }
+    .day-chip { padding: 6px 13px; border-radius: 20px; border: 1px solid #D8D6D0; font-size: 12px; cursor: pointer; background: #fff; font-weight: 500; color: #555; }
+    .day-chip.active { background: #1A1A1A; color: var(--primary); border-color: #1A1A1A; font-weight: 700; }
+
+    .tag-select { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tag-chip { padding: 5px 12px; border-radius: 20px; border: 1.5px solid #ddd; font-size: 12px; cursor: pointer; font-weight: 500; color: #888; background: #fff; }
+    .tag-chip.active { border-color: transparent; }
+
+    .sheet-btns { display: flex; gap: 10px; margin-top: 6px; }
+    .btn-cancel { flex: 1; padding: 13px; border-radius: 12px; border: 1px solid #D8D6D0; background: #F5F3EE; font-size: 14px; font-weight: 600; cursor: pointer; color: #555; font-family: inherit; }
+    .btn-add { flex: 2; padding: 13px; border-radius: 12px; border: none; background: var(--accent); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+
+    /* 拖曳 */
+    .entry[draggable] { cursor: grab; }
+    .entry.dragging { opacity: 0.35; background: #fff3e0; border-radius: 12px; }
+    .entry.drag-over-top { border-top: 2.5px solid var(--accent); }
+    .entry.drag-over-bottom { border-bottom: 2.5px solid var(--accent); }
+    .drag-handle { display: none; color: #ccc; font-size: 18px; padding: 0 6px; cursor: grab; user-select: none; }
+    body.edit-active .drag-handle { display: inline; }
+  </style>
+</head>
+<body>
+  <div class="drawer-overlay" onclick="closeDrawer()"></div>
+
+  <div class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div class="drawer-trip-label">TRIP GUIDE</div>
+      <div class="drawer-trip-name">🇭🇰 香港之旅</div>
+      <div class="drawer-trip-date">4 天 3 夜</div>
+    </div>
+    <nav class="drawer-nav">
+      <div class="nav-section-label">主要功能</div>
+      <a href="hongkong.html" class="nav-item active">
+        <div class="nav-icon">🗓️</div><span>行程秘笈</span>
+      </a>
+      <div class="nav-section-label">即將推出</div>
+      <a href="#" class="nav-item"><div class="nav-icon">✈️</div><span>行前準備</span></a>
+      <a href="#" class="nav-item"><div class="nav-icon">🛒</div><span>採買清單</span></a>
+      <a href="#" class="nav-item"><div class="nav-icon">💵</div><span>記帳</span></a>
+      <a href="#" class="nav-item"><div class="nav-icon">🍜</div><span>美食清單</span></a>
+    </nav>
+  </div>
+
+  <div id="app">
+    <!-- 頂部導覽 -->
+    <div style="position:sticky;top:0;z-index:101;background:rgba(245,243,238,0.95);backdrop-filter:blur(12px);padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(0,0,0,0.05);">
+      <button onclick="toggleDrawer()" style="width:38px;height:38px;background:#1A1A1A;border:none;border-radius:11px;cursor:pointer;font-size:18px;color:#FF0000;flex-shrink:0;">☰</button>
+      <span style="font-size:16px;font-weight:900;">🇭🇰 香港行程秘笈</span>
+    </div>
+
+    <!-- 匯率工具：港幣 → 台幣 -->
+    <div class="currency-tool">
+      <span>匯率</span>
+      <input type="number" id="hkdInput" placeholder="港幣 HK$" oninput="convertCurrency()">
+      <span id="twdResult">≈ 0 TWD</span>
+      <small id="current-rate-text" onclick="editRate()">(4.12)</small>
+    </div>
+
+    <main class="wrap" id="main-wrap">
+      <!-- 快速跳轉 -->
+      <div class="jump-tabs">
+        <button class="jump-btn" onclick="scrollToDay('day1-card')">D1</button>
+        <button class="jump-btn" onclick="scrollToDay('day2-card')">D2</button>
+        <button class="jump-btn" onclick="scrollToDay('day3-card')">D3</button>
+        <button class="jump-btn" onclick="scrollToDay('day4-card')">D4</button>
+      </div>
+
+      <section class="card" id="day1-card">
+        <div class="day-header"><span class="badge">Day 1</span><span class="editable-content" id="d1-header" contenteditable="false">抵達香港 → 旺角 / 尖沙咀 Check-in</span></div>
+        <div class="itinerary" id="day1-entries"></div>
+      </section>
+
+      <section class="card" id="day2-card">
+        <div class="day-header"><span class="badge">Day 2</span><span class="editable-content" id="d2-header" contenteditable="false">銅鑼灣掃貨 + 廟街夜市</span></div>
+        <div class="itinerary" id="day2-entries"></div>
+      </section>
+
+      <section class="card" id="day3-card">
+        <div class="day-header"><span class="badge">Day 3</span><span class="editable-content" id="d3-header" contenteditable="false">中環 + 上環 文青路線</span></div>
+        <div class="itinerary" id="day3-entries"></div>
+      </section>
+
+      <section class="card" id="day4-card">
+        <div class="day-header"><span class="badge">Day 4</span><span class="editable-content" id="d4-header" contenteditable="false">最後掃貨 + 返台</span></div>
+        <div class="itinerary" id="day4-entries"></div>
+      </section>
+
+      <section class="card prep-card">
+        <h3>💡 香港旅遊重點提醒</h3>
+        <div class="prep-list" id="prep-list"></div>
+        <button class="prep-add-btn" onclick="openSheet('prep')">＋ 新增提醒</button>
+      </section>
+    </main>
+  </div>
+
+  <!-- 編輯行程彈窗 -->
+  <div id="edit-entry-overlay" onclick="closeEditOnOverlay(event)">
+    <div id="edit-entry-sheet">
+      <p style="font-size:16px;font-weight:700;margin:0 0 16px;">✏️ 編輯行程</p>
+      <div class="sheet-row"><label>時間</label><input type="text" id="edit-time" placeholder="14:30"></div>
+      <div class="sheet-row"><label>標題</label><input type="text" id="edit-title" placeholder="例：銅鑼灣 莎莎"></div>
+      <div class="sheet-row"><label>內容</label><textarea id="edit-content" style="resize:none;height:80px;" placeholder="內容說明"></textarea></div>
+      <div class="sheet-row"><label>📍 Google Maps 地址（選填）</label><input type="text" id="edit-nav" placeholder="例：銅鑼灣 莎莎化妝品"></div>
+      <div class="sheet-row"><label>類型</label>
+        <select id="edit-type">
+          <option value="buy">🔴 採購（紅）</option>
+          <option value="warn">🟡 注意（黃）</option>
+          <option value="tip">🔵 小提示（藍）</option>
+        </select>
+      </div>
+      <div class="sheet-btns">
+        <button class="btn-cancel" onclick="closeEditSheet()">取消</button>
+        <button class="btn-add" onclick="saveEditEntry()">儲存 ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部控制 -->
+  <div id="admin-controls">
+    <button id="edit-btn" onclick="toggleEditMode()">✏️ 編輯模式</button>
+    <button id="save-btn" onclick="saveToFirebase()">💾 儲存變更</button>
+    <button id="add-btn" onclick="openSheet('entry')">＋ 新增</button>
+  </div>
+
+  <!-- 新增 Sheet -->
+  <div id="sheet-overlay" onclick="closeOnOverlay(event)">
+    <div id="sheet">
+      <div class="sheet-tabs">
+        <button class="sheet-tab active" onclick="switchTab('entry')">新增行程</button>
+        <button class="sheet-tab" onclick="switchTab('prep')">新增提醒</button>
+      </div>
+
+      <div class="sheet-panel active" id="panel-entry">
+        <div class="sheet-row">
+          <label>加到哪一天？</label>
+          <div class="day-select" id="day-chips">
+            <div class="day-chip active" data-day="day1">Day 1</div>
+            <div class="day-chip" data-day="day2">Day 2</div>
+            <div class="day-chip" data-day="day3">Day 3</div>
+            <div class="day-chip" data-day="day4">Day 4</div>
+          </div>
+        </div>
+        <div class="sheet-row"><label>時間</label><input type="text" id="inp-time" placeholder="14:30"></div>
+        <div class="sheet-row"><label>標題</label><input type="text" id="inp-title" placeholder="例：銅鑼灣 莎莎"></div>
+        <div class="sheet-row"><label>內容</label><textarea id="inp-content" placeholder="採購清單、注意事項…"></textarea></div>
+        <div class="sheet-row">
+          <label>📍 Google Maps 地址（選填）</label>
+          <input type="text" id="inp-nav" placeholder="例：香港 銅鑼灣 莎莎化妝品">
+          <small style="color:#aaa;font-size:11px;margin-top:4px;display:block;">填入地址，會自動產生 Google Maps 導航按鈕</small>
+        </div>
+        <div class="sheet-row"><label>類型</label>
+          <select id="inp-type">
+            <option value="buy">🔴 採購（紅）</option>
+            <option value="warn">🟡 注意（黃）</option>
+            <option value="tip">🔵 小提示（藍）</option>
+          </select>
+        </div>
+        <div class="sheet-row">
+          <label>📷 附圖（選填）</label>
+          <div id="entry-photo-area" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:4px;">
+            <div onclick="document.getElementById('entry-photo-input').click()" style="width:64px;height:64px;border-radius:10px;border:1.5px dashed #D0CEC8;background:#F5F3EE;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:#aaa;font-size:10px;gap:4px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              新增
+            </div>
+            <input type="file" id="entry-photo-input" accept="image/*" multiple style="display:none;">
+          </div>
+        </div>
+        <div class="sheet-btns">
+          <button class="btn-cancel" onclick="closeSheet()">取消</button>
+          <button class="btn-add" onclick="addEntry()">新增 ＋</button>
+        </div>
+      </div>
+
+      <div class="sheet-panel" id="panel-prep">
+        <div class="sheet-row">
+          <label>標籤</label>
+          <div class="tag-select" id="tag-chips">
+            <span class="tag-chip active" data-tag="購物" style="background:#ffd6d6;color:#c0392b;border-color:#ffd6d6;">購物</span>
+            <span class="tag-chip" data-tag="交通">交通</span>
+            <span class="tag-chip" data-tag="注意">注意</span>
+            <span class="tag-chip" data-tag="APP">APP</span>
+            <span class="tag-chip" data-tag="提醒">提醒</span>
+          </div>
+        </div>
+        <div class="sheet-row"><label>提醒內容</label><input type="text" id="inp-prep-text" placeholder="例：八達通記得加值"></div>
+        <div class="sheet-btns">
+          <button class="btn-cancel" onclick="closeSheet()">取消</button>
+          <button class="btn-add" onclick="addPrepItem()">新增 ＋</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ══════════════════════════════════════════
+   預設資料
+══════════════════════════════════════════ */
+const DEFAULT_DATA = {
+  rate: 4.12,
+  headers: {
+    'd1-header': '抵達香港 → 旺角 / 尖沙咀 Check-in',
+    'd2-header': '銅鑼灣掃貨 + 廟街夜市',
+    'd3-header': '中環 + 上環 文青路線',
+    'd4-header': '最後掃貨 + 返台'
+  },
+  days: {
+    day1: [
+      { id:'hk1', time:'抵達', title:'入境香港', content:'• 機場快線 (Airport Express) 約 24 分鐘到香港站\n• 八達通可在機場服務台購買\n• 建議先換少量港幣，信用卡大部分地方通用', type:'tip', nav:'' },
+      { id:'hk2', time:'下午', title:'旺角採購掃貨', content:'• 女人街（通菜街）：服飾、飾品、平價小物\n• 旺角電腦中心：3C 配件\n• 朗豪坊：購物中心品牌', type:'buy', nav:'旺角女人街 香港' },
+      { id:'hk3', time:'晚上', title:'尖沙咀夜景 + 海港城', content:'• 維多利亞港夜景必拍\n• 海港城逛逛各大品牌\n⚠️ 幻彩詠香江燈光秀每晚 8:00 pm', type:'tip', nav:'尖沙咀 海港城 香港' }
+    ],
+    day2: [
+      { id:'hk4', time:'10:00', title:'銅鑼灣 莎莎 / 卓悅', content:'• 彩妝、護膚品比台灣便宜 20-30%\n• Laneige、Sulwhasoo、Innisfree 韓系品牌\n• IPSA、SK-II 日系保養', type:'buy', nav:'銅鑼灣 莎莎化妝品 香港' },
+      { id:'hk5', time:'14:00', title:'SOGO 百貨 / 時代廣場', content:'• 日系百貨，品牌齊全\n• 地下超市掃特色零食伴手禮', type:'buy', nav:'銅鑼灣 時代廣場 香港' },
+      { id:'hk6', time:'晚上', title:'廟街夜市', content:'• 玉器、中式紀念品、街頭小食\n⚠️ 議價文化盛行，開口還價不失禮', type:'warn', nav:'廟街夜市 油麻地 香港' }
+    ],
+    day3: [
+      { id:'hk7', time:'10:00', title:'荷李活道古董街', content:'• 古董擺設、文創小物\n• 適合拍照打卡', type:'tip', nav:'荷李活道 中環 香港' },
+      { id:'hk8', time:'12:00', title:'中環街市 / PMTQ', content:'• 本地設計師品牌、文創商品\n• 文青必逛', type:'buy', nav:'中環街市 香港' },
+      { id:'hk9', time:'15:00', title:'PMQ 元創方', content:'• 香港本地設計、手工藝品\n• 咖啡廳 + 小店林立', type:'buy', nav:'PMQ 元創方 上環 香港' }
+    ],
+    day4: [
+      { id:'hk10', time:'09:00', title:'退房後最後採購', content:'• 行李寄放飯店，輕裝掃最後一輪\n• 超市：雞蛋仔餅乾、港式零食、維他奶', type:'buy', nav:'' },
+      { id:'hk11', time:'機場', title:'香港國際機場 → 返台', content:'• 機場快線 Hong Kong Station 搭乘\n• 國泰、港龍記得提前 3 小時到\n⚠️ 液體類超過 100ml 放托運', type:'warn', nav:'香港國際機場' }
+    ]
+  },
+  prepList: [
+    { tag:'交通', text:'八達通卡：機場一到就買，地鐵公車都能刷', bg:'#e0eeff', color:'#2255bb' },
+    { tag:'購物', text:'莎莎、卓悅記得比價，同品牌不同分店有價差', bg:'#ffd6d6', color:'#c0392b' },
+    { tag:'注意', text:'香港插頭是三腳方形，需帶轉接頭', bg:'#fff3cd', color:'#7a5a00' },
+    { tag:'APP',  text:'下載「HKeMobility」查巴士路線', bg:'#d6f0d6', color:'#27ae60' }
+  ]
+};
+
+/* ══════════════════════════════════════════
+   Google Maps 導航
+══════════════════════════════════════════ */
+function openGoogleMaps(addr) {
+  if (!addr) return;
+  const encoded = encodeURIComponent(addr);
+  window.open('https://www.google.com/maps/search/?api=1&query=' + encoded, '_blank');
+}
+
+/* ══════════════════════════════════════════
+   Firebase
+══════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey: "AIzaSyAAFXVji5ITVnhaEkq-I6V4wxGVDPlFz04",
+  authDomain: "hongkong-853f6.firebaseapp.com",
+  databaseURL: "https://hongkong-853f6-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "hongkong-853f6",
+  storageBucket: "hongkong-853f6.firebasestorage.app",
+  messagingSenderId: "765558997784",
+  appId: "1:765558997784:web:6e70889ebb9ecc7d14146d",
+  measurementId: "G-E0NWP3WR77"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ══════════════════════════════════════════
+   全域狀態
+══════════════════════════════════════════ */
+let currentRate = 4.12;
+let isEditMode = false;
+let isSyncLocked = false;
+
+/* ══════════════════════════════════════════
+   渲染 entry
+══════════════════════════════════════════ */
+function buildEntryHTML(e) {
+  const navBtn = e.nav
+    ? '<button class="nav-btn" data-nav="' + (e.nav || '').replace(/"/g, '&quot;') + '" onclick="openGoogleMaps(this.dataset.nav)">📍 Google Maps 導航</button>'
+    : '';
+  const photosHtml = (e.photos || []).map(src =>
+    '<img src="' + src + '" style="width:100%;border-radius:8px;margin-top:8px;display:block;">'
+  ).join('');
+  return '<div class="entry" data-entry-id="' + e.id + '">'
+    + '<span class="drag-handle">⠿</span>'
+    + '<div class="time editable-content" id="' + e.id + '-time">' + (e.time || '') + '</div>'
+    + '<div class="content"><div class="entry-card">'
+    + '<div class="title editable-content" id="' + e.id + '-title">' + (e.title || '') + '</div>'
+    + '<div class="box ' + (e.type || 'buy') + ' editable-content" id="' + e.id + '-box">' + (e.content || '') + '</div>'
+    + navBtn + photosHtml
+    + '</div></div></div>';
+}
+
+/* ══════════════════════════════════════════
+   收集資料
+══════════════════════════════════════════ */
+function collectDaysData() {
+  const days = {};
+  ['day1','day2','day3','day4'].forEach(dayId => {
+    const container = document.getElementById(dayId + '-entries');
+    if (!container) return;
+    days[dayId] = [...container.querySelectorAll('.entry')].map(entryEl => {
+      const id = entryEl.dataset.entryId || ('e-' + Date.now() + Math.random());
+      const timeEl  = entryEl.querySelector('.time');
+      const titleEl = entryEl.querySelector('[id$="-title"]');
+      const boxEl   = entryEl.querySelector('[id$="-box"]');
+      const navBtn  = entryEl.querySelector('.nav-btn[data-nav]');
+      const photos  = [...entryEl.querySelectorAll('img')].map(img => img.src).filter(Boolean);
+      const boxMatch = boxEl ? boxEl.className.match(/\b(buy|warn|tip)\b/) : null;
+      return {
+        id,
+        time:    timeEl  ? timeEl.innerText.trim()  : '',
+        title:   titleEl ? titleEl.innerText.trim() : '',
+        content: boxEl   ? boxEl.innerText.trim()   : '',
+        type:    boxMatch ? boxMatch[0] : 'buy',
+        nav:     navBtn  ? navBtn.dataset.nav        : '',
+        photos
+      };
+    });
+  });
+  return days;
+}
+
+/* ══════════════════════════════════════════
+   渲染所有行程
+══════════════════════════════════════════ */
+function renderAllDays(daysData) {
+  ['day1','day2','day3','day4'].forEach(dayId => {
+    const container = document.getElementById(dayId + '-entries');
+    if (!container) return;
+    const entries = daysData[dayId] || [];
+    container.innerHTML = entries.map(buildEntryHTML).join('');
+  });
+  if (isEditMode) injectDelBtns();
+}
+
+/* ══════════════════════════════════════════
+   匯率換算（港幣 → 台幣）
+══════════════════════════════════════════ */
+function convertCurrency() {
+  const hkdInput = document.getElementById('hkdInput').value;
+  const hkd = parseFloat(hkdInput);
+  if (!hkdInput || isNaN(hkd) || hkd <= 0) {
+    document.getElementById('twdResult').innerText = '≈ 0 TWD';
+    return;
+  }
+  const twd = Math.round(hkd * parseFloat(currentRate));
+  document.getElementById('twdResult').innerText = '≈ ' + twd.toLocaleString() + ' TWD';
+}
+
+function editRate() {
+  const val = prompt('修改匯率（港幣→台幣，例如 4.12）：', currentRate);
+  if (val === null || val.trim() === '') return;
+  const parsed = parseFloat(val);
+  if (isNaN(parsed) || parsed <= 0) { alert('請輸入正確的匯率數字，例如 4.12'); return; }
+  currentRate = parsed;
+  document.getElementById('current-rate-text').innerText = '(' + currentRate + ')';
+  convertCurrency();
+}
+
+/* ══════════════════════════════════════════
+   圖片壓縮
+══════════════════════════════════════════ */
+function compressImage(file, callback) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 600;
+      let w = img.width, h = img.height;
+      if (w > h && w > MAX) { h = h * MAX / w; w = MAX; }
+      else if (h > MAX) { w = w * MAX / h; h = MAX; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', 0.75));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById('entry-photo-input').addEventListener('change', function() {
+  const area = document.getElementById('entry-photo-area');
+  const addBtn = area.querySelector('div');
+  Array.from(this.files).forEach(file => {
+    compressImage(file, base64 => {
+      const thumb = document.createElement('div');
+      thumb.style.cssText = 'position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;';
+      thumb.innerHTML = '<img src="' + base64 + '" style="width:100%;height:100%;object-fit:cover;">'
+        + '<button onclick="this.parentElement.remove()" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>';
+      area.insertBefore(thumb, addBtn);
+    });
+  });
+  this.value = '';
+});
+
+/* ══════════════════════════════════════════
+   捲動
+══════════════════════════════════════════ */
+function scrollToDay(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - 100, behavior: 'smooth' });
+}
+
+/* ══════════════════════════════════════════
+   編輯模式
+══════════════════════════════════════════ */
+function toggleEditMode() {
+  isEditMode = !isEditMode;
+  isSyncLocked = isEditMode;
+  document.querySelectorAll('.editable-content').forEach(el => el.contentEditable = isEditMode);
+  document.querySelectorAll('.prep-text').forEach(el => el.contentEditable = isEditMode);
+  document.body.classList.toggle('edit-active', isEditMode);
+  const eb = document.getElementById('edit-btn');
+  const sb = document.getElementById('save-btn');
+  if (isEditMode) {
+    eb.innerText = '🚫 取消';
+    sb.style.display = 'block';
+    injectDelBtns();
+  } else {
+    eb.innerText = '✏️ 編輯模式';
+    sb.style.display = 'none';
+    isSyncLocked = false;
+  }
+}
+
+/* ══════════════════════════════════════════
+   儲存到 Firebase
+══════════════════════════════════════════ */
+function saveToFirebase() {
+  const headers = {};
+  document.querySelectorAll('.editable-content[id^="d"]').forEach(el => {
+    if (el.id) headers[el.id] = el.innerText;
+  });
+
+  const prepList = [];
+  document.querySelectorAll('#prep-list .prep-item').forEach(item => {
+    const tag  = item.querySelector('.prep-tag');
+    const text = item.querySelector('.prep-text');
+    if (tag && text) prepList.push({ tag: tag.textContent, text: text.textContent, bg: tag.style.background, color: tag.style.color });
+  });
+
+  const data = { rate: parseFloat(currentRate), headers, days: collectDaysData(), prepList };
+
+  db.ref('hk_itinerary/v1').set(data).then(() => {
+    isSyncLocked = false;
+    isEditMode = false;
+    document.body.classList.remove('edit-active');
+    document.getElementById('edit-btn').innerText = '✏️ 編輯模式';
+    document.getElementById('save-btn').style.display = 'none';
+    document.querySelectorAll('.editable-content').forEach(el => el.contentEditable = false);
+    document.querySelectorAll('.prep-text').forEach(el => el.contentEditable = false);
+    alert('✅ 儲存成功！所有裝置都會同步。');
+  }).catch(err => alert('❌ 儲存失敗：' + err.message));
+}
+
+/* ══════════════════════════════════════════
+   Firebase 讀取
+══════════════════════════════════════════ */
+window.addEventListener('load', function() {
+  db.ref('hk_itinerary/v1').on('value', snap => {
+    if (isSyncLocked) return;
+    const data = snap.val();
+    const source = data || DEFAULT_DATA;
+
+    const headers = source.headers || DEFAULT_DATA.headers;
+    Object.keys(headers).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = headers[id];
+    });
+
+    renderAllDays(source.days || DEFAULT_DATA.days);
+
+    const rate = parseFloat(source.rate);
+    if (!isNaN(rate) && rate > 0) {
+      currentRate = rate;
+      document.getElementById('current-rate-text').innerText = '(' + currentRate + ')';
+      convertCurrency();
+    }
+
+    const prepList = source.prepList || DEFAULT_DATA.prepList;
+    const pl = document.getElementById('prep-list');
+    pl.innerHTML = '';
+    prepList.forEach(item => {
+      pl.innerHTML += makePrepItem(item.tag, item.text, item.bg, item.color);
+    });
+  });
+});
+
+/* ══════════════════════════════════════════
+   新增行程
+══════════════════════════════════════════ */
+function addEntry() {
+  const day     = document.querySelector('.day-chip.active').dataset.day;
+  const time    = document.getElementById('inp-time').value.trim();
+  const title   = document.getElementById('inp-title').value.trim();
+  const content = document.getElementById('inp-content').value.trim();
+  const type    = document.getElementById('inp-type').value;
+  const nav     = document.getElementById('inp-nav').value.trim();
+
+  if (!time || !title) return alert('請填寫時間和標題');
+
+  const id = 'hk-' + Date.now();
+  const photos = [];
+  document.querySelectorAll('#entry-photo-area img').forEach(img => photos.push(img.src));
+
+  const container = document.getElementById(day + '-entries');
+  container.insertAdjacentHTML('beforeend', buildEntryHTML({ id, time, title, content, type, nav, photos }));
+
+  const area = document.getElementById('entry-photo-area');
+  area.querySelectorAll('div[style*="position:relative"]').forEach(el => el.remove());
+  document.getElementById('inp-time').value    = '';
+  document.getElementById('inp-title').value   = '';
+  document.getElementById('inp-content').value = '';
+  document.getElementById('inp-nav').value     = '';
+  document.getElementById('inp-type').value    = 'buy';
+
+  closeSheet();
+  alert('已新增，請記得按「儲存」同步到雲端');
+}
+
+/* ══════════════════════════════════════════
+   代購提醒清單
+══════════════════════════════════════════ */
+const tagStyles = {
+  '購物': { bg: '#ffd6d6', color: '#c0392b' },
+  '交通': { bg: '#e0eeff', color: '#2255bb' },
+  '注意': { bg: '#fff3cd', color: '#7a5a00' },
+  'APP':  { bg: '#d6f0d6', color: '#27ae60' },
+  '提醒': { bg: '#f0e6ff', color: '#6a1b9a' }
+};
+const tagList = Object.keys(tagStyles);
+
+function addPrepItem() {
+  const tagEl = document.querySelector('.tag-chip.active');
+  const tag   = tagEl ? tagEl.dataset.tag : '提醒';
+  const text  = document.getElementById('inp-prep-text').value.trim();
+  if (!text) return alert('請輸入提醒內容');
+  const s = tagStyles[tag] || tagStyles['提醒'];
+  document.getElementById('prep-list').insertAdjacentHTML('beforeend', makePrepItem(tag, text, s.bg, s.color));
+  document.getElementById('inp-prep-text').value = '';
+  closeSheet();
+}
+
+function makePrepItem(tag, text, bg, color) {
+  return '<div class="prep-item">'
+    + '<span class="prep-tag" style="background:' + bg + ';color:' + color + ';" onclick="cyclePrepTag(this)">' + tag + '</span>'
+    + '<span class="prep-text" contenteditable="false">' + text + '</span>'
+    + '<button class="prep-del" onclick="delPrepItem(this)">×</button>'
+    + '</div>';
+}
+
+function delPrepItem(btn) { btn.closest('.prep-item').remove(); }
+
+function cyclePrepTag(el) {
+  const cur  = tagList.indexOf(el.textContent);
+  const next = tagList[(cur + 1) % tagList.length];
+  const s    = tagStyles[next];
+  el.textContent      = next;
+  el.style.background = s.bg;
+  el.style.color      = s.color;
+}
+
+/* ══════════════════════════════════════════
+   Sheet / 彈窗控制
+══════════════════════════════════════════ */
+function switchTab(tab) {
+  const tabs = ['entry', 'prep'];
+  document.querySelectorAll('.sheet-tab').forEach((t, i) => t.classList.toggle('active', tabs[i] === tab));
+  document.querySelectorAll('.sheet-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+function openSheet(tab) { document.getElementById('sheet-overlay').classList.add('active'); switchTab(tab || 'entry'); }
+function closeSheet()   { document.getElementById('sheet-overlay').classList.remove('active'); }
+function closeOnOverlay(e) { if (e.target.id === 'sheet-overlay') closeSheet(); }
+
+document.querySelectorAll('.day-chip').forEach(chip => {
+  chip.onclick = function() {
+    document.querySelectorAll('.day-chip').forEach(c => c.classList.remove('active'));
+    this.classList.add('active');
+  };
+});
+
+document.querySelectorAll('.tag-chip').forEach(chip => {
+  chip.onclick = function() {
+    document.querySelectorAll('.tag-chip').forEach(c => {
+      c.classList.remove('active'); c.style.background = ''; c.style.color = ''; c.style.borderColor = '';
+    });
+    this.classList.add('active');
+    const s = tagStyles[this.dataset.tag];
+    if (s) { this.style.background = s.bg; this.style.color = s.color; this.style.borderColor = s.bg; }
+  };
+});
+
+/* ══════════════════════════════════════════
+   抽屜
+══════════════════════════════════════════ */
+function toggleDrawer() { document.body.classList.toggle('drawer-open'); }
+function closeDrawer()  { document.body.classList.remove('drawer-open'); }
+document.getElementById('drawer').addEventListener('touchend', e => {
+  if (e.changedTouches[0].clientX < 50) closeDrawer();
+}, { passive: true });
+
+/* ══════════════════════════════════════════
+   Touch 拖曳
+══════════════════════════════════════════ */
+(function() {
+  let dragging = null, clone = null, offsetY = 0;
+  let activeContainer = null, activeSelector = null;
+
+  function getContainerAndSelector(target) {
+    const it = target.closest('.itinerary');
+    if (it) return { container: it, selector: '.entry' };
+    return null;
+  }
+
+  document.addEventListener('touchstart', e => {
+    if (!isEditMode) return;
+    const handle = e.target.closest('.drag-handle');
+    if (!handle) return;
+    const cfg = getContainerAndSelector(handle);
+    if (!cfg) return;
+    const item = handle.closest(cfg.selector);
+    if (!item) return;
+    e.preventDefault();
+    dragging = item; activeSelector = cfg.selector; activeContainer = cfg.container;
+    offsetY = e.touches[0].clientY - item.getBoundingClientRect().top;
+    clone = item.cloneNode(true);
+    const rect = item.getBoundingClientRect();
+    clone.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;width:' + item.offsetWidth + 'px;opacity:0.85;box-shadow:0 8px 30px rgba(0,0,0,0.25);border-radius:12px;background:#fff;left:' + rect.left + 'px;top:' + rect.top + 'px;transition:none';
+    document.body.appendChild(clone);
+    item.style.opacity = '0.3';
+  }, { passive: false });
+
+  document.addEventListener('touchmove', e => {
+    if (!dragging || !clone) return;
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    clone.style.top = (y - offsetY) + 'px';
+    activeContainer.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => el.classList.remove('drag-over-top', 'drag-over-bottom'));
+    const items = [...activeContainer.querySelectorAll(activeSelector)].filter(el => el !== dragging);
+    for (const item of items) {
+      const rect = item.getBoundingClientRect();
+      if (y >= rect.top && y <= rect.bottom) {
+        item.classList.add(y < rect.top + rect.height / 2 ? 'drag-over-top' : 'drag-over-bottom');
+        break;
+      }
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchend', e => {
+    if (!dragging || !clone) return;
+    clone.remove(); clone = null;
+    dragging.style.opacity = '';
+    const y = e.changedTouches[0].clientY;
+    const items = [...activeContainer.querySelectorAll(activeSelector)].filter(el => el !== dragging);
+    let inserted = false;
+    for (const item of items) {
+      const rect = item.getBoundingClientRect();
+      item.classList.remove('drag-over-top', 'drag-over-bottom');
+      if (!inserted && y >= rect.top && y <= rect.bottom) {
+        activeContainer.insertBefore(dragging, y < rect.top + rect.height / 2 ? item : item.nextSibling);
+        inserted = true;
+      }
+    }
+    dragging = null; activeContainer = null; activeSelector = null;
+  });
+})();
+
+/* ══════════════════════════════════════════
+   長按選單 + 行程編輯
+══════════════════════════════════════════ */
+let _editTarget = null, _ctxMenu = null, _pressTimer = null;
+
+function removeCtxMenu() { if (_ctxMenu) { _ctxMenu.remove(); _ctxMenu = null; } }
+
+function showCtxMenu(entry, x, y) {
+  removeCtxMenu();
+  const m = document.createElement('div');
+  m.className = 'ctx-menu';
+  m.style.cssText = 'left:' + Math.min(x, window.innerWidth - 180) + 'px;top:' + Math.min(y, window.innerHeight - 120) + 'px;';
+  m.innerHTML = '<button class="ctx-btn" onclick="openEditSheet(window._ctxEntry)">✏️ 編輯行程</button>'
+    + '<button class="ctx-btn danger" onclick="confirmDeleteEntry(window._ctxEntry)">🗑 刪除行程</button>';
+  document.body.appendChild(m);
+  _ctxMenu = m; window._ctxEntry = entry;
+  setTimeout(() => document.addEventListener('touchstart', removeCtxMenu, { once: true }), 100);
+}
+
+function confirmDeleteEntry(entry) {
+  removeCtxMenu();
+  const title = entry.querySelector('[id$="-title"]');
+  if (confirm('確定刪除「' + (title ? title.innerText : '此行程') + '」？')) {
+    entry.remove();
+    alert('已刪除，請按「儲存」同步到雲端。');
+  }
+}
+
+function openEditSheet(entry) {
+  removeCtxMenu();
+  _editTarget = entry;
+  const timeEl  = entry.querySelector('.time');
+  const titleEl = entry.querySelector('[id$="-title"]');
+  const boxEl   = entry.querySelector('[id$="-box"]');
+  const navBtn  = entry.querySelector('.nav-btn[data-nav]');
+  const boxClass = boxEl && boxEl.className.match(/\b(buy|warn|tip)\b/);
+  document.getElementById('edit-time').value    = timeEl  ? timeEl.innerText.trim()  : '';
+  document.getElementById('edit-title').value   = titleEl ? titleEl.innerText.trim() : '';
+  document.getElementById('edit-content').value = boxEl   ? boxEl.innerText.trim()   : '';
+  document.getElementById('edit-nav').value     = navBtn  ? navBtn.dataset.nav        : '';
+  document.getElementById('edit-type').value    = boxClass ? boxClass[0] : 'buy';
+  document.getElementById('edit-entry-overlay').classList.add('active');
+}
+
+function saveEditEntry() {
+  if (!_editTarget) return;
+  const time    = document.getElementById('edit-time').value.trim();
+  const title   = document.getElementById('edit-title').value.trim();
+  const content = document.getElementById('edit-content').value.trim();
+  const nav     = document.getElementById('edit-nav').value.trim();
+  const type    = document.getElementById('edit-type').value;
+  if (!title) return alert('請輸入標題');
+
+  const timeEl  = _editTarget.querySelector('.time');
+  const titleEl = _editTarget.querySelector('[id$="-title"]');
+  const boxEl   = _editTarget.querySelector('[id$="-box"]');
+  if (timeEl)  timeEl.innerText  = time;
+  if (titleEl) titleEl.innerText = title;
+  if (boxEl)   { boxEl.innerText = content; boxEl.className = 'box ' + type + (isEditMode ? ' editable-content' : ''); }
+
+  const card   = _editTarget.querySelector('.entry-card');
+  const oldNav = card.querySelector('.nav-btn[data-nav]');
+  if (nav) {
+    if (oldNav) { oldNav.dataset.nav = nav; oldNav.onclick = function() { openGoogleMaps(this.dataset.nav); }; }
+    else card.insertAdjacentHTML('beforeend', '<button class="nav-btn" data-nav="' + nav.replace(/"/g, '&quot;') + '" onclick="openGoogleMaps(this.dataset.nav)">📍 Google Maps 導航</button>');
+  } else if (oldNav) { oldNav.remove(); }
+
+  closeEditSheet();
+  alert('已更新，請按「儲存」同步到雲端。');
+}
+
+function closeEditSheet() { document.getElementById('edit-entry-overlay').classList.remove('active'); _editTarget = null; }
+function closeEditOnOverlay(e) { if (e.target.id === 'edit-entry-overlay') closeEditSheet(); }
+
+document.getElementById('app').addEventListener('touchstart', e => {
+  const entry = e.target.closest('.itinerary .entry');
+  if (!entry) return;
+  _pressTimer = setTimeout(() => {
+    const t = e.touches[0];
+    showCtxMenu(entry, t.clientX, t.clientY);
+    if (navigator.vibrate) navigator.vibrate(30);
+  }, 550);
+}, { passive: true });
+
+document.getElementById('app').addEventListener('touchend',  () => clearTimeout(_pressTimer), { passive: true });
+document.getElementById('app').addEventListener('touchmove', () => clearTimeout(_pressTimer), { passive: true });
+
+/* ══════════════════════════════════════════
+   注入刪除按鈕
+══════════════════════════════════════════ */
+function injectDelBtns() {
+  document.querySelectorAll('.entry-card').forEach(card => {
+    if (!card.querySelector('.entry-del-btn')) {
+      const btn = document.createElement('button');
+      btn.className = 'entry-del-btn'; btn.textContent = '🗑 刪除';
+      btn.onclick = function() {
+        const entry = btn.closest('.entry');
+        const titleEl = entry && entry.querySelector('[id$="-title"]');
+        if (confirm('確定刪除「' + (titleEl ? titleEl.innerText : '此行程') + '」？')) entry.remove();
+      };
+      card.appendChild(btn);
+    }
+  });
+}
+</script>
+</body>
+</html>
