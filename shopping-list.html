@@ -11,7 +11,7 @@
     :root { --primary:#FFD60A; --dark:#1A1A18; --bg:#F0EEE9; --accent:#E6430A; --card-bg:#FFFFFF; }
     .drawer-overlay { position:fixed;inset:0;z-index:200;background:rgba(26,26,24,0.5);opacity:0;pointer-events:none;transition:opacity .28s; }
     body.drawer-open .drawer-overlay { opacity:1;pointer-events:auto; }
-    .drawer { position:fixed;top:0;left:0;bottom:0;z-index:210;width:272px;background:#1A1A18;transform:translateX(-100%);transition:transform .3s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column; }
+    .drawer { position:fixed;top:0;left:0;bottom:0;z-index:210;width:272px;background:#1A1A18;transform:tㄑranslateX(-100%);transition:transform .3s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column; }
     body.drawer-open .drawer { transform:translateX(0); }
     .drawer-header { padding:52px 22px 20px;border-bottom:1px solid rgba(255,214,10,0.12); }
     .drawer-trip-label { font-size:10px;color:#FFD60A;font-weight:700;letter-spacing:2px;opacity:.75; }
@@ -270,7 +270,7 @@ function renderItem(item) {
             </div>
         </div>
         <div class="item-fields">
-            <div class="sub-field"><label>詳細位置</label><input type="text" class="item-pos" value="${item.pos||''}"></div>
+            <div class="sub-field"><label>備注事項</label><input type="text" class="item-pos" value="${item.pos||''}"></div>
             <div class="sub-field"><label>金額(₩)</label><input type="number" class="item-price" value="${item.price||''}"></div>
             <div class="sub-field"><label>數量</label><input type="number" class="item-qty" value="${item.qty||''}"></div>
         </div>
