@@ -499,7 +499,7 @@ const db = firebase.database();
 let currentRate = 0.0211;
 let isEditMode = false;
 let isSyncLocked = false;
-
+let isSaving = false;
 /* ══════════════════════════════════════════
    ★ 核心：將一筆 entry 資料渲染成 DOM 字串
    修正：nav 改用 this.dataset.nav，不再拼接 onclick 字串
@@ -688,9 +688,11 @@ function saveToFirebase() {
     days: collectDaysData(),
     prepList
   };
-
+isSaving = true;
   db.ref('ybo_itinerary/v2').set(data).then(() => {
-    // 手動關閉編輯模式，避免觸發 Firebase on() 競態
+  
+db.ref('ybo_itinerary/v2').set(data).then(() => {
+    isSaving = false;
     isSyncLocked = false;
     isEditMode = false;
     document.body.classList.remove('edit-active');
@@ -707,8 +709,8 @@ function saveToFirebase() {
    修正：window.onload → window.addEventListener('load', ...)
 ══════════════════════════════════════════ */
 window.addEventListener('load', function() {
-  db.ref('ybo_itinerary/v2').on('value', snap => {
-    if (isSyncLocked) return;
+db.ref('ybo_itinerary/v2').on('value', snap => {
+    if (isSyncLocked || isSaving) return;
     const data = snap.val();
 
     // 無資料時用預設值
