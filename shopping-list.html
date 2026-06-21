@@ -28,22 +28,98 @@
     .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; padding:0 4px; }
     .page-title { margin:0; font-size:18px; font-weight:900; }
 
-    .location-card { background:var(--card-bg); border-radius:24px; padding:20px; margin-bottom:20px; box-shadow:0 4px 20px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.03); }
-    .location-title { display:flex; align-items:center; gap:10px; margin-bottom:18px; padding-bottom:12px; border-bottom:1.5px solid #F2F0EA; }
-    .location-title input { border:none; font-size:17px; font-weight:900; font-family:inherit; outline:none; flex:1; background:transparent; color:var(--accent); }
-    .location-title input::placeholder { color:#ccc; }
+    /* ===== 分區卡片（品牌大標題改版）===== */
+    .location-card { background:var(--card-bg); border-radius:24px; margin-bottom:20px; box-shadow:0 4px 20px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.03); overflow:hidden; }
+
+    .location-banner {
+        position:relative;
+        padding:22px 20px 18px;
+        background:linear-gradient(135deg, var(--dark) 0%, #2b2b27 100%);
+        display:flex; align-items:center; gap:14px;
+    }
+    .location-banner::before {
+        content:'';
+        position:absolute; top:0; left:0; bottom:0; width:7px;
+        background:var(--primary);
+    }
+    .location-index {
+        flex-shrink:0;
+        width:40px; height:40px; border-radius:12px;
+        background:rgba(255,214,10,0.15);
+        color:var(--primary);
+        display:flex; align-items:center; justify-content:center;
+        font-size:16px; font-weight:900;
+        border:1.5px solid rgba(255,214,10,0.3);
+    }
+    .location-title-wrap { flex:1; min-width:0; }
+    .location-banner-label { font-size:9px; color:var(--primary); font-weight:700; letter-spacing:2px; opacity:0.8; margin-bottom:3px; }
+    .location-title input {
+        border:none; font-size:20px; font-weight:900; font-family:inherit;
+        outline:none; width:100%; background:transparent; color:#fff;
+        padding:0;
+    }
+    .location-title input::placeholder { color:rgba(255,255,255,0.35); }
+    .location-banner .del-btn { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.5); flex-shrink:0; }
+    .location-banner .del-btn:hover { background:rgba(230,67,10,0.25); color:#ff8a5c; }
+
+    .location-body { padding:18px 16px 16px; }
 
     /* 商品列 */
     .item-row { background:#FAFAF8; border-radius:16px; padding:14px; margin-bottom:12px; transition:all 0.2s; position:relative; }
     .item-row:focus-within { background:#fff; box-shadow:0 0 0 2px var(--primary); }
     .item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; }
     .item-name-input { font-weight:700; font-size:15px; border:none; flex:1; outline:none; background:transparent; color:#1a1a1a; }
-    .item-fields { display:grid; grid-template-columns:1.2fr 1fr 0.8fr; gap:10px; margin-bottom:12px; }
+    .item-fields { display:grid; grid-template-columns:1fr 1.3fr; gap:10px; margin-bottom:10px; }
     .sub-field { display:flex; flex-direction:column; gap:5px; }
     .sub-field label { font-size:10px; color:#999; font-weight:700; letter-spacing:0.5px; }
     .sub-field input { border:1px solid #E8E6E0; background:#fff; border-radius:8px; padding:8px; font-size:13px; font-family:inherit; width:100%; font-weight:500; outline:none; }
     .sub-field input:focus { border-color:var(--dark); }
     .item-price { color:var(--accent); font-weight:700 !important; }
+
+    /* 金額（外幣 + 台幣換算）*/
+    .price-field-box { display:flex; flex-direction:column; gap:5px; }
+    .price-input-row { display:flex; align-items:center; gap:6px; border:1px solid #E8E6E0; background:#fff; border-radius:8px; padding:0 8px; }
+    .price-input-row:focus-within { border-color:var(--dark); }
+    .price-currency-tag { font-size:11px; font-weight:900; color:#aaa; flex-shrink:0; }
+    .price-input-row input { border:none; background:transparent; padding:8px 0; font-size:13px; font-family:inherit; width:100%; font-weight:700; outline:none; color:var(--accent); }
+    .price-twd-hint { font-size:11px; color:#bbb; font-weight:600; padding-left:2px; }
+    .price-twd-hint b { color:#888; font-weight:700; }
+
+    /* ===== 數量／購買紀錄 ===== */
+    .qty-field-box { display:flex; flex-direction:column; gap:5px; }
+    .qty-summary-row {
+        display:flex; align-items:center; justify-content:space-between;
+        border:1px solid #E8E6E0; background:#fff; border-radius:8px;
+        padding:6px 8px; cursor:pointer;
+    }
+    .qty-summary-row:hover { border-color:#ccc; }
+    .qty-total-display { font-size:14px; font-weight:900; color:var(--dark); display:flex; align-items:baseline; gap:3px; }
+    .qty-total-display span.unit { font-size:10px; color:#999; font-weight:700; }
+    .qty-toggle-hint { font-size:10px; color:#bbb; font-weight:700; display:flex; align-items:center; gap:2px; }
+    .qty-toggle-hint svg { width:11px; height:11px; transition:transform 0.2s; }
+    .qty-log-panel.open + .qty-summary-row .qty-toggle-hint svg,
+    .item-row.log-open .qty-toggle-hint svg { transform:rotate(180deg); }
+
+    .qty-log-panel {
+        max-height:0; overflow:hidden; transition:max-height 0.25s ease;
+        margin-top:0;
+    }
+    .item-row.log-open .qty-log-panel { max-height:400px; margin-top:8px; }
+
+    .qty-log-list { display:flex; flex-direction:column; gap:6px; padding:10px; background:#F5F3EE; border-radius:10px; }
+    .qty-log-empty { font-size:11px; color:#bbb; text-align:center; padding:6px 0; }
+    .qty-log-entry { display:flex; align-items:center; gap:6px; background:#fff; border-radius:8px; padding:6px 8px; }
+    .qty-log-entry input[type="date"] { border:1px solid #E8E6E0; border-radius:6px; padding:5px 6px; font-size:11px; font-family:inherit; flex:1.2; outline:none; color:#666; }
+    .qty-log-entry input[type="number"] { border:1px solid #E8E6E0; border-radius:6px; padding:5px 6px; font-size:11px; font-family:inherit; width:54px; outline:none; text-align:center; font-weight:700; }
+    .qty-log-entry .qty-log-unit { font-size:10px; color:#999; }
+    .qty-log-del { background:none; border:none; color:#ccc; font-size:14px; cursor:pointer; padding:2px 4px; flex-shrink:0; }
+    .qty-log-del:hover { color:var(--accent); }
+    .qty-log-add-btn {
+        background:#fff; border:1.5px dashed #D0CEC8; border-radius:8px;
+        padding:8px; font-size:11px; font-weight:700; color:#999;
+        cursor:pointer; font-family:inherit; transition:all 0.15s;
+    }
+    .qty-log-add-btn:hover { border-color:var(--accent); color:var(--accent); background:#fff8f5; }
 
     /* 圖片區 */
     .item-photos { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; align-items:center; }
@@ -110,6 +186,18 @@
     }
     .jump-chip:active { background: var(--primary); transform: scale(0.95); }
 
+    /* 匯率設定列 */
+    .rate-bar {
+        display:flex; align-items:center; justify-content:flex-end; gap:8px;
+        padding:0 4px 14px; font-size:11px; color:#999; font-weight:600;
+    }
+    .rate-bar input {
+        width:60px; border:1px solid #E8E6E0; background:#fff; border-radius:7px;
+        padding:5px 7px; font-size:12px; font-family:inherit; font-weight:700;
+        outline:none; color:var(--dark); text-align:center;
+    }
+    .rate-bar input:focus { border-color:var(--dark); }
+
     /* 移動動畫 */
     @keyframes moveFlash {
       0% { background: #FFF9C4; }
@@ -146,6 +234,13 @@
         <div style="width:50px;"></div>
     </div>
     <div class="jump-bar" id="jump-bar"></div>
+
+    <div class="rate-bar">
+        <span>💴 1 日幣 ≈</span>
+        <input type="number" id="jpy-rate" value="0.22" step="0.001" onchange="onRateChange()">
+        <span>台幣</span>
+    </div>
+
     <div id="list-container"></div>
 
     <div id="lightbox" onclick="closeLightbox(event)">
@@ -170,6 +265,15 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
+// 全域匯率（日幣 -> 台幣），先用固定預設值，之後可手動調整
+let JPY_RATE = 0.22;
+
+function onRateChange() {
+    const v = parseFloat(document.getElementById('jpy-rate').value);
+    JPY_RATE = isNaN(v) ? 0.22 : v;
+    document.querySelectorAll('.item-row').forEach(row => updateTwdHint(row));
+}
 
 // 關閉所有移動選單
 function closeAllDropdowns() {
@@ -217,7 +321,6 @@ function showMoveDropdown(btn, itemRow) {
     const allCards = Array.from(document.querySelectorAll('.location-card'));
 
     if (allCards.length <= 1) {
-        // 只有一個分區時提示
         const tip = document.createElement('div');
         tip.className = 'move-dropdown';
         tip.style.cssText = 'position:absolute;top:34px;right:0;';
@@ -244,7 +347,6 @@ function showMoveDropdown(btn, itemRow) {
                 itemRow.classList.add('just-moved');
                 setTimeout(() => itemRow.classList.remove('just-moved'), 1000);
                 closeAllDropdowns();
-                // 滾動到目標分區
                 const offset = 60;
                 const top = card.getBoundingClientRect().top + window.scrollY - offset;
                 window.scrollTo({ top, behavior: 'smooth' });
@@ -255,6 +357,77 @@ function showMoveDropdown(btn, itemRow) {
 
     btn.style.position = 'relative';
     btn.appendChild(dropdown);
+}
+
+// ===== 金額：日幣 -> 台幣換算顯示 =====
+function updateTwdHint(itemRow) {
+    const priceInput = itemRow.querySelector('.item-price');
+    const hint = itemRow.querySelector('.price-twd-hint');
+    if (!priceInput || !hint) return;
+    const jpy = parseFloat(priceInput.value);
+    if (isNaN(jpy) || jpy === 0) {
+        hint.innerHTML = `約 <b>NT$0</b>`;
+        return;
+    }
+    const twd = Math.round(jpy * JPY_RATE);
+    hint.innerHTML = `約 <b>NT$${twd.toLocaleString()}</b>`;
+}
+
+// ===== 數量／購買紀錄 =====
+function calcQtyTotal(logs) {
+    return (logs || []).reduce((sum, l) => sum + (parseInt(l.qty) || 0), 0);
+}
+
+function updateQtyTotalDisplay(itemRow) {
+    const logs = getQtyLogs(itemRow);
+    const total = calcQtyTotal(logs);
+    const totalEl = itemRow.querySelector('.qty-total-num');
+    if (totalEl) totalEl.textContent = total;
+}
+
+function getQtyLogs(itemRow) {
+    const logs = [];
+    itemRow.querySelectorAll('.qty-log-entry').forEach(entry => {
+        const date = entry.querySelector('input[type="date"]').value;
+        const qty = entry.querySelector('input[type="number"]').value;
+        if (date || qty) logs.push({ date, qty });
+    });
+    return logs;
+}
+
+function renderQtyLogEntry(itemRow, log) {
+    const list = itemRow.querySelector('.qty-log-list');
+    const emptyTip = list.querySelector('.qty-log-empty');
+    if (emptyTip) emptyTip.remove();
+
+    const entry = document.createElement('div');
+    entry.className = 'qty-log-entry';
+    entry.innerHTML = `
+        <input type="date" value="${log.date || ''}">
+        <input type="number" value="${log.qty || ''}" min="0" placeholder="0">
+        <span class="qty-log-unit">個</span>
+        <button class="qty-log-del" title="刪除這筆紀錄">×</button>
+    `;
+    entry.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('input', () => updateQtyTotalDisplay(itemRow));
+    });
+    entry.querySelector('.qty-log-del').onclick = () => {
+        entry.remove();
+        if (!list.querySelector('.qty-log-entry')) {
+            list.innerHTML = `<div class="qty-log-empty">尚無購買紀錄</div>` + list.innerHTML;
+        }
+        updateQtyTotalDisplay(itemRow);
+    };
+    list.appendChild(entry);
+}
+
+function addQtyLog(itemRow, log) {
+    renderQtyLogEntry(itemRow, log || { date: new Date().toISOString().slice(0,10), qty: '' });
+    updateQtyTotalDisplay(itemRow);
+}
+
+function toggleQtyLog(itemRow) {
+    itemRow.classList.toggle('log-open');
 }
 
 // 渲染商品列
@@ -271,8 +444,27 @@ function renderItem(item) {
         </div>
         <div class="item-fields">
             <div class="sub-field"><label>備注事項</label><input type="text" class="item-pos" value="${item.pos||''}"></div>
-            <div class="sub-field"><label>金額(₩)</label><input type="number" class="item-price" value="${item.price||''}"></div>
-            <div class="sub-field"><label>數量</label><input type="number" class="item-qty" value="${item.qty||''}"></div>
+            <div class="price-field-box">
+                <label style="font-size:10px;color:#999;font-weight:700;letter-spacing:0.5px;">金額（日幣）</label>
+                <div class="price-input-row">
+                    <span class="price-currency-tag">¥</span>
+                    <input type="number" class="item-price" value="${item.price||''}" placeholder="0">
+                </div>
+                <div class="price-twd-hint">約 <b>NT$0</b></div>
+            </div>
+        </div>
+        <div class="qty-field-box" style="margin-bottom:12px;">
+            <label style="font-size:10px;color:#999;font-weight:700;letter-spacing:0.5px;">購買數量（累計）</label>
+            <div class="qty-summary-row">
+                <div class="qty-total-display"><span class="qty-total-num">0</span><span class="unit">個</span></div>
+                <div class="qty-toggle-hint">購買紀錄 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+            </div>
+            <div class="qty-log-panel">
+                <div class="qty-log-list">
+                    <div class="qty-log-empty">尚無購買紀錄</div>
+                </div>
+                <button class="qty-log-add-btn" type="button">＋ 新增一筆購買紀錄</button>
+            </div>
         </div>
         <span class="photo-label">商品圖片</span>
         <div class="item-photos">
@@ -299,6 +491,20 @@ function renderItem(item) {
         item.photos.forEach(b64 => appendPhoto(photosDiv, b64));
     }
 
+    // 金額換算
+    const priceInput = div.querySelector('.item-price');
+    priceInput.addEventListener('input', () => updateTwdHint(div));
+    updateTwdHint(div);
+
+    // 購買紀錄（向下相容舊資料的 qty 欄位：若有舊的單一數量，轉成第一筆紀錄）
+    const qtyLogs = item.qtyLogs && item.qtyLogs.length ? item.qtyLogs
+        : (item.qty ? [{ date:'', qty:item.qty }] : []);
+    qtyLogs.forEach(log => addQtyLog(div, log));
+    updateQtyTotalDisplay(div);
+
+    div.querySelector('.qty-summary-row').addEventListener('click', () => toggleQtyLog(div));
+    div.querySelector('.qty-log-add-btn').addEventListener('click', () => addQtyLog(div));
+
     // 移動按鈕
     const moveBtn = div.querySelector('.move-btn');
     moveBtn.addEventListener('click', (e) => {
@@ -312,21 +518,27 @@ function renderItem(item) {
     return div;
 }
 
-// 渲染地點區塊
+// 渲染地點區塊（品牌大標題封面式設計）
 function renderLocation(loc) {
     const container = document.getElementById('list-container');
     const card = document.createElement('div');
     card.className = 'location-card';
     card.innerHTML = `
-        <div class="location-title">
-            <input type="text" class="loc-name" value="${loc.name||''}" placeholder="輸入地點名稱 (如: Olive Young)">
+        <div class="location-banner">
+            <div class="location-index">${(document.querySelectorAll('.location-card').length + 1).toString().padStart(2,'0')}</div>
+            <div class="location-title-wrap">
+                <div class="location-banner-label">SHOP / BRAND</div>
+                <div class="location-title"><input type="text" class="loc-name" value="${loc.name||''}" placeholder="輸入品牌／店名 (如: Olive Young)"></div>
+            </div>
             <button class="del-btn" onclick="removeLocation(this)" title="刪除整個分區">×</button>
         </div>
-        <div class="item-list"></div>
-        <button class="btn-add-item" onclick="addItem(this)">＋ 新增商品</button>
+        <div class="location-body">
+            <div class="item-list"></div>
+            <button class="btn-add-item" onclick="addItem(this)">＋ 新增商品</button>
+        </div>
     `;
     const itemList = card.querySelector('.item-list');
-    (loc.items || [{ name:'', pos:'', price:'', qty:'', photos:[] }]).forEach(item => {
+    (loc.items || [{ name:'', pos:'', price:'', qtyLogs:[], photos:[] }]).forEach(item => {
         itemList.appendChild(renderItem(item));
     });
     container.appendChild(card);
@@ -343,19 +555,20 @@ function saveData() {
             const name = row.querySelector('.item-name-input').value;
             const photos = [];
             row.querySelectorAll('.photo-thumb img').forEach(img => photos.push(img.src));
-            if (name || photos.length) {
+            const qtyLogs = getQtyLogs(row);
+            if (name || photos.length || qtyLogs.length) {
                 items.push({
                     name,
                     pos:   row.querySelector('.item-pos').value,
                     price: row.querySelector('.item-price').value,
-                    qty:   row.querySelector('.item-qty').value,
+                    qtyLogs,
                     photos
                 });
             }
         });
         if (locName || items.length) data.push({ name: locName, items });
     });
-    db.ref('ybo_shopping_list').set(data).then(() => alert("✅ 儲存成功！"));
+    db.ref('ybo_shopping_list').set({ rate: JPY_RATE, locations: data }).then(() => alert("✅ 儲存成功！"));
 }
 
 function updateJumpBar() {
@@ -377,9 +590,23 @@ function updateJumpBar() {
 
 function loadData() {
     db.ref('ybo_shopping_list').once('value', snap => {
-        const data = snap.val();
+        const raw = snap.val();
         const container = document.getElementById('list-container');
         container.innerHTML = '';
+
+        // 向下相容：舊資料是純陣列，新資料是 { rate, locations }
+        let data, rate;
+        if (Array.isArray(raw)) {
+            data = raw; rate = 0.22;
+        } else if (raw && raw.locations) {
+            data = raw.locations; rate = raw.rate || 0.22;
+        } else {
+            data = null; rate = 0.22;
+        }
+
+        JPY_RATE = rate;
+        document.getElementById('jpy-rate').value = rate;
+
         if (data && data.length) data.forEach(loc => renderLocation(loc));
         else addLocation();
         updateJumpBar();
@@ -387,18 +614,22 @@ function loadData() {
 }
 
 function addLocation() {
-    renderLocation({ name:'', items:[{ name:'', pos:'', price:'', qty:'', photos:[] }] });
+    renderLocation({ name:'', items:[{ name:'', pos:'', price:'', qtyLogs:[], photos:[] }] });
     window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
 }
 
 function addItem(btn) {
     const itemList = btn.parentElement.querySelector('.item-list');
-    itemList.appendChild(renderItem({ name:'', pos:'', price:'', qty:'', photos:[] }));
+    itemList.appendChild(renderItem({ name:'', pos:'', price:'', qtyLogs:[], photos:[] }));
 }
 
 function removeLocation(btn) {
     if (confirm('確定要刪除整個分區嗎？')) {
         btn.closest('.location-card').remove();
+        // 重新編號
+        document.querySelectorAll('.location-index').forEach((el, i) => {
+            el.textContent = (i + 1).toString().padStart(2, '0');
+        });
         updateJumpBar();
     }
 }
