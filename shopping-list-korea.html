@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小波韓國採買清單</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+    :root { --primary:#FFD60A; --dark:#1A1A18; --bg:#F0EEE9; --accent:#E6430A; --card-bg:#FFFFFF; }
+    .drawer-overlay { position:fixed;inset:0;z-index:200;background:rgba(26,26,24,0.5);opacity:0;pointer-events:none;transition:opacity .28s; }
+    body.drawer-open .drawer-overlay { opacity:1;pointer-events:auto; }
+    .drawer { position:fixed;top:0;left:0;bottom:0;z-index:210;width:272px;background:#1A1A18;transform:translateX(-100%);transition:transform .3s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column; }
+    body.drawer-open .drawer { transform:translateX(0); }
+    .drawer-header { padding:52px 22px 20px;border-bottom:1px solid rgba(255,214,10,0.12); }
+    .drawer-trip-label { font-size:10px;color:#FFD60A;font-weight:700;letter-spacing:2px;opacity:.75; }
+    .drawer-trip-name { font-size:19px;font-weight:900;color:#fff;margin-top:4px; }
+    .drawer-trip-date { font-size:12px;color:#555;margin-top:4px; }
+    .drawer-nav { flex:1;overflow-y:auto;padding:14px 10px; }
+    .nav-section-label { font-size:9px;color:#444;font-weight:700;letter-spacing:2px;padding:12px 10px 5px; }
+    .nav-item { display:flex;align-items:center;gap:13px;padding:12px 13px;border-radius:13px;text-decoration:none;color:#888;font-size:14px;font-weight:700;margin-bottom:2px; }
+    .nav-item.active { background:rgba(255,214,10,0.1);color:#FFD60A; }
+    .nav-icon { width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;background:rgba(255,255,255,0.05); }
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body { font-family:'Noto Sans TC',sans-serif; background:var(--bg); margin:0; padding:16px 12px 140px; color:var(--dark); }
+
+    .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; padding:0 4px; }
+    .page-title { margin:0; font-size:18px; font-weight:900; }
+
+    /* ===== 分區卡片（品牌大標題改版）===== */
+    .location-card { background:var(--card-bg); border-radius:24px; margin-bottom:20px; box-shadow:0 4px 20px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.03); overflow:hidden; }
+
+    .location-banner {
+        position:relative;
+        padding:22px 20px 18px;
+        background:linear-gradient(135deg, var(--dark) 0%, #2b2b27 100%);
+        display:flex; align-items:center; gap:14px;
+    }
+    .location-banner::before {
+        content:'';
+        position:absolute; top:0; left:0; bottom:0; width:7px;
+        background:var(--primary);
+    }
+    .location-index {
+        flex-shrink:0;
+        width:40px; height:40px; border-radius:12px;
+        background:rgba(255,214,10,0.15);
+        color:var(--primary);
+        display:flex; align-items:center; justify-content:center;
+        font-size:16px; font-weight:900;
+        border:1.5px solid rgba(255,214,10,0.3);
+    }
+    .location-title-wrap { flex:1; min-width:0; }
+    .location-banner-label { font-size:9px; color:var(--primary); font-weight:700; letter-spacing:2px; opacity:0.8; margin-bottom:3px; }
+    .location-title input {
+        border:none; font-size:20px; font-weight:900; font-family:inherit;
+        outline:none; width:100%; background:transparent; color:#fff;
+        padding:0;
+    }
+    .location-title input::placeholder { color:rgba(255,255,255,0.35); }
+    .location-banner .del-btn { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.5); flex-shrink:0; }
+    .location-banner .del-btn:hover { background:rgba(230,67,10,0.25); color:#ff8a5c; }
+
+    .location-body { padding:18px 16px 16px; }
+
+    /* 商品列 */
+    .item-row { background:#FAFAF8; border-radius:16px; padding:14px; margin-bottom:12px; transition:all 0.2s; position:relative; }
+    .item-row:focus-within { background:#fff; box-shadow:0 0 0 2px var(--primary); }
+    .item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; }
+    .item-name-input { font-weight:700; font-size:15px; border:none; flex:1; outline:none; background:transparent; color:#1a1a1a; }
+    .item-fields { display:grid; grid-template-columns:1fr 1.3fr; gap:10px; margin-bottom:10px; }
+    .sub-field { display:flex; flex-direction:column; gap:5px; }
+    .sub-field label { font-size:10px; color:#999; font-weight:700; letter-spacing:0.5px; }
+    .sub-field input { border:1px solid #E8E6E0; background:#fff; border-radius:8px; padding:8px; font-size:13px; font-family:inherit; width:100%; font-weight:500; outline:none; }
+    .sub-field input:focus { border-color:var(--dark); }
+    .item-price { color:var(--accent); font-weight:700 !important; }
+
+    /* 金額（外幣 + 台幣換算）*/
+    .price-field-box { display:flex; flex-direction:column; gap:5px; }
+    .price-input-row { display:flex; align-items:center; gap:6px; border:1px solid #E8E6E0; background:#fff; border-radius:8px; padding:0 8px; }
+    .price-input-row:focus-within { border-color:var(--dark); }
+    .price-currency-tag { font-size:11px; font-weight:900; color:#aaa; flex-shrink:0; }
+    .price-input-row input { border:none; background:transparent; padding:8px 0; font-size:13px; font-family:inherit; width:100%; font-weight:700; outline:none; color:var(--accent); }
+    .price-twd-hint { font-size:11px; color:#bbb; font-weight:600; padding-left:2px; }
+    .price-twd-hint b { color:#888; font-weight:700; }
+
+    /* ===== 數量／購買紀錄 ===== */
+    .qty-field-box { display:flex; flex-direction:column; gap:5px; }
+    .qty-summary-row {
+        display:flex; align-items:center; justify-content:space-between;
+        border:1px solid #E8E6E0; background:#fff; border-radius:8px;
+        padding:6px 8px; cursor:pointer;
+    }
+    .qty-summary-row:hover { border-color:#ccc; }
+    .qty-total-display { font-size:14px; font-weight:900; color:var(--dark); display:flex; align-items:baseline; gap:3px; }
+    .qty-total-display span.unit { font-size:10px; color:#999; font-weight:700; }
+    .qty-toggle-hint { font-size:10px; color:#bbb; font-weight:700; display:flex; align-items:center; gap:2px; }
+    .qty-toggle-hint svg { width:11px; height:11px; transition:transform 0.2s; }
+    .qty-log-panel.open + .qty-summary-row .qty-toggle-hint svg,
+    .item-row.log-open .qty-toggle-hint svg { transform:rotate(180deg); }
+
+    .qty-log-panel {
+        max-height:0; overflow:hidden; transition:max-height 0.25s ease;
+        margin-top:0;
+    }
+    .item-row.log-open .qty-log-panel { max-height:400px; margin-top:8px; }
+
+    .qty-log-list { display:flex; flex-direction:column; gap:6px; padding:10px; background:#F5F3EE; border-radius:10px; }
+    .qty-log-empty { font-size:11px; color:#bbb; text-align:center; padding:6px 0; }
+    .qty-log-entry { display:flex; align-items:center; gap:6px; background:#fff; border-radius:8px; padding:6px 8px; }
+    .qty-log-entry input[type="date"] { border:1px solid #E8E6E0; border-radius:6px; padding:5px 6px; font-size:11px; font-family:inherit; flex:1.2; outline:none; color:#666; }
+    .qty-log-entry input[type="number"] { border:1px solid #E8E6E0; border-radius:6px; padding:5px 6px; font-size:11px; font-family:inherit; width:54px; outline:none; text-align:center; font-weight:700; }
+    .qty-log-entry .qty-log-unit { font-size:10px; color:#999; }
+    .qty-log-del { background:none; border:none; color:#ccc; font-size:14px; cursor:pointer; padding:2px 4px; flex-shrink:0; }
+    .qty-log-del:hover { color:var(--accent); }
+    .qty-log-add-btn {
+        background:#fff; border:1.5px dashed #D0CEC8; border-radius:8px;
+        padding:8px; font-size:11px; font-weight:700; color:#999;
+        cursor:pointer; font-family:inherit; transition:all 0.15s;
+    }
+    .qty-log-add-btn:hover { border-color:var(--accent); color:var(--accent); background:#fff8f5; }
+
+    /* 圖片區 */
+    .item-photos { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; align-items:center; }
+    .photo-thumb { position:relative; width:64px; height:64px; border-radius:10px; overflow:hidden; cursor:pointer; flex-shrink:0; }
+    .photo-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .photo-thumb .del-photo { position:absolute; top:2px; right:2px; background:rgba(0,0,0,0.55); color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; padding:0; }
+    .add-photo-btn { width:64px; height:64px; border-radius:10px; border:1.5px dashed #D0CEC8; background:#F5F3EE; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; color:#aaa; font-size:10px; gap:4px; flex-shrink:0; transition:all 0.2s; }
+    .add-photo-btn:hover { border-color:var(--accent); color:var(--accent); background:#fff8f5; }
+    .add-photo-btn svg { width:20px; height:20px; }
+    .photo-label { font-size:10px; color:#999; font-weight:600; letter-spacing:0.4px; margin-bottom:4px; display:block; }
+
+    /* 燈箱 */
+    #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:999; align-items:center; justify-content:center; }
+    #lightbox.open { display:flex; }
+    #lightbox img { max-width:92vw; max-height:85vh; border-radius:16px; object-fit:contain; }
+    #lightbox-close { position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.15); border:none; color:#fff; font-size:22px; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+
+    .hidden-file { display:none; }
+
+    /* 右上角按鈕群 */
+    .item-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+    .del-btn { color:#D1D1D1; cursor:pointer; border:none; background:#f5f5f5; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; transition:all 0.2s; flex-shrink:0; }
+    .del-btn:hover { background:#ffeded; color:var(--accent); }
+
+    /* 移動按鈕 */
+    .move-btn { color:#aaa; cursor:pointer; border:none; background:#f5f5f5; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; transition:all 0.2s; flex-shrink:0; position:relative; }
+    .move-btn:hover { background:#FFF3CD; color:#B8860B; }
+
+    /* 移動下拉選單 */
+    .move-dropdown { position:absolute; top:34px; right:0; background:#fff; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,0.15); z-index:50; min-width:170px; overflow:hidden; border:1px solid #F0EEE9; }
+    .move-dropdown-header { font-size:10px; color:#999; font-weight:700; letter-spacing:0.8px; padding:10px 14px 6px; }
+    .move-dropdown-item { display:flex; align-items:center; gap:8px; padding:11px 14px; font-size:13px; font-weight:700; cursor:pointer; color:var(--dark); transition:background 0.15s; }
+    .move-dropdown-item:hover { background:#FFF9E6; color:#B8860B; }
+    .move-dropdown-item .loc-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+    .move-dropdown-item.current-loc { color:#ccc; cursor:default; }
+    .move-dropdown-item.current-loc:hover { background:transparent; }
+
+    .btn-add-item { margin-top:8px; background:#F2F0EA; border:none; padding:12px; width:100%; border-radius:12px; color:#666; cursor:pointer; font-size:13px; font-weight:700; transition:background 0.2s; font-family:inherit; }
+    .btn-add-item:hover { background:#E8E6E0; }
+
+    .footer-tools { position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,0.9); backdrop-filter:blur(15px); padding:20px 16px 30px; border-top:1px solid rgba(0,0,0,0.05); display:flex; gap:12px; z-index:100; }
+    .footer-tools button { flex:1; border:none; padding:16px; border-radius:16px; font-weight:900; cursor:pointer; font-family:inherit; font-size:14px; box-shadow:0 4px 12px rgba(0,0,0,0.1); transition:transform 0.1s; }
+    .footer-tools button:active { transform:scale(0.96); }
+    .btn-new-loc { background:var(--dark); color:var(--primary); }
+    .btn-save { background:#4CAF50; color:white; }
+
+    ::-webkit-scrollbar { width:0px; }
+
+    /* 快速跳轉列 */
+    .jump-bar {
+      position: sticky; top: 0; z-index: 90;
+      background: rgba(240,238,233,0.95); backdrop-filter: blur(10px);
+      display: flex; gap: 8px; overflow-x: auto;
+      padding: 10px 12px; border-bottom: 1px solid #E8E6E0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .jump-bar::-webkit-scrollbar { display: none; }
+    .jump-chip {
+      flex: 0 0 auto; padding: 7px 14px; border-radius: 10px;
+      border: 1px solid #D8D6D0; background: #fff;
+      font-size: 12px; font-weight: 700; color: var(--dark);
+      cursor: pointer; white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.15s;
+    }
+    .jump-chip:active { background: var(--primary); transform: scale(0.95); }
+
+    /* 匯率設定列 */
+    .rate-bar {
+        display:flex; align-items:center; justify-content:flex-end; gap:8px;
+        padding:0 4px 14px; font-size:11px; color:#999; font-weight:600;
+    }
+    .rate-bar input {
+        width:70px; border:1px solid #E8E6E0; background:#fff; border-radius:7px;
+        padding:5px 7px; font-size:12px; font-family:inherit; font-weight:700;
+        outline:none; color:var(--dark); text-align:center;
+    }
+    .rate-bar input:focus { border-color:var(--dark); }
+
+    /* 移動動畫 */
+    @keyframes moveFlash {
+      0% { background: #FFF9C4; }
+      100% { background: #FAFAF8; }
+    }
+    .item-row.just-moved { animation: moveFlash 1s ease-out; }
+    </style>
+</head>
+<body>
+    <div class="drawer-overlay" onclick="closeDrawer()"></div>
+    <div class="drawer" id="drawer">
+      <div class="drawer-header">
+        <div class="drawer-trip-label">TRIP GUIDE</div>
+        <div class="drawer-trip-name">小波韓國之旅</div>
+        <div class="drawer-trip-date">5/27 – 6/1 ｜ 首爾 6 天</div>
+      </div>
+      <nav class="drawer-nav">
+        <div class="nav-section-label">主要功能</div>
+        <a href="index.html" class="nav-item"><div class="nav-icon">🗓️</div><span>行程秘笈</span></a>
+        <a href="checklist.html" class="nav-item"><div class="nav-icon">✈️</div><span>行前準備</span></a>
+        <a href="shopping-list.html" class="nav-item"><div class="nav-icon">🇯🇵</div><span>日本採買清單</span></a>
+        <a href="shopping-list-korea.html" class="nav-item active"><div class="nav-icon">🇰🇷</div><span>韓國採買清單</span></a>
+        <div class="nav-section-label">即將推出</div>
+        <a href="split.html" class="nav-item"><div class="nav-icon">💵</div><span>記帳</span></a>
+        <a href="money.html" class="nav-item"><div class="nav-icon">💰</div><span>代購利潤計算</span></a>
+        <a href="food.html" class="nav-item"><div class="nav-icon">🍜</div><span>美食清單</span></a>
+        <a href="transport.html" class="nav-item"><div class="nav-icon">🚇</div><span>交通地圖</span></a>
+        <a href="wallet.html" class="nav-item"><div class="nav-icon">🫧</div><span>小波錢包</span></a>
+      </nav>
+    </div>
+
+    <div class="header">
+        <button onclick="toggleDrawer()" style="width:38px;height:38px;background:#1A1A18;border:none;border-radius:11px;cursor:pointer;font-size:18px;color:#FFD60A;flex-shrink:0;">☰</button>
+        <h2 class="page-title">🇰🇷 韓國採買清單</h2>
+        <div style="width:50px;"></div>
+    </div>
+    <div class="jump-bar" id="jump-bar"></div>
+
+    <div class="rate-bar">
+        <span>💴 1 韓元 ≈</span>
+        <input type="number" id="jpy-rate" value="0.023" step="0.0001" onchange="onRateChange()">
+        <span>台幣</span>
+    </div>
+
+    <div id="list-container"></div>
+
+    <div id="lightbox" onclick="closeLightbox(event)">
+        <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+        <img id="lightbox-img" src="" alt="">
+    </div>
+
+    <div class="footer-tools">
+        <button class="btn-new-loc" onclick="addLocation()">＋ 新增分區</button>
+        <button class="btn-save" onclick="saveData()">💾 儲存清單</button>
+    </div>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyCSMV8JAc-VmnhncS15KK737rAL6kK-QDw",
+    authDomain: "test-korea-e4f86.firebaseapp.com",
+    databaseURL: "https://test-korea-e4f86-default-rtdb.firebaseio.com",
+    projectId: "test-korea-e4f86",
+    storageBucket: "test-korea-e4f86.firebasestorage.app",
+    messagingSenderId: "423552522367",
+    appId: "1:423552522367:web:03e57d440af0b5a118474a"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// 這一頁使用的資料庫路徑（韓國版使用獨立路徑，與日本版資料分開）
+const DB_PATH = 'ybo_shopping_list_korea';
+const DEFAULT_RATE = 0.023;
+
+// 全域匯率（韓元 -> 台幣），可手動調整
+let JPY_RATE = DEFAULT_RATE;
+
+function onRateChange() {
+    const v = parseFloat(document.getElementById('jpy-rate').value);
+    JPY_RATE = isNaN(v) ? DEFAULT_RATE : v;
+    document.querySelectorAll('.item-row').forEach(row => updateTwdHint(row));
+}
+
+// 關閉所有移動選單
+function closeAllDropdowns() {
+    document.querySelectorAll('.move-dropdown').forEach(d => d.remove());
+}
+document.addEventListener('click', closeAllDropdowns);
+
+// 圖片壓縮
+function compressImage(file, callback) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+            const MAX = 600;
+            let w = img.width, h = img.height;
+            if (w > h && w > MAX) { h = h * MAX / w; w = MAX; }
+            else if (h > MAX) { w = w * MAX / h; h = MAX; }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            callback(canvas.toDataURL('image/jpeg', 0.75));
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function appendPhoto(photosDiv, base64) {
+    const thumb = document.createElement('div');
+    thumb.className = 'photo-thumb';
+    thumb.innerHTML = `
+        <img src="${base64}" onclick="openLightbox('${base64}')" alt="商品圖">
+        <button class="del-photo" onclick="this.parentElement.remove()" title="刪除圖片">×</button>
+    `;
+    const addBtn = photosDiv.querySelector('.add-photo-btn');
+    photosDiv.insertBefore(thumb, addBtn);
+}
+
+// 顯示移動選單
+function showMoveDropdown(btn, itemRow) {
+    event.stopPropagation();
+    closeAllDropdowns();
+
+    const currentCard = itemRow.closest('.location-card');
+    const allCards = Array.from(document.querySelectorAll('.location-card'));
+
+    if (allCards.length <= 1) {
+        const tip = document.createElement('div');
+        tip.className = 'move-dropdown';
+        tip.style.cssText = 'position:absolute;top:34px;right:0;';
+        tip.innerHTML = `<div class="move-dropdown-header">目前只有一個分區</div><div style="padding:10px 14px 12px;font-size:12px;color:#aaa;">請先新增其他分區</div>`;
+        btn.appendChild(tip);
+        return;
+    }
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'move-dropdown';
+    dropdown.innerHTML = `<div class="move-dropdown-header">移動到 →</div>`;
+
+    allCards.forEach((card, i) => {
+        const name = card.querySelector('.loc-name').value || `分區 ${i + 1}`;
+        const isCurrent = card === currentCard;
+        const item = document.createElement('div');
+        item.className = 'move-dropdown-item' + (isCurrent ? ' current-loc' : '');
+        item.innerHTML = `<span class="loc-dot" style="${isCurrent ? 'background:#ddd;' : ''}"></span>${name}${isCurrent ? ' <span style="font-size:10px;color:#ccc;font-weight:400;">(目前)</span>' : ''}`;
+        if (!isCurrent) {
+            item.onclick = (e) => {
+                e.stopPropagation();
+                const targetList = card.querySelector('.item-list');
+                targetList.appendChild(itemRow);
+                itemRow.classList.add('just-moved');
+                setTimeout(() => itemRow.classList.remove('just-moved'), 1000);
+                closeAllDropdowns();
+                const offset = 60;
+                const top = card.getBoundingClientRect().top + window.scrollY - offset;
+                window.scrollTo({ top, behavior: 'smooth' });
+            };
+        }
+        dropdown.appendChild(item);
+    });
+
+    btn.style.position = 'relative';
+    btn.appendChild(dropdown);
+}
+
+// ===== 金額：外幣 -> 台幣換算顯示 =====
+function updateTwdHint(itemRow) {
+    const priceInput = itemRow.querySelector('.item-price');
+    const hint = itemRow.querySelector('.price-twd-hint');
+    if (!priceInput || !hint) return;
+    const jpy = parseFloat(priceInput.value);
+    if (isNaN(jpy) || jpy === 0) {
+        hint.innerHTML = `約 <b>NT$0</b>`;
+        return;
+    }
+    const twd = Math.round(jpy * JPY_RATE);
+    hint.innerHTML = `約 <b>NT$${twd.toLocaleString()}</b>`;
+}
+
+// ===== 數量／購買紀錄 =====
+function calcQtyTotal(logs) {
+    return (logs || []).reduce((sum, l) => sum + (parseInt(l.qty) || 0), 0);
+}
+
+function updateQtyTotalDisplay(itemRow) {
+    const logs = getQtyLogs(itemRow);
+    const total = calcQtyTotal(logs);
+    const totalEl = itemRow.querySelector('.qty-total-num');
+    if (totalEl) totalEl.textContent = total;
+}
+
+function getQtyLogs(itemRow) {
+    const logs = [];
+    itemRow.querySelectorAll('.qty-log-entry').forEach(entry => {
+        const date = entry.querySelector('input[type="date"]').value;
+        const qty = entry.querySelector('input[type="number"]').value;
+        if (date || qty) logs.push({ date, qty });
+    });
+    return logs;
+}
+
+function renderQtyLogEntry(itemRow, log) {
+    const list = itemRow.querySelector('.qty-log-list');
+    const emptyTip = list.querySelector('.qty-log-empty');
+    if (emptyTip) emptyTip.remove();
+
+    const entry = document.createElement('div');
+    entry.className = 'qty-log-entry';
+    entry.innerHTML = `
+        <input type="date" value="${log.date || ''}">
+        <input type="number" value="${log.qty || ''}" min="0" placeholder="0">
+        <span class="qty-log-unit">個</span>
+        <button class="qty-log-del" title="刪除這筆紀錄">×</button>
+    `;
+    entry.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('input', () => updateQtyTotalDisplay(itemRow));
+    });
+    entry.querySelector('.qty-log-del').onclick = () => {
+        entry.remove();
+        if (!list.querySelector('.qty-log-entry')) {
+            list.innerHTML = `<div class="qty-log-empty">尚無購買紀錄</div>` + list.innerHTML;
+        }
+        updateQtyTotalDisplay(itemRow);
+    };
+    list.appendChild(entry);
+}
+
+function addQtyLog(itemRow, log) {
+    renderQtyLogEntry(itemRow, log || { date: new Date().toISOString().slice(0,10), qty: '' });
+    updateQtyTotalDisplay(itemRow);
+}
+
+function toggleQtyLog(itemRow) {
+    itemRow.classList.toggle('log-open');
+}
+
+// 渲染商品列
+function renderItem(item) {
+    const div = document.createElement('div');
+    div.className = 'item-row';
+    div.innerHTML = `
+        <div class="item-header">
+            <input type="text" class="item-name-input" value="${item.name||''}" placeholder="商品名稱">
+            <div class="item-actions">
+                <div class="move-btn" title="移動到其他分區">✈︎</div>
+                <button class="del-btn" title="刪除商品" style="width:22px;height:22px;font-size:12px;">×</button>
+            </div>
+        </div>
+        <div class="item-fields">
+            <div class="sub-field"><label>備注事項</label><input type="text" class="item-pos" value="${item.pos||''}"></div>
+            <div class="price-field-box">
+                <label style="font-size:10px;color:#999;font-weight:700;letter-spacing:0.5px;">金額（韓元）</label>
+                <div class="price-input-row">
+                    <span class="price-currency-tag">₩</span>
+                    <input type="number" class="item-price" value="${item.price||''}" placeholder="0">
+                </div>
+                <div class="price-twd-hint">約 <b>NT$0</b></div>
+            </div>
+        </div>
+        <div class="qty-field-box" style="margin-bottom:12px;">
+            <label style="font-size:10px;color:#999;font-weight:700;letter-spacing:0.5px;">購買數量（累計）</label>
+            <div class="qty-summary-row">
+                <div class="qty-total-display"><span class="qty-total-num">0</span><span class="unit">個</span></div>
+                <div class="qty-toggle-hint">購買紀錄 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+            </div>
+            <div class="qty-log-panel">
+                <div class="qty-log-list">
+                    <div class="qty-log-empty">尚無購買紀錄</div>
+                </div>
+                <button class="qty-log-add-btn" type="button">＋ 新增一筆購買紀錄</button>
+            </div>
+        </div>
+        <span class="photo-label">商品圖片</span>
+        <div class="item-photos">
+            <div class="add-photo-btn" title="新增圖片">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                新增
+            </div>
+            <input type="file" class="hidden-file" accept="image/*" multiple>
+        </div>
+    `;
+
+    const fileInput = div.querySelector('.hidden-file');
+    const photosDiv = div.querySelector('.item-photos');
+    div.querySelector('.add-photo-btn').onclick = () => fileInput.click();
+
+    fileInput.addEventListener('change', () => {
+        Array.from(fileInput.files).forEach(file => {
+            compressImage(file, base64 => appendPhoto(photosDiv, base64));
+        });
+        fileInput.value = '';
+    });
+
+    if (item.photos && item.photos.length) {
+        item.photos.forEach(b64 => appendPhoto(photosDiv, b64));
+    }
+
+    // 金額換算
+    const priceInput = div.querySelector('.item-price');
+    priceInput.addEventListener('input', () => updateTwdHint(div));
+    updateTwdHint(div);
+
+    // 購買紀錄（向下相容舊資料的 qty 欄位：若有舊的單一數量，轉成第一筆紀錄）
+    const qtyLogs = item.qtyLogs && item.qtyLogs.length ? item.qtyLogs
+        : (item.qty ? [{ date:'', qty:item.qty }] : []);
+    qtyLogs.forEach(log => addQtyLog(div, log));
+    updateQtyTotalDisplay(div);
+
+    div.querySelector('.qty-summary-row').addEventListener('click', () => toggleQtyLog(div));
+    div.querySelector('.qty-log-add-btn').addEventListener('click', () => addQtyLog(div));
+
+    // 移動按鈕
+    const moveBtn = div.querySelector('.move-btn');
+    moveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showMoveDropdown(moveBtn, div);
+    });
+
+    // 刪除按鈕
+    div.querySelector('.del-btn').onclick = () => div.remove();
+
+    return div;
+}
+
+// 渲染地點區塊（品牌大標題封面式設計）
+function renderLocation(loc) {
+    const container = document.getElementById('list-container');
+    const card = document.createElement('div');
+    card.className = 'location-card';
+    card.innerHTML = `
+        <div class="location-banner">
+            <div class="location-index">${(document.querySelectorAll('.location-card').length + 1).toString().padStart(2,'0')}</div>
+            <div class="location-title-wrap">
+                <div class="location-banner-label">SHOP / BRAND</div>
+                <div class="location-title"><input type="text" class="loc-name" value="${loc.name||''}" placeholder="輸入品牌／店名 (如: Olive Young)"></div>
+            </div>
+            <button class="del-btn" onclick="removeLocation(this)" title="刪除整個分區">×</button>
+        </div>
+        <div class="location-body">
+            <div class="item-list"></div>
+            <button class="btn-add-item" onclick="addItem(this)">＋ 新增商品</button>
+        </div>
+    `;
+    const itemList = card.querySelector('.item-list');
+    (loc.items || [{ name:'', pos:'', price:'', qtyLogs:[], photos:[] }]).forEach(item => {
+        itemList.appendChild(renderItem(item));
+    });
+    container.appendChild(card);
+    updateJumpBar();
+    card.querySelector('.loc-name').addEventListener('input', updateJumpBar);
+}
+
+function saveData() {
+    const data = [];
+    document.querySelectorAll('.location-card').forEach(card => {
+        const locName = card.querySelector('.loc-name').value;
+        const items = [];
+        card.querySelectorAll('.item-row').forEach(row => {
+            const name = row.querySelector('.item-name-input').value;
+            const photos = [];
+            row.querySelectorAll('.photo-thumb img').forEach(img => photos.push(img.src));
+            const qtyLogs = getQtyLogs(row);
+            if (name || photos.length || qtyLogs.length) {
+                items.push({
+                    name,
+                    pos:   row.querySelector('.item-pos').value,
+                    price: row.querySelector('.item-price').value,
+                    qtyLogs,
+                    photos
+                });
+            }
+        });
+        if (locName || items.length) data.push({ name: locName, items });
+    });
+    db.ref(DB_PATH).set({ rate: JPY_RATE, locations: data }).then(() => alert("✅ 儲存成功！"));
+}
+
+function updateJumpBar() {
+    const bar = document.getElementById('jump-bar');
+    bar.innerHTML = '';
+    document.querySelectorAll('.location-card').forEach((card, i) => {
+        const name = card.querySelector('.loc-name').value || `分區 ${i + 1}`;
+        const chip = document.createElement('button');
+        chip.className = 'jump-chip';
+        chip.textContent = name;
+        chip.onclick = () => {
+            const offset = 60;
+            const top = card.getBoundingClientRect().top + window.scrollY - offset;
+            window.scrollTo({ top, behavior: 'smooth' });
+        };
+        bar.appendChild(chip);
+    });
+}
+
+function loadData() {
+    db.ref(DB_PATH).once('value', snap => {
+        const raw = snap.val();
+        const container = document.getElementById('list-container');
+        container.innerHTML = '';
+
+        // 向下相容：舊資料是純陣列，新資料是 { rate, locations }
+        let data, rate;
+        if (Array.isArray(raw)) {
+            data = raw; rate = DEFAULT_RATE;
+        } else if (raw && raw.locations) {
+            data = raw.locations; rate = raw.rate || DEFAULT_RATE;
+        } else {
+            data = null; rate = DEFAULT_RATE;
+        }
+
+        JPY_RATE = rate;
+        document.getElementById('jpy-rate').value = rate;
+
+        if (data && data.length) data.forEach(loc => renderLocation(loc));
+        else addLocation();
+        updateJumpBar();
+    });
+}
+
+function addLocation() {
+    renderLocation({ name:'', items:[{ name:'', pos:'', price:'', qtyLogs:[], photos:[] }] });
+    window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
+}
+
+function addItem(btn) {
+    const itemList = btn.parentElement.querySelector('.item-list');
+    itemList.appendChild(renderItem({ name:'', pos:'', price:'', qtyLogs:[], photos:[] }));
+}
+
+function removeLocation(btn) {
+    if (confirm('確定要刪除整個分區嗎？')) {
+        btn.closest('.location-card').remove();
+        // 重新編號
+        document.querySelectorAll('.location-index').forEach((el, i) => {
+            el.textContent = (i + 1).toString().padStart(2, '0');
+        });
+        updateJumpBar();
+    }
+}
+
+function openLightbox(src) {
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(e) {
+    if (!e || e.target.id === 'lightbox' || e.target.id === 'lightbox-close') {
+        document.getElementById('lightbox').classList.remove('open');
+    }
+}
+
+loadData();
+
+function toggleDrawer() { document.body.classList.toggle('drawer-open'); }
+function closeDrawer() { document.body.classList.remove('drawer-open'); }
+document.getElementById('drawer').addEventListener('touchend', e => {
+    if (e.changedTouches[0].clientX < 50) closeDrawer();
+}, { passive: true });
+</script>
+</body>
+</html>
