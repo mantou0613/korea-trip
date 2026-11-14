@@ -260,42 +260,36 @@ html { scroll-behavior: smooth; }
 
   <main class="wrap" id="main-wrap">
     <div class="jump-tabs">
-      <button class="jump-btn" onclick="scrollToDay('day1-card')">5/27 (D1)</button>
-      <button class="jump-btn" onclick="scrollToDay('day2-card')">5/28 (D2)</button>
-      <button class="jump-btn" onclick="scrollToDay('day3-card')">5/29 (D3)</button>
-      <button class="jump-btn" onclick="scrollToDay('day4-card')">5/30 (D4)</button>
-      <button class="jump-btn" onclick="scrollToDay('day5-card')">5/31 (D5)</button>
-      <button class="jump-btn" onclick="scrollToDay('day6-card')">6/1  (D6)</button>
+      <button class="jump-btn" onclick="scrollToDay('day1-card')">12/18 (D1)</button>
+      <button class="jump-btn" onclick="scrollToDay('day2-card')">12/19 (D2)</button>
+      <button class="jump-btn" onclick="scrollToDay('day3-card')">12/20 (D3)</button>
+      <button class="jump-btn" onclick="scrollToDay('day4-card')">12/21 (D4)</button>
+      <button class="jump-btn" onclick="scrollToDay('day5-card')">12/22 (D5)</button>
     </div>
 
     <section class="card" id="day1-card">
-      <div class="day-header"><span class="badge">Day 1</span><span class="editable-content" id="d1-header" contenteditable="false">5/27 週三 ｜ 抵達 → 明洞 Look Home Check-in</span></div>
+      <div class="day-header"><span class="badge">Day 1</span><span class="editable-content" id="d1-header" contenteditable="false">週五 ｜ 抵達 → 明洞 Look Home Check-in</span></div>
       <div class="itinerary" id="day1-entries"></div>
     </section>
 
     <section class="card" id="day2-card">
-      <div class="day-header"><span class="badge">Day 2</span><span class="editable-content" id="d2-header" contenteditable="false">5/28 週四 ｜ 梨大 + 弘大 飾品主攻</span></div>
+      <div class="day-header"><span class="badge">Day 2</span><span class="editable-content" id="d2-header" contenteditable="false">週六 ｜ 梨大 + 弘大 飾品主攻</span></div>
       <div class="itinerary" id="day2-entries"></div>
     </section>
 
     <section class="card" id="day3-card">
-      <div class="day-header"><span class="badge">Day 3</span><span class="editable-content" id="d3-header" contenteditable="false">5/29 週五 ｜ 東大門批發 + 藥局限定</span></div>
+      <div class="day-header"><span class="badge">Day 3</span><span class="editable-content" id="d3-header" contenteditable="false">週日 ｜ 東大門批發 + 藥局限定</span></div>
       <div class="itinerary" id="day3-entries"></div>
     </section>
 
     <section class="card" id="day4-card">
-      <div class="day-header"><span class="badge">Day 4</span><span class="editable-content" id="d4-header" contenteditable="false">5/30 週六 ｜ 聖水洞香水全攻略 🎂</span></div>
+      <div class="day-header"><span class="badge">Day 4</span><span class="editable-content" id="d4-header" contenteditable="false">週一 ｜ 聖水洞香水全攻略 🎂</span></div>
       <div class="itinerary" id="day4-entries"></div>
     </section>
 
     <section class="card" id="day5-card">
-      <div class="day-header"><span class="badge">Day 5</span><span class="editable-content" id="d5-header" contenteditable="false">5/31 週日 ｜ 退稅整理 + 裝箱返台</span></div>
+      <div class="day-header"><span class="badge">Day 5</span><span class="editable-content" id="d5-header" contenteditable="false">週二 ｜ 退稅整理 + 裝箱返台</span></div>
       <div class="itinerary" id="day5-entries"></div>
-    </section>
-
-    <section class="card" id="day6-card">
-      <div class="day-header"><span class="badge">Day 6</span><span class="editable-content" id="d6-header" contenteditable="false">6/1 週一 ｜ 最後掃貨 + 返台</span></div>
-      <div class="itinerary" id="day6-entries"></div>
     </section>
 
     <section class="card prep-card">
@@ -352,7 +346,6 @@ html { scroll-behavior: smooth; }
           <div class="day-chip" data-day="day3">Day 3</div>
           <div class="day-chip" data-day="day4">Day 4</div>
           <div class="day-chip" data-day="day5">Day 5</div>
-          <div class="day-chip" data-day="day6">Day 6</div>
         </div>
       </div>
       <div class="sheet-row"><label>時間</label><input type="text" id="inp-time" placeholder="14:30"></div>
@@ -421,12 +414,11 @@ html { scroll-behavior: smooth; }
 const DEFAULT_DATA = {
   rate: 0.0211,
   headers: {
-    'd1-header': '5/27 週三 ｜ 抵達 → 明洞 Look Home Check-in',
-    'd2-header': '5/28 週四 ｜ 梨大 + 弘大 飾品主攻',
-    'd3-header': '5/29 週五 ｜ 東大門批發 + 藥局限定',
-    'd4-header': '5/30 週六 ｜ 聖水洞香水全攻略 🎂',
-    'd5-header': '5/31 週日 ｜ 退稅整理 + 裝箱返台',
-    'd6-header': '6/1 週一 ｜ 最後掃貨 + 返台'
+    'd1-header': '12/18 ｜ 抵達 → 明洞 Look Home Check-in',
+    'd2-header': '12/19 ｜ 梨大 + 弘大 飾品主攻',
+    'd3-header': '12/20 ｜ 東大門批發 + 藥局限定',
+    'd4-header': '12/21 ｜ 聖水洞香水全攻略 🎂',
+    'd5-header': '12/22 ｜ 退稅整理 + 裝箱返台',
   },
   days: {
     day1: [
@@ -435,7 +427,6 @@ const DEFAULT_DATA = {
       { id:'e3', time:'13:00', title:'入住 Look Home', content:'地址：서울시 중구 퇴계로20길 32-10 루크홈 게스트하우스\n電話：+82-10-7117-0267\n入住時間：13:00 | 退房時間：11:00', type:'warn', nav:'서울시 중구 퇴계로20길 32-10 루크홈 게스트하우스' },
       { id:'e4', time:'CASH', title:'MONEYPLANET 換錢(出示畫面)', content:'🏢 明洞站 5號出口 (CU 對面)\n每天 9:00 - 20:30', type:'tip', nav:'서울 중구 명동 MONEYPLANET' },
       { id:'e5', time:'15:00', title:'採買行程', content:'1. Olive Young 旗艦店：全區掃一遍，記下特價標籤\n2. COSRX 低分子玻尿酸精華、Advanced Snail 蝸牛精華\n3. Beauty of Joseon 防曬乳（Relief Sun SPF50+）\n4. Some By Mi AHA BHA PHA 30 Days 奇蹟面霜\n5. Dr. Jart+ Cicapair 虎皮蘭修復霜', type:'buy', nav:'서울 중구 명동 올리브영 명동타운점' },
-      { id:'e6', time:'17:30', title:'明洞地下商街飾品掃貨', content:'1. 韓系耳環：比地面店便宜 20-30%\n2. 蝴蝶結髮夾、珍珠髮圈、金屬戒指多件組', type:'buy', nav:'' }
     ],
     day2: [
       { id:'e7', time:'10:00', title:'梨大飾品批發街 (重點採購)', content:'• 耳環批發、項鍊、戒指 (部分店家買 5 送 1)\n• 拿樣品圖直接詢問\n⚠️ 現金議價更有彈性！部分 5 件以上才給批發價。', type:'buy', nav:'' },
@@ -454,10 +445,6 @@ const DEFAULT_DATA = {
       { id:'e14', time:'13:00', title:'退稅辦理 (Tax Refund)', content:'滿 30,000 KRW 即可申請，明洞主街就有退稅機。', type:'tip', nav:'' },
       { id:'e15', time:'機場', title:'返台預備', content:'行李重建議搭 6001 巴士，飯店步行至明洞站即可上車。', type:'warn', nav:'' }
     ],
-    day6: [
-      { id:'e16', time:'09:00', title:'退房 Look Home (11:00 前)', content:'行李可寄放到下午，輕鬆最後掃貨。', type:'tip', nav:'' },
-      { id:'e17', time:'機場', title:'仁川機場 → 返台', content:'機場退稅需提前 3 小時到。香水、液體類確認放託運。', type:'warn', nav:'' }
-    ]
   },
   prepList: [
     { tag:'退稅', text:'收據每天整理，市區退比機場方便', bg:'#ffe0cc', color:'#c95a1e' },
@@ -526,7 +513,7 @@ function buildEntryHTML(e) {
 ══════════════════════════════════════════ */
 function collectDaysData() {
   const days = {};
-  ['day1','day2','day3','day4','day5','day6'].forEach(dayId => {
+  ['day1','day2','day3','day4','day5'].forEach(dayId => {
     const container = document.getElementById(dayId + '-entries');
     if (!container) return;
     days[dayId] = [...container.querySelectorAll('.entry')].map(entryEl => {
@@ -555,7 +542,7 @@ function collectDaysData() {
    ★ 核心：渲染整個行程到 DOM
 ══════════════════════════════════════════ */
 function renderAllDays(daysData) {
-  ['day1','day2','day3','day4','day5','day6'].forEach(dayId => {
+  ['day1','day2','day3','day4','day5'].forEach(dayId => {
     const container = document.getElementById(dayId + '-entries');
     if (!container) return;
     const entries = daysData[dayId] || [];
