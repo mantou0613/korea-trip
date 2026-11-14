@@ -141,18 +141,6 @@ html { scroll-behavior: smooth; }
     .del-item { background:none; border:none; color:#ccc; font-size:16px; cursor:pointer; padding:0; line-height:1; }
     .del-item:hover { color:var(--accent); }
 
-    .prep-card { border-left:5px solid var(--accent); padding-top:10px; }
-    .prep-card h3 { margin:0 0 6px 16px; font-size:14.5px; color:#1A1A18; }
-    .prep-list { padding:0 14px 8px; display:flex; flex-direction:column; }
-    .prep-item { display:flex; align-items:flex-start; gap:8px; padding:6px 0; border-bottom:.5px dashed #eee; font-size:13.5px; }
-    .prep-item:last-child { border-bottom:none; }
-    .prep-tag { border-radius:4px; padding:1px 6px; font-size:11px; font-weight:600; white-space:nowrap; margin-top:2px; cursor:pointer; user-select:none; }
-    .prep-text { flex:1; outline:none; border:none; background:transparent; font-family:inherit; font-size:13.5px; color:#333; }
-    .prep-del { background:none; border:none; color:#ddd; font-size:16px; cursor:pointer; padding:0 2px; line-height:1; }
-    .prep-del:hover { color:var(--accent); }
-    .prep-add-btn { display:flex; align-items:center; justify-content:center; gap:6px; margin:4px 14px 12px; padding:7px 12px; background:#f5f5f3; border:1px dashed #ccc; border-radius:8px; font-size:12px; color:#888; cursor:pointer; width:calc(100% - 28px); font-family:inherit; }
-    .prep-add-btn:hover { background:#eee; }
-
     [contenteditable="true"] {
       outline: 1.5px dashed #4285F4 !important;
       background: rgba(66, 133, 244, 0.05) !important;
@@ -161,7 +149,6 @@ html { scroll-behavior: smooth; }
       cursor: text;
       padding: 2px 4px;
     }
-    .prep-text { flex:1; outline:none; border:none; background:transparent; font-family:inherit; font-size:13.5px; color:#333; padding:2px 4px; }
 
     #admin-controls { position:fixed; bottom:0; left:0; right:0; display:flex; gap:10px; padding:12px 16px; background:rgba(255,255,255,.95); backdrop-filter:blur(10px); border-top:.5px solid #E4E2DC; z-index:200; }
     #admin-controls button { flex:1; border:none; padding:13px 0; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; font-family:inherit; }
@@ -189,10 +176,6 @@ html { scroll-behavior: smooth; }
     .day-select { display:flex; gap:8px; flex-wrap:wrap; }
     .day-chip { padding:6px 13px; border-radius:20px; border:1px solid #D8D6D0; font-size:12px; cursor:pointer; background:#fff; font-weight:500; color:#555; }
     .day-chip.active { background:#1A1A18; color:var(--primary); border-color:#1A1A18; font-weight:700; }
-
-    .tag-select { display:flex; gap:8px; flex-wrap:wrap; }
-    .tag-chip { padding:5px 12px; border-radius:20px; border:1.5px solid #ddd; font-size:12px; cursor:pointer; font-weight:500; color:#888; background:#fff; }
-    .tag-chip.active { border-color:transparent; }
 
     .sheet-btns { display:flex; gap:10px; margin-top:6px; }
     .btn-cancel { flex:1; padding:13px; border-radius:12px; border:1px solid #D8D6D0; background:#F5F3EE; font-size:14px; font-weight:600; cursor:pointer; color:#555; font-family:inherit; }
@@ -255,7 +238,7 @@ html { scroll-behavior: smooth; }
     <span>匯率</span>
     <input type="number" id="krwInput" placeholder="韓幣 ₩" oninput="convertCurrency()">
     <span id="twdResult">≈ 0 TWD</span>
-    <small id="current-rate-text" onclick="editRate()">(0.0211)</small>
+    <small id="current-rate-text" onclick="editRate()">(0.025)</small>
   </div>
 
   <main class="wrap" id="main-wrap">
@@ -290,12 +273,6 @@ html { scroll-behavior: smooth; }
     <section class="card" id="day5-card">
       <div class="day-header"><span class="badge">Day 5</span><span class="editable-content" id="d5-header" contenteditable="false">週二 ｜ 退稅整理 + 裝箱返台</span></div>
       <div class="itinerary" id="day5-entries"></div>
-    </section>
-
-    <section class="card prep-card">
-      <h3>💡 代購重點提醒</h3>
-      <div class="prep-list" id="prep-list"></div>
-      <button class="prep-add-btn" onclick="openSheet('prep')">＋ 新增提醒</button>
     </section>
 
   </main>
@@ -334,7 +311,6 @@ html { scroll-behavior: smooth; }
     <div class="sheet-tabs">
       <button class="sheet-tab active" onclick="switchTab('entry')">新增行程</button>
       <button class="sheet-tab" onclick="switchTab('buyitem')">新增必買</button>
-      <button class="sheet-tab" onclick="switchTab('prep')">新增提醒</button>
     </div>
 
     <div class="sheet-panel active" id="panel-entry">
@@ -386,24 +362,6 @@ html { scroll-behavior: smooth; }
         <button class="btn-add" onclick="addBuyItem()">新增 ＋</button>
       </div>
     </div>
-
-    <div class="sheet-panel" id="panel-prep">
-      <div class="sheet-row">
-        <label>標籤</label>
-        <div class="tag-select" id="tag-chips">
-          <span class="tag-chip active" data-tag="退稅" style="background:#ffe0cc;color:#c95a1e;border-color:#ffe0cc;">退稅</span>
-          <span class="tag-chip" data-tag="現金">現金</span>
-          <span class="tag-chip" data-tag="注意">注意</span>
-          <span class="tag-chip" data-tag="APP">APP</span>
-          <span class="tag-chip" data-tag="提醒">提醒</span>
-        </div>
-      </div>
-      <div class="sheet-row"><label>提醒內容</label><input type="text" id="inp-prep-text" placeholder="例：退稅機在明洞主街"></div>
-      <div class="sheet-btns">
-        <button class="btn-cancel" onclick="closeSheet()">取消</button>
-        <button class="btn-add" onclick="addPrepItem()">新增 ＋</button>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -411,8 +369,10 @@ html { scroll-behavior: smooth; }
 /* ══════════════════════════════════════════
    預設資料（首次無 Firebase 資料時顯示）
 ══════════════════════════════════════════ */
+const DEFAULT_RATE = 0.025;
+
 const DEFAULT_DATA = {
-  rate: 0.0211,
+  rate: DEFAULT_RATE,
   headers: {
     'd1-header': '12/18 ｜ 抵達 → 明洞 Look Home Check-in',
     'd2-header': '12/19 ｜ 梨大 + 弘大 飾品主攻',
@@ -445,13 +405,7 @@ const DEFAULT_DATA = {
       { id:'e14', time:'13:00', title:'退稅辦理 (Tax Refund)', content:'滿 30,000 KRW 即可申請，明洞主街就有退稅機。', type:'tip', nav:'' },
       { id:'e15', time:'機場', title:'返台預備', content:'行李重建議搭 6001 巴士，飯店步行至明洞站即可上車。', type:'warn', nav:'' }
     ],
-  },
-  prepList: [
-    { tag:'退稅', text:'收據每天整理，市區退比機場方便', bg:'#ffe0cc', color:'#c95a1e' },
-    { tag:'現金', text:'議價更有力，批發場合更明顯', bg:'#ffe0cc', color:'#c95a1e' },
-    { tag:'注意', text:'香水 100ml 以上一律放托運行李', bg:'#ffd6d6', color:'#c0392b' },
-    { tag:'APP',  text:'Olive Young 下載，領取當日折扣券', bg:'#d6f0d6', color:'#27ae60' }
-  ]
+  }
 };
 
 /* ══════════════════════════════════════════
@@ -482,13 +436,13 @@ const db = firebase.database();
 /* ══════════════════════════════════════════
    全域狀態
 ══════════════════════════════════════════ */
-let currentRate = 0.0211;
+let currentRate = DEFAULT_RATE;
 let isEditMode = false;
 let isSyncLocked = false;
 let isSaving = false;
+
 /* ══════════════════════════════════════════
-   ★ 核心：將一筆 entry 資料渲染成 DOM 字串
-   修正：nav 改用 this.dataset.nav，不再拼接 onclick 字串
+   將一筆 entry 資料渲染成 DOM 字串
 ══════════════════════════════════════════ */
 function buildEntryHTML(e) {
   const navBtn = e.nav
@@ -508,8 +462,7 @@ function buildEntryHTML(e) {
 }
 
 /* ══════════════════════════════════════════
-   ★ 核心：從 DOM 收集所有 entry 資料（用於儲存）
-   修正：boxClass → boxMatch，統一變數名
+   從 DOM 收集所有 entry 資料（用於儲存）
 ══════════════════════════════════════════ */
 function collectDaysData() {
   const days = {};
@@ -539,7 +492,7 @@ function collectDaysData() {
 }
 
 /* ══════════════════════════════════════════
-   ★ 核心：渲染整個行程到 DOM
+   渲染整個行程到 DOM
 ══════════════════════════════════════════ */
 function renderAllDays(daysData) {
   ['day1','day2','day3','day4','day5'].forEach(dayId => {
@@ -566,10 +519,10 @@ function convertCurrency() {
 }
 
 function editRate() {
-  const val = prompt('修改匯率（韓幣→台幣，例如 0.0211）：', currentRate);
+  const val = prompt('修改匯率（韓幣→台幣，例如 0.025）：', currentRate);
   if (val === null || val.trim() === '') return;
   const parsed = parseFloat(val);
-  if (isNaN(parsed) || parsed <= 0) { alert('請輸入正確的匯率數字，例如 0.0211'); return; }
+  if (isNaN(parsed) || parsed <= 0) { alert('請輸入正確的匯率數字，例如 0.025'); return; }
   currentRate = parsed;
   document.getElementById('current-rate-text').innerText = '(' + currentRate + ')';
   convertCurrency();
@@ -628,7 +581,6 @@ function toggleEditMode() {
   isEditMode = !isEditMode;
   isSyncLocked = isEditMode;
   document.querySelectorAll('.editable-content').forEach(el => el.contentEditable = isEditMode);
-  document.querySelectorAll('.prep-text').forEach(el => el.contentEditable = isEditMode);
   document.body.classList.toggle('edit-active', isEditMode);
   const eb = document.getElementById('edit-btn');
   const sb = document.getElementById('save-btn');
@@ -644,9 +596,7 @@ function toggleEditMode() {
 }
 
 /* ══════════════════════════════════════════
-   ★ 儲存到 Firebase（完整序列化）
-   修正：儲存成功後手動關閉編輯模式，不依賴 toggleEditMode()
-   避免 Firebase on() 競態條件導致不同步
+   儲存到 Firebase（完整序列化）
 ══════════════════════════════════════════ */
 function saveToFirebase() {
   const headers = {};
@@ -654,23 +604,10 @@ function saveToFirebase() {
     if (el.id) headers[el.id] = el.innerText;
   });
 
-  const prepList = [];
-  document.querySelectorAll('#prep-list .prep-item').forEach(item => {
-    const tag = item.querySelector('.prep-tag');
-    const text = item.querySelector('.prep-text');
-    if (tag && text) prepList.push({
-      tag: tag.textContent,
-      text: text.textContent,
-      bg: tag.style.background,
-      color: tag.style.color
-    });
-  });
-
   const data = {
     rate: parseFloat(currentRate),
     headers,
-    days: collectDaysData(),
-    prepList
+    days: collectDaysData()
   };
 
   isSaving = true;
@@ -682,17 +619,19 @@ function saveToFirebase() {
     document.getElementById('edit-btn').innerText = '✏️ 編輯模式';
     document.getElementById('save-btn').style.display = 'none';
     document.querySelectorAll('.editable-content').forEach(el => el.contentEditable = false);
-    document.querySelectorAll('.prep-text').forEach(el => el.contentEditable = false);
     alert('✅ 儲存成功！所有裝置都會同步。');
   }).catch(err => alert('❌ 儲存失敗：' + err.message));
 }
 
 /* ══════════════════════════════════════════
-   ★ Firebase 讀取（動態渲染）
-   修正：window.onload → window.addEventListener('load', ...)
+   Firebase 讀取（動態渲染）
+   匯率固定使用 DEFAULT_RATE，不再被雲端舊值（0.0211）覆蓋
 ══════════════════════════════════════════ */
 window.addEventListener('load', function() {
-db.ref('ybo_itinerary/v2').on('value', snap => {
+  document.getElementById('current-rate-text').innerText = '(' + currentRate + ')';
+  convertCurrency();
+
+  db.ref('ybo_itinerary/v2').on('value', snap => {
     if (isSyncLocked || isSaving) return;
     const data = snap.val();
 
@@ -706,30 +645,13 @@ db.ref('ybo_itinerary/v2').on('value', snap => {
       if (el) el.innerText = headers[id];
     });
 
-    // ★ 渲染行程（全部從資料重建 DOM）
+    // 渲染行程（全部從資料重建 DOM）
     renderAllDays(source.days || DEFAULT_DATA.days);
-
-    // 匯率
-    const rate = parseFloat(source.rate);
-    if (!isNaN(rate) && rate > 0) {
-      currentRate = rate;
-      document.getElementById('current-rate-text').innerText = '(' + currentRate + ')';
-      convertCurrency();
-    }
-
-    // prepList
-    const prepList = source.prepList || DEFAULT_DATA.prepList;
-    const pl = document.getElementById('prep-list');
-    pl.innerHTML = '';
-    prepList.forEach(item => {
-      pl.innerHTML += makePrepItem(item.tag, item.text, item.bg, item.color);
-    });
   });
 });
 
 /* ══════════════════════════════════════════
    新增行程
-   修正：加入欄位清空邏輯
 ══════════════════════════════════════════ */
 function addEntry() {
   const day = document.querySelector('.day-chip.active').dataset.day;
@@ -786,52 +708,10 @@ function addBuyItem() {
 function delBuyItem(btn) { btn.closest('label').remove(); }
 
 /* ══════════════════════════════════════════
-   代購提醒清單
-══════════════════════════════════════════ */
-const tagStyles = {
-  '退稅': { bg: '#ffe0cc', color: '#c95a1e' },
-  '現金': { bg: '#ffe0cc', color: '#c95a1e' },
-  '注意': { bg: '#ffd6d6', color: '#c0392b' },
-  'APP':  { bg: '#d6f0d6', color: '#27ae60' },
-  '提醒': { bg: '#e0eeff', color: '#2255bb' }
-};
-const tagList = Object.keys(tagStyles);
-
-function addPrepItem() {
-  const tagEl = document.querySelector('.tag-chip.active');
-  const tag = tagEl ? tagEl.dataset.tag : '提醒';
-  const text = document.getElementById('inp-prep-text').value.trim();
-  if (!text) return alert('請輸入提醒內容');
-  const s = tagStyles[tag] || tagStyles['提醒'];
-  document.getElementById('prep-list').insertAdjacentHTML('beforeend', makePrepItem(tag, text, s.bg, s.color));
-  document.getElementById('inp-prep-text').value = '';
-  closeSheet();
-}
-
-function makePrepItem(tag, text, bg, color) {
-  return '<div class="prep-item">'
-    + '<span class="prep-tag" style="background:' + bg + ';color:' + color + ';" onclick="cyclePrepTag(this)">' + tag + '</span>'
-    + '<span class="prep-text" contenteditable="false">' + text + '</span>'
-    + '<button class="prep-del" onclick="delPrepItem(this)">×</button>'
-    + '</div>';
-}
-
-function delPrepItem(btn) { btn.closest('.prep-item').remove(); }
-
-function cyclePrepTag(el) {
-  const cur = tagList.indexOf(el.textContent);
-  const next = tagList[(cur + 1) % tagList.length];
-  const s = tagStyles[next];
-  el.textContent = next;
-  el.style.background = s.bg;
-  el.style.color = s.color;
-}
-
-/* ══════════════════════════════════════════
    Sheet / 彈窗控制
 ══════════════════════════════════════════ */
 function switchTab(tab) {
-  const tabs = ['entry', 'buyitem', 'prep'];
+  const tabs = ['entry', 'buyitem'];
   document.querySelectorAll('.sheet-tab').forEach((t, i) => t.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.sheet-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + tab).classList.add('active');
@@ -845,20 +725,6 @@ document.querySelectorAll('.day-chip').forEach(chip => {
   chip.onclick = function() {
     document.querySelectorAll('.day-chip').forEach(c => c.classList.remove('active'));
     this.classList.add('active');
-  };
-});
-
-document.querySelectorAll('.tag-chip').forEach(chip => {
-  chip.onclick = function() {
-    document.querySelectorAll('.tag-chip').forEach(c => {
-      c.classList.remove('active');
-      c.style.background = '';
-      c.style.color = '';
-      c.style.borderColor = '';
-    });
-    this.classList.add('active');
-    const s = tagStyles[this.dataset.tag];
-    if (s) { this.style.background = s.bg; this.style.color = s.color; this.style.borderColor = s.bg; }
   };
 });
 
@@ -897,7 +763,7 @@ document.getElementById('drawer').addEventListener('touchend', e => {
     const item = handle.closest(cfg.selector);
     if (!item) return;
 
-    e.preventDefault();  // ← 移到這裡，確保有效
+    e.preventDefault();
 
     dragging = item;
     activeSelector = cfg.selector;
@@ -922,14 +788,13 @@ document.getElementById('drawer').addEventListener('touchend', e => {
     document.body.appendChild(clone);
     item.style.opacity = '0.3';
 
-  }, { passive: false });  // ← 必須 false 才能 preventDefault
+  }, { passive: false });
 
   document.addEventListener('touchmove', e => {
     if (!dragging || !clone) return;
     e.preventDefault();
 
     const y = e.touches[0].clientY;
-    const x = e.touches[0].clientX;
     clone.style.top = (y - offsetY) + 'px';
 
     // 清除所有指示線
@@ -1029,11 +894,6 @@ function openEditSheet(entry) {
   document.getElementById('edit-entry-overlay').classList.add('active');
 }
 
-/* ══════════════════════════════════════════
-   saveEditEntry
-   修正：補上 boxEl.innerText = content（之前漏掉）
-         nav 按鈕改用 this.dataset.nav
-══════════════════════════════════════════ */
 function saveEditEntry() {
   if (!_editTarget) return;
   const time    = document.getElementById('edit-time').value.trim();
