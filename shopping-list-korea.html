@@ -85,6 +85,51 @@
     .price-twd-hint { font-size:11px; color:#bbb; font-weight:600; padding-left:2px; }
     .price-twd-hint b { color:#888; font-weight:700; }
 
+    /* ===== 商品標籤 ===== */
+    .item-tags-box { margin-bottom:12px; }
+    .item-tags-label { font-size:10px; color:#999; font-weight:700; letter-spacing:0.5px; display:block; margin-bottom:6px; }
+    .item-tags-line { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+    .item-tags-list { display:contents; }
+    .tag-empty { font-size:11px; color:#c4c2bb; font-weight:600; }
+    .tag-stamp {
+        font-size:11px; font-weight:700; border:1px solid #D8D6D0; background:#fff; color:#666;
+        border-radius:999px; padding:3px 4px 3px 9px; display:inline-flex; align-items:center; gap:4px;
+    }
+    .tag-stamp .tag-x {
+        border:none; background:none; color:#bbb; cursor:pointer; font-size:13px; line-height:1;
+        padding:0 4px; font-family:inherit;
+    }
+    .tag-stamp .tag-x:hover { color:var(--accent); }
+    .tag-add-btn {
+        font-size:11px; font-weight:700; font-family:inherit; cursor:pointer;
+        border:1.5px dashed #D0CEC8; background:#F5F3EE; color:#999;
+        border-radius:999px; padding:3px 10px; transition:all .15s;
+    }
+    .tag-add-btn:hover { border-color:var(--accent); color:var(--accent); background:#fff8f5; }
+    .tag-panel { max-height:0; overflow:hidden; transition:max-height .25s ease; }
+    .item-row.tag-open .tag-panel { max-height:520px; margin-top:8px; }
+    .tag-panel-inner { background:#F5F3EE; border-radius:10px; padding:10px; }
+    .tag-picker { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+    .tag-option {
+        font-size:12px; font-weight:700; padding:6px 10px; border-radius:999px;
+        border:1px solid #D8D6D0; background:#fff; color:#777; cursor:pointer;
+        display:inline-flex; align-items:center; gap:4px; user-select:none;
+    }
+    .tag-option.active { background:var(--primary); border-color:var(--primary); color:var(--dark); }
+    .tag-option .tag-opt-del { color:#bbb; font-size:13px; line-height:1; padding-left:3px; }
+    .tag-option .tag-opt-del:hover { color:var(--accent); }
+    .tag-custom-row { display:flex; gap:6px; }
+    .tag-custom-row input {
+        flex:1; min-width:0; border:1px solid #E8E6E0; background:#fff; border-radius:8px;
+        padding:8px; font-size:12px; font-family:inherit; outline:none;
+    }
+    .tag-custom-row input:focus { border-color:var(--dark); }
+    .tag-custom-row button {
+        border:none; background:var(--dark); color:var(--primary); border-radius:8px;
+        padding:0 14px; font-weight:900; font-size:14px; cursor:pointer; font-family:inherit;
+    }
+    .tag-hint { font-size:10.5px; color:#aaa; margin-top:6px; }
+
     /* ===== 數量／購買紀錄 ===== */
     .qty-field-box { display:flex; flex-direction:column; gap:5px; }
     .qty-summary-row {
@@ -186,10 +231,49 @@
     }
     .jump-chip:active { background: var(--primary); transform: scale(0.95); }
 
+    /* ===== 搜尋 + 標籤篩選 ===== */
+    .filter-section { padding:14px 4px 4px; }
+    .search-box {
+        display:flex; align-items:center; gap:8px; background:#fff;
+        border:1px solid #E0DED8; border-radius:12px; padding:0 12px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.04);
+    }
+    .search-box:focus-within { border-color:var(--dark); }
+    .search-box .search-icon { font-size:14px; flex-shrink:0; opacity:.55; }
+    .search-box input {
+        flex:1; min-width:0; border:none; outline:none; background:transparent;
+        padding:12px 0; font-size:14px; font-family:inherit; color:var(--dark);
+    }
+    .search-clear {
+        border:none; background:#eee; color:#888; width:20px; height:20px; border-radius:50%;
+        font-size:12px; line-height:1; cursor:pointer; display:none; flex-shrink:0; padding:0;
+    }
+    .search-box.has-text .search-clear { display:block; }
+    .cat-row { display:flex; gap:7px; flex-wrap:wrap; margin-top:10px; }
+    .cat-chip {
+        font-size:12px; font-weight:700; padding:6px 11px; border-radius:999px;
+        border:1px solid #D8D6D0; background:#fff; color:#777; cursor:pointer;
+        display:inline-flex; align-items:center; gap:4px; font-family:inherit; user-select:none;
+    }
+    .cat-chip .cnt { font-size:10px; color:#bbb; font-weight:700; }
+    .cat-chip.active { background:var(--dark); color:var(--primary); border-color:var(--dark); }
+    .cat-chip.active .cnt { color:rgba(255,214,10,0.7); }
+    .filter-status {
+        display:none; align-items:center; justify-content:space-between;
+        font-size:12px; color:#888; font-weight:600; margin-top:10px; padding:0 2px;
+    }
+    .filter-status.show { display:flex; }
+    .filter-status button {
+        border:none; background:none; color:var(--accent); font-weight:700; font-size:12px;
+        cursor:pointer; font-family:inherit; padding:0;
+    }
+    .no-result { display:none; text-align:center; color:#aaa; font-size:13px; font-weight:600; padding:40px 10px; }
+    .no-result.show { display:block; }
+
     /* 匯率設定列 */
     .rate-bar {
         display:flex; align-items:center; justify-content:flex-end; gap:8px;
-        padding:0 4px 14px; font-size:11px; color:#999; font-weight:600;
+        padding:10px 4px 14px; font-size:11px; color:#999; font-weight:600;
     }
     .rate-bar input {
         width:70px; border:1px solid #E8E6E0; background:#fff; border-radius:7px;
@@ -236,6 +320,20 @@
     </div>
     <div class="jump-bar" id="jump-bar"></div>
 
+    <!-- 搜尋 + 標籤篩選 -->
+    <div class="filter-section">
+        <div class="search-box" id="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="search" id="search-input" placeholder="搜尋商品、品牌、備注或標籤" autocomplete="off" oninput="onSearchInput()">
+            <button class="search-clear" type="button" onclick="clearSearchText()" title="清除搜尋">✕</button>
+        </div>
+        <div class="cat-row" id="cat-row"></div>
+        <div class="filter-status" id="filter-status">
+            <span id="filter-status-text"></span>
+            <button type="button" onclick="clearFilters()">清除篩選</button>
+        </div>
+    </div>
+
     <div class="rate-bar">
         <span>💴 1 韓元 ≈</span>
         <input type="number" id="jpy-rate" value="0.023" step="0.0001" onchange="onRateChange()">
@@ -243,6 +341,7 @@
     </div>
 
     <div id="list-container"></div>
+    <div class="no-result" id="no-result">找不到符合的商品，換個關鍵字或標籤看看 🔎</div>
 
     <div id="lightbox" onclick="closeLightbox(event)">
         <button id="lightbox-close" onclick="closeLightbox()">✕</button>
@@ -274,6 +373,13 @@ const DEFAULT_RATE = 0.023;
 // 全域匯率（韓元 -> 台幣），可手動調整
 let JPY_RATE = DEFAULT_RATE;
 
+// HTML 跳脫（避免商品名稱含引號、< > 時把畫面弄壞）
+function esc(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function onRateChange() {
     const v = parseFloat(document.getElementById('jpy-rate').value);
     JPY_RATE = isNaN(v) ? DEFAULT_RATE : v;
@@ -285,6 +391,220 @@ function closeAllDropdowns() {
     document.querySelectorAll('.move-dropdown').forEach(d => d.remove());
 }
 document.addEventListener('click', closeAllDropdowns);
+
+/* =========================================================
+   標籤系統
+   - PRESET_CATEGORIES：內建分類
+   - customTags：使用者自訂的「固定標籤」，會存進 Firebase（同時備份在瀏覽器）
+   ========================================================= */
+const PRESET_CATEGORIES = [
+    { id:'want',     label:'想買',   emoji:'⭐' },
+    { id:'makeup',   label:'彩妝',   emoji:'💄' },
+    { id:'skincare', label:'保養',   emoji:'🧴' },
+    { id:'snack',    label:'零食',   emoji:'🍬' },
+    { id:'noodle',   label:'泡麵',   emoji:'🍜' },
+    { id:'clothes',  label:'服飾',   emoji:'👕' },
+    { id:'gift',     label:'伴手禮', emoji:'🎁' },
+    { id:'daily',    label:'生活雜貨', emoji:'🧺' },
+    { id:'proxy',    label:'代購',   emoji:'📦' },
+];
+
+const CUSTOM_TAGS_KEY = 'shopping_korea_custom_tags';
+let customTags = [];
+let activeTags = [];   // 目前篩選中的標籤（多選時需同時符合，與美食地圖一致）
+
+function loadLocalCustomTags() {
+    try {
+        const raw = localStorage.getItem(CUSTOM_TAGS_KEY);
+        const list = raw ? JSON.parse(raw) : [];
+        return Array.isArray(list) ? list : [];
+    } catch (e) { return []; }
+}
+function saveLocalCustomTags() {
+    try { localStorage.setItem(CUSTOM_TAGS_KEY, JSON.stringify(customTags)); } catch (e) {}
+}
+function getAllCategories() {
+    return [...PRESET_CATEGORIES, ...customTags.map(c => ({ ...c, custom:true }))];
+}
+function emojiOf(label) {
+    const c = getAllCategories().find(c => c.label === label);
+    return c ? c.emoji : '📌';
+}
+// 取得目前所有商品用到的標籤（含已被刪除固定標籤但商品還留著的）
+function getUsedTagCounts() {
+    const counts = {};
+    document.querySelectorAll('.item-row').forEach(row => {
+        (row._tags || []).forEach(t => { counts[t] = (counts[t] || 0) + 1; });
+    });
+    return counts;
+}
+
+// 單一商品的標籤區（已選標籤 + 選取面板）
+function renderItemTags(itemRow) {
+    const list = itemRow.querySelector('.item-tags-list');
+    list.innerHTML = '';
+    if (!itemRow._tags.length) {
+        list.innerHTML = '<span class="tag-empty">尚未加標籤</span>';
+    }
+    itemRow._tags.forEach(t => {
+        const s = document.createElement('span');
+        s.className = 'tag-stamp';
+        s.innerHTML = `<span>${esc(emojiOf(t))}</span>${esc(t)}<button class="tag-x" type="button" title="移除標籤">×</button>`;
+        s.querySelector('.tag-x').onclick = (e) => { e.stopPropagation(); toggleItemTag(itemRow, t); };
+        list.appendChild(s);
+    });
+
+    const picker = itemRow.querySelector('.tag-picker');
+    picker.innerHTML = '';
+    const cats = getAllCategories();
+    cats.forEach(c => {
+        const o = document.createElement('div');
+        o.className = 'tag-option' + (itemRow._tags.includes(c.label) ? ' active' : '');
+        o.innerHTML = `<span>${esc(c.emoji)}</span>${esc(c.label)}`;
+        if (c.custom) {
+            const del = document.createElement('span');
+            del.className = 'tag-opt-del';
+            del.textContent = '×';
+            del.title = '刪除這個固定標籤';
+            del.onclick = (e) => { e.stopPropagation(); deleteCustomTag(c.label); };
+            o.appendChild(del);
+        }
+        o.onclick = () => toggleItemTag(itemRow, c.label);
+        picker.appendChild(o);
+    });
+    // 這個商品有、但不在固定清單裡的標籤（例如固定標籤被刪除後）
+    itemRow._tags.filter(t => !cats.some(c => c.label === t)).forEach(t => {
+        const o = document.createElement('div');
+        o.className = 'tag-option active';
+        o.innerHTML = `<span>📌</span>${esc(t)}`;
+        o.onclick = () => toggleItemTag(itemRow, t);
+        picker.appendChild(o);
+    });
+}
+
+function refreshAllItemTags() {
+    document.querySelectorAll('.item-row').forEach(renderItemTags);
+}
+
+function toggleItemTag(itemRow, label) {
+    const i = itemRow._tags.indexOf(label);
+    if (i >= 0) itemRow._tags.splice(i, 1);
+    else itemRow._tags.push(label);
+    renderItemTags(itemRow);
+    renderFilterChips();
+}
+
+// 新增自訂標籤：套用到這個商品，同時存成固定標籤，之後每個商品都能直接點選
+function addCustomTag(itemRow) {
+    const input = itemRow.querySelector('.tag-custom-row input');
+    const t = input.value.trim();
+    input.value = '';
+    if (!t) return;
+    if (!getAllCategories().some(c => c.label === t)) {
+        customTags.push({ id:'custom_' + Date.now(), label:t, emoji:'🏷️' });
+        saveLocalCustomTags();
+    }
+    if (!itemRow._tags.includes(t)) itemRow._tags.push(t);
+    refreshAllItemTags();
+    renderFilterChips();
+}
+
+function deleteCustomTag(label) {
+    if (!confirm(`刪除固定標籤「${label}」？\n已加上這個標籤的商品會保留標籤。`)) return;
+    customTags = customTags.filter(c => c.label !== label);
+    saveLocalCustomTags();
+    refreshAllItemTags();
+    renderFilterChips();
+}
+
+/* =========================================================
+   搜尋 + 標籤篩選
+   ========================================================= */
+function getSearchText() {
+    return document.getElementById('search-input').value.trim().toLowerCase();
+}
+
+function renderFilterChips() {
+    const row = document.getElementById('cat-row');
+    const counts = getUsedTagCounts();
+    const cats = getAllCategories();
+    const extra = Object.keys(counts)
+        .filter(t => !cats.some(c => c.label === t))
+        .map(t => ({ label:t, emoji:'📌' }));
+    row.innerHTML = '';
+    [...cats, ...extra].forEach(c => {
+        const chip = document.createElement('div');
+        const active = activeTags.includes(c.label);
+        chip.className = 'cat-chip' + (active ? ' active' : '');
+        const n = counts[c.label] || 0;
+        chip.innerHTML = `<span>${esc(c.emoji)}</span>${esc(c.label)}${n ? `<span class="cnt">${n}</span>` : ''}`;
+        chip.onclick = () => toggleFilterTag(c.label);
+        row.appendChild(chip);
+    });
+}
+
+function toggleFilterTag(label) {
+    activeTags = activeTags.includes(label)
+        ? activeTags.filter(t => t !== label)
+        : [...activeTags, label];
+    renderFilterChips();
+    applyFilters();
+}
+
+function onSearchInput() {
+    document.getElementById('search-box').classList.toggle('has-text', !!document.getElementById('search-input').value);
+    applyFilters();
+}
+
+function clearSearchText() {
+    document.getElementById('search-input').value = '';
+    onSearchInput();
+    document.getElementById('search-input').focus();
+}
+
+function clearFilters() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('search-box').classList.remove('has-text');
+    activeTags = [];
+    renderFilterChips();
+    applyFilters();
+}
+
+function applyFilters() {
+    const q = getSearchText();
+    const filtering = q !== '' || activeTags.length > 0;
+    let shown = 0, total = 0, visibleCards = 0;
+
+    document.querySelectorAll('.location-card').forEach(card => {
+        const locName = (card.querySelector('.loc-name').value || '').toLowerCase();
+        let cardHas = false;
+        card.querySelectorAll('.item-row').forEach(row => {
+            total++;
+            const name = (row.querySelector('.item-name-input').value || '').toLowerCase();
+            const pos  = (row.querySelector('.item-pos').value || '').toLowerCase();
+            const tags = row._tags || [];
+            const matchQ = q === '' ||
+                name.includes(q) || pos.includes(q) || locName.includes(q) ||
+                tags.some(t => t.toLowerCase().includes(q));
+            const matchT = activeTags.every(t => tags.includes(t));
+            const ok = matchQ && matchT;
+            row.style.display = ok ? '' : 'none';
+            if (ok) { shown++; cardHas = true; }
+        });
+        // 沒有在篩選時，整張卡片都顯示（包含剛新增、還沒有商品的分區）
+        const showCard = !filtering || cardHas;
+        card.style.display = showCard ? '' : 'none';
+        if (showCard) visibleCards++;
+    });
+
+    const status = document.getElementById('filter-status');
+    status.classList.toggle('show', filtering);
+    document.getElementById('filter-status-text').textContent = `符合 ${shown} / ${total} 項商品`;
+    document.getElementById('no-result').classList.toggle('show', filtering && shown === 0);
+    updateJumpBar();
+}
+
+/* ========================================================= */
 
 // 圖片壓縮
 function compressImage(file, callback) {
@@ -343,7 +663,7 @@ function showMoveDropdown(btn, itemRow) {
         const isCurrent = card === currentCard;
         const item = document.createElement('div');
         item.className = 'move-dropdown-item' + (isCurrent ? ' current-loc' : '');
-        item.innerHTML = `<span class="loc-dot" style="${isCurrent ? 'background:#ddd;' : ''}"></span>${name}${isCurrent ? ' <span style="font-size:10px;color:#ccc;font-weight:400;">(目前)</span>' : ''}`;
+        item.innerHTML = `<span class="loc-dot" style="${isCurrent ? 'background:#ddd;' : ''}"></span>${esc(name)}${isCurrent ? ' <span style="font-size:10px;color:#ccc;font-weight:400;">(目前)</span>' : ''}`;
         if (!isCurrent) {
             item.onclick = (e) => {
                 e.stopPropagation();
@@ -352,6 +672,7 @@ function showMoveDropdown(btn, itemRow) {
                 itemRow.classList.add('just-moved');
                 setTimeout(() => itemRow.classList.remove('just-moved'), 1000);
                 closeAllDropdowns();
+                applyFilters(); // 目標分區若原本被篩選隱藏，重新計算顯示
                 const offset = 60;
                 const top = card.getBoundingClientRect().top + window.scrollY - offset;
                 window.scrollTo({ top, behavior: 'smooth' });
@@ -408,8 +729,8 @@ function renderQtyLogEntry(itemRow, log) {
     const entry = document.createElement('div');
     entry.className = 'qty-log-entry';
     entry.innerHTML = `
-        <input type="date" value="${log.date || ''}">
-        <input type="number" value="${log.qty || ''}" min="0" placeholder="0">
+        <input type="date" value="${esc(log.date || '')}">
+        <input type="number" value="${esc(log.qty || '')}" min="0" placeholder="0">
         <span class="qty-log-unit">個</span>
         <button class="qty-log-del" title="刪除這筆紀錄">×</button>
     `;
@@ -439,23 +760,41 @@ function toggleQtyLog(itemRow) {
 function renderItem(item) {
     const div = document.createElement('div');
     div.className = 'item-row';
+    div._tags = Array.isArray(item.tags) ? item.tags.slice() : [];
     div.innerHTML = `
         <div class="item-header">
-            <input type="text" class="item-name-input" value="${item.name||''}" placeholder="商品名稱">
+            <input type="text" class="item-name-input" value="${esc(item.name)}" placeholder="商品名稱">
             <div class="item-actions">
                 <div class="move-btn" title="移動到其他分區">✈︎</div>
                 <button class="del-btn" title="刪除商品" style="width:22px;height:22px;font-size:12px;">×</button>
             </div>
         </div>
         <div class="item-fields">
-            <div class="sub-field"><label>備注事項</label><input type="text" class="item-pos" value="${item.pos||''}"></div>
+            <div class="sub-field"><label>備注事項</label><input type="text" class="item-pos" value="${esc(item.pos)}"></div>
             <div class="price-field-box">
                 <label style="font-size:10px;color:#999;font-weight:700;letter-spacing:0.5px;">金額（韓元）</label>
                 <div class="price-input-row">
                     <span class="price-currency-tag">₩</span>
-                    <input type="number" class="item-price" value="${item.price||''}" placeholder="0">
+                    <input type="number" class="item-price" value="${esc(item.price)}" placeholder="0">
                 </div>
                 <div class="price-twd-hint">約 <b>NT$0</b></div>
+            </div>
+        </div>
+        <div class="item-tags-box">
+            <span class="item-tags-label">標籤</span>
+            <div class="item-tags-line">
+                <div class="item-tags-list"></div>
+                <button class="tag-add-btn" type="button">＋ 標籤</button>
+            </div>
+            <div class="tag-panel">
+                <div class="tag-panel-inner">
+                    <div class="tag-picker"></div>
+                    <div class="tag-custom-row">
+                        <input type="text" placeholder="自訂標籤，例如「送媽媽」" maxlength="20">
+                        <button type="button">✓</button>
+                    </div>
+                    <div class="tag-hint">新增後會存成固定標籤，之後每個商品都能直接點選。</div>
+                </div>
             </div>
         </div>
         <div class="qty-field-box" style="margin-bottom:12px;">
@@ -496,6 +835,15 @@ function renderItem(item) {
         item.photos.forEach(b64 => appendPhoto(photosDiv, b64));
     }
 
+    // 標籤
+    div.querySelector('.tag-add-btn').onclick = () => div.classList.toggle('tag-open');
+    const customInput = div.querySelector('.tag-custom-row input');
+    div.querySelector('.tag-custom-row button').onclick = () => addCustomTag(div);
+    customInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addCustomTag(div); }
+    });
+    renderItemTags(div);
+
     // 金額換算
     const priceInput = div.querySelector('.item-price');
     priceInput.addEventListener('input', () => updateTwdHint(div));
@@ -518,7 +866,7 @@ function renderItem(item) {
     });
 
     // 刪除按鈕
-    div.querySelector('.del-btn').onclick = () => div.remove();
+    div.querySelector('.del-btn').onclick = () => { div.remove(); renderFilterChips(); };
 
     return div;
 }
@@ -533,7 +881,7 @@ function renderLocation(loc) {
             <div class="location-index">${(document.querySelectorAll('.location-card').length + 1).toString().padStart(2,'0')}</div>
             <div class="location-title-wrap">
                 <div class="location-banner-label">SHOP / BRAND</div>
-                <div class="location-title"><input type="text" class="loc-name" value="${loc.name||''}" placeholder="輸入品牌／店名 (如: Olive Young)"></div>
+                <div class="location-title"><input type="text" class="loc-name" value="${esc(loc.name)}" placeholder="輸入品牌／店名 (如: Olive Young)"></div>
             </div>
             <button class="del-btn" onclick="removeLocation(this)" title="刪除整個分區">×</button>
         </div>
@@ -543,7 +891,7 @@ function renderLocation(loc) {
         </div>
     `;
     const itemList = card.querySelector('.item-list');
-    (loc.items || [{ name:'', pos:'', price:'', qtyLogs:[], photos:[] }]).forEach(item => {
+    (loc.items || [{ name:'', pos:'', price:'', qtyLogs:[], photos:[], tags:[] }]).forEach(item => {
         itemList.appendChild(renderItem(item));
     });
     container.appendChild(card);
@@ -561,25 +909,31 @@ function saveData() {
             const photos = [];
             row.querySelectorAll('.photo-thumb img').forEach(img => photos.push(img.src));
             const qtyLogs = getQtyLogs(row);
-            if (name || photos.length || qtyLogs.length) {
+            const tags = (row._tags || []).slice();
+            if (name || photos.length || qtyLogs.length || tags.length) {
                 items.push({
                     name,
                     pos:   row.querySelector('.item-pos').value,
                     price: row.querySelector('.item-price').value,
                     qtyLogs,
-                    photos
+                    photos,
+                    tags
                 });
             }
         });
         if (locName || items.length) data.push({ name: locName, items });
     });
-    db.ref(DB_PATH).set({ rate: JPY_RATE, locations: data }).then(() => alert("✅ 儲存成功！"));
+    const tagsToSave = customTags.map(c => ({ id:c.id, label:c.label, emoji:c.emoji }));
+    db.ref(DB_PATH).set({ rate: JPY_RATE, customTags: tagsToSave, locations: data })
+        .then(() => alert("✅ 儲存成功！"));
 }
 
+// 跳轉列：只列出目前顯示中的分區（篩選時會跟著變）
 function updateJumpBar() {
     const bar = document.getElementById('jump-bar');
     bar.innerHTML = '';
     document.querySelectorAll('.location-card').forEach((card, i) => {
+        if (card.style.display === 'none') return;
         const name = card.querySelector('.loc-name').value || `分區 ${i + 1}`;
         const chip = document.createElement('button');
         chip.className = 'jump-chip';
@@ -594,12 +948,13 @@ function updateJumpBar() {
 }
 
 function loadData() {
+    customTags = loadLocalCustomTags();
     db.ref(DB_PATH).once('value', snap => {
         const raw = snap.val();
         const container = document.getElementById('list-container');
         container.innerHTML = '';
 
-        // 向下相容：舊資料是純陣列，新資料是 { rate, locations }
+        // 向下相容：舊資料是純陣列，新資料是 { rate, customTags, locations }
         let data, rate;
         if (Array.isArray(raw)) {
             data = raw; rate = DEFAULT_RATE;
@@ -609,23 +964,35 @@ function loadData() {
             data = null; rate = DEFAULT_RATE;
         }
 
+        // 合併雲端與本機的固定標籤（以名稱去重）
+        if (raw && !Array.isArray(raw) && Array.isArray(raw.customTags)) {
+            raw.customTags.forEach(c => {
+                if (c && c.label && !customTags.some(x => x.label === c.label)) customTags.push(c);
+            });
+            saveLocalCustomTags();
+        }
+
         JPY_RATE = rate;
         document.getElementById('jpy-rate').value = rate;
 
         if (data && data.length) data.forEach(loc => renderLocation(loc));
-        else addLocation();
-        updateJumpBar();
+        else renderLocation({ name:'', items:[{ name:'', pos:'', price:'', qtyLogs:[], photos:[], tags:[] }] });
+        renderFilterChips();
+        applyFilters();
     });
 }
 
 function addLocation() {
-    renderLocation({ name:'', items:[{ name:'', pos:'', price:'', qtyLogs:[], photos:[] }] });
+    clearFilters(); // 篩選中新增的空白項目會被隱藏，所以先清除篩選
+    renderLocation({ name:'', items:[{ name:'', pos:'', price:'', qtyLogs:[], photos:[], tags:[] }] });
+    renderFilterChips();
     window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
 }
 
 function addItem(btn) {
+    clearFilters();
     const itemList = btn.parentElement.querySelector('.item-list');
-    itemList.appendChild(renderItem({ name:'', pos:'', price:'', qtyLogs:[], photos:[] }));
+    itemList.appendChild(renderItem({ name:'', pos:'', price:'', qtyLogs:[], photos:[], tags:[] }));
 }
 
 function removeLocation(btn) {
@@ -635,7 +1002,8 @@ function removeLocation(btn) {
         document.querySelectorAll('.location-index').forEach((el, i) => {
             el.textContent = (i + 1).toString().padStart(2, '0');
         });
-        updateJumpBar();
+        renderFilterChips();
+        applyFilters();
     }
 }
 
